@@ -201,7 +201,7 @@ void rsxFree(void *ptr)
   //Find the correspondending node.
   while(node != NULL)
   {
-    if(node->address == addr)
+    if(node->aligned_address == addr)
     {
       //Set it to unused.
       node->used = HNODE_UNUSED;

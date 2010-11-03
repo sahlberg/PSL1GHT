@@ -68,10 +68,13 @@ void init_screen() {
 	
 	gcmSetFlipMode(GCM_FLIP_VSYNC); // Wait for VSYNC to flip
 
+	rsxHeapInit();
+
 	// Allocate two buffers for the RSX to draw to the screen (double buffering)
 	buffer[0] = rsxMemAlign(16, buffer_size);
 	buffer[1] = rsxMemAlign(16, buffer_size);
-	assert(buffer[0] != NULL && buffer[1] != NULL);
+	assert(buffer[0] != NULL);
+	assert(buffer[1] != NULL);
 
 	u32 offset[2];
 	assert(realityAddressToOffset(buffer[0], &offset[0]) == 0);

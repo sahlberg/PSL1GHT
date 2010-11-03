@@ -3,6 +3,7 @@
 #include <psl1ght/types.h>
 
 #include "rsx/gcm.h"
+#include "rsx/mm.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,10 +25,6 @@ void realityFlushBuffer(gcmContextData *context);
 gcmContextData *realityInit(const u32 cmdSize, const u32 ioSize, const void* ioAddress);
 
 s32 realityAddressToOffset(void *ptr, u32 *offset);
-
-// RSX memory allocators
-void *rsxMemAlign(s32 alignment, s32 size);
-void *rsxMem(s32 size);
 
 #ifdef __cplusplus
 }

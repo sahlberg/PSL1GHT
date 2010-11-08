@@ -5,82 +5,112 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-	<title>HACKERCHANNEL/PSL1GHT @ GitHub</title>
-	
+	<title>PSL1GHT - Lightweight PS3 Homebrew SDK</title>
+
 	<style type="text/css">
 		body {
-  		margin-top: 1.0em;
-  		background-color: #3891ae;
-		  font-family: "Helvetica,Arial,FreeSans";
-  		color: #ffffff;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
+  			margin-top: 1.0em;
+  			background-color: #ffffff;
+			font-family: "Helvetica,Arial,FreeSans";
+			color: #000000;
+		}
+		#container {
+			margin: 0 auto;
+			width: 700px;
+		}
 		h1 { font-size: 3.8em; color: #c76e51; margin-bottom: 3px; }
 		h1 .small { font-size: 0.4em; }
 		h1 a { text-decoration: none }
 		h2 { font-size: 1.5em; color: #c76e51; }
-    h3 { text-align: center; color: #c76e51; }
-    a { color: #c76e51; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
+		h3 { text-align: center; color: #c76e51; }
+		a { color: #c76e51; }
+		.description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+		.download { float: right; }
 		pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
+		hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+		.footer { text-align:center; padding-top:30px; font-style: italic; }
 	</style>
 	
 </head>
 
 <body>
-  <a href="http://github.com/HACKERCHANNEL/PSL1GHT"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+	<a href="http://github.com/HACKERCHANNEL/PSL1GHT"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></img></a>
 
-  <div id="container">
+	<div id="container">
+		<div class="download">
+			<a href="http://github.com/HACKERCHANNEL/PSL1GHT/zipball/master">
+				<img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></img>
+			</a>
+			<a href="http://github.com/HACKERCHANNEL/PSL1GHT/tarball/master">
+				<img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></img>
+			</a>
+		</div>
 
-    <div class="download">
-      <a href="http://github.com/HACKERCHANNEL/PSL1GHT/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/HACKERCHANNEL/PSL1GHT/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-    </div>
+		<h1><a href="http://github.com/HACKERCHANNEL/PSL1GHT">PSL1GHT</a></h1>
+		<div class="description">
+			A lightweight PS3 SDK
+		</div>
 
-    <h1><a href="http://github.com/HACKERCHANNEL/PSL1GHT">PSL1GHT</a>
-      <span class="small">by <a href="http://github.com/HACKERCHANNEL">HACKERCHANNEL</a></span></h1>
+		<p>
+			PSL1GHT is a lightweight PlayStation 3 homebrew SDK that uses the open-source PlayStation 3
+			toolchains to compile user applications that will run from the XMB menu (GameOS homebrew).
+		</p>
 
-    <div class="description">
-      A lightweight PS3 SDK
-    </div>
+		<h2>Dependencies</h2>
+		<p>
+		<ul>
+			<li><a href="http://gcc.gnu.org/">GCC</a></li>
+			<li><a href="http://github.com/HACKERCHANNEL/ps3chain">ps3chain</a> or <a href="http://github.com/ooPo/ps3toolchain">ps3toolchain</a></li>
+			<li><a href="http://www.mr511.de/software/english.html">libelf</a></li>
+			<li><a href="http://python.org/download/">Python 2.x</a></li>
+			<li><a href="http://github.com/ooPo/ps3libraries">ps3libraries</a> (optional, required to build some samples)</li>
+		</ul>
+		</p>
 
-    <p>PSL1GHT is a lightweight PlayStation 3 homebrew SDK that uses the open-source PlayStation 3 toolchains to compile user applications that will run from the XMB menu (GameOS homebrew).</p><h2>Dependencies</h2>
-<p>GCC
-ps3chain / ps3toolchain
-libelf
-Python 2.x
-ps3libraries (optional, required for some samples)</p>
-<h2>Authors</h2>
-<p>Aaron Lindsay (aaron@aaronlindsay.com)<br/>Martin Büchler (lousy@lousy.at)<br/>Marcus Comstedt (marcus@mc.pp.se)<br/>Matthew Parlane (parlane@gmail.com)<br/>Scott Mansell (phiren@gmail.com)<br/>Alex Marshall (trap15@raidenii.net)<br/><br/>      </p>
-<h2>Contact</h2>
-<p>#ps3dev on irc.EFnet.org</p>
+		<h2>Download</h2>
+		<p>
+		You can download this project in either
+		<a href="http://github.com/HACKERCHANNEL/PSL1GHT/zipball/master">zip</a> or
+		<a href="http://github.com/HACKERCHANNEL/PSL1GHT/tarball/master">tar</a> formats.
+		</p>
+		<p>
+			You can also clone the project with <a href="http://git-scm.com">Git</a> by running:
+			<pre>git clone git://github.com/HACKERCHANNEL/PSL1GHT</pre>
+		</p>
 
+		<h2>Install</h2>
+		<p>
+			PSL1GHT can be built and installed by running the following commands:
+			<pre>cd /path/to/psl1ght.git/psl1ght/
+export PSL1GHT=/path/to/psl1ght.git/psl1ght/build
+make
+make install</pre>
+			Once installed, look at the <em>samples/</em> directory for usage examples of PSL1GHT,
+			and start your new projects off by copying the <em>template/</em> folder.
+		</p>
 
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/HACKERCHANNEL/PSL1GHT/zipball/master">zip</a> or
-      <a href="http://github.com/HACKERCHANNEL/PSL1GHT/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/HACKERCHANNEL/PSL1GHT</pre>
-    </p>
+		<h2>Documentation</h2>
+		<p>
+			Visit PSL1GHT's <a href="https://github.com/HACKERCHANNEL/PSL1GHT/wiki">documentation wiki</a>
+			for more information on using PSL1GHT and its components.
+		</p>
 
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/HACKERCHANNEL/PSL1GHT">HACKERCHANNEL/PSL1GHT</a>
-    </div>
+		<h2>Authors</h2>
+		<p>
+			Aaron Lindsay (aaron@aaronlindsay.com)<br/>
+			Matthew Parlane (parlane@gmail.com)<br/>
+			Scott Mansell (phiren@gmail.com)
+		</p>
 
-  </div>
+		<h2>Contact</h2>
+		<p>
+		Visit us and other PSL1GHT users for help or a chat at
+		<a href="irc://irc.efnet.org/ps3dev">#ps3dev</a> on <a href="http://efnet.org">irc.EFnet.org</a>
+		</p>
 
-  
+		<div class="footer">
+			get the source code on GitHub : <a href="http://github.com/HACKERCHANNEL/PSL1GHT">HACKERCHANNEL/PSL1GHT</a>
+		</div>
+	</div>
 </body>
 </html>

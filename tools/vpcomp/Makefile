@@ -30,10 +30,10 @@ clean:
 	@rm -f *.o core core.* $(BIN)
 
 strip: all
-	$(STRIP) $(BIN)
+	@$(STRIP) $(BIN)
 
 install: strip
-	install -m 755 $(BIN) $(PSL1GHT)/host/bin
+	@install -m 755 $(BIN) $(PSL1GHT)/host/bin
 
 $(BIN): $(OBJS)
 	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@

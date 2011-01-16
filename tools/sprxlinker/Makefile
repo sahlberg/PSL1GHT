@@ -2,7 +2,7 @@ TARGET		:= sprxlinker
 SOURCE		:= .
 INCLUDE		:= .
 
-CFLAGS		:= -O2 -Wall --std=gnu99
+CFLAGS		:= -O2 -Wall --std=gnu99 -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 LDFLAGS		:= -lelf
 
 CC			:= gcc

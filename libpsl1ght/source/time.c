@@ -6,10 +6,9 @@
 
 int psl1ght_gettimeofday_r(struct _reent* r, struct timeval * tv, void * unused)
 {
-	int ret;
 	u64 sec, nsec;
 
-	ret = lv2GetCurrentTime(&sec, &nsec);
+	int ret = lv2GetCurrentTime(&sec, &nsec);
 
 	if (ret)
 		return lv2ErrnoReentrant(r, ret);
@@ -22,7 +21,6 @@ int psl1ght_gettimeofday_r(struct _reent* r, struct timeval * tv, void * unused)
 
 int psl1ght_settimeofday_r(struct _reent* r, const struct timeval * tv, const struct timezone * tz)
 {
-	int ret;
 	u64 sec, nsec;
 
 	sec  = tv->tv_sec;

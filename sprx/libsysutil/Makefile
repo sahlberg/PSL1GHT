@@ -2,7 +2,7 @@
 
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCE		:=	../common
+SOURCE		:=	../common .
 INCLUDE		:=	.
 DATA		:=	data
 LIBS		:=	
@@ -16,7 +16,7 @@ include $(PSL1GHT_INTERNAL)/rules/internal.mk
 
 LD			:=	$(PREFIX)ld
 
-CFLAGS		:=	-m32
+CFLAGS		+=	-O2 -Wall -std=gnu99
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
@@ -54,11 +54,11 @@ else
 
 DEPENDS	:= $(OFILES:.o=.d)
 
-$(OUTPUT).a: sprx.o
+$(OUTPUT).a: sprx.o sysutil.o
 
 lib.o: lib.c
 	@echo "[CC]  $(notdir $<)"
-	@$(CC) $(DEPSOPTIONS) -S $(CFLAGS) $(INCLUDES) $< -o lib.S
+	@$(CC) $(DEPSOPTIONS) -S -m32 $(INCLUDES) $< -o lib.S
 	@$(CC) $(DEPSOPTIONS) -c lib.S -o $@
 
 sprx.o: stub.o lib.o

@@ -15,9 +15,11 @@ Credits
     Tempus      - PSL1GHT Logo
     lousyphreak - libaudio
     Hermes      - sysmodule, libpngdec, libjpgdec
-    BigBoss     - EyeToy support added to libcamera sample.
+    BigBoss     - EyeToy support added to libcamera sample, libgem sample.
     ooPo        - ps3libraries
     ElSemi      - Vertex Program Compiler
+    zerkman     - SPU sample code
+
 
 
 Environment
@@ -25,15 +27,15 @@ Environment
 
 A GCC toolchain that supports the PowerPC 64bit architecture is required to
 build PSL1GHT and its samples. It also requires the toolchain to provide
-a full newlib environment; at the moment only two toolchains do so:
+a patched newlib environment; at the moment only one toolchain does so:
 
-* [ps3chain](http://github.com/HACKERCHANNEL/ps3chain)
 * [ps3toolchain](http://github.com/ooPo/ps3toolchain)
 
 The SDK also includes a few standalone tools to help compilation. A host gcc
 is required to build raw2h, ps3load, and sprxlinker requires libelf. ps3load
 requires zlib installed. Python 2.x is required to run fself.py, sfo.py, and
-pkg.py. Nvidia's cg toolkit ([found here](http://developer.nvidia.com/object/cg_toolkit.html), or check your distro's repository) is reqired for compiling vertex programs.
+pkg.py. Nvidia's [Cg Toolkit](http://developer.nvidia.com/object/cg_toolkit.html)
+is reqired for compiling vertex programs. The signing tools require libgmp.
 
 Most of the PSL1GHT samples included in the samples/ directory require various
 libraries from [ps3libraries](http://github.com/ooPo/ps3libraries) to be
@@ -115,3 +117,5 @@ The following libraries are currently supported:
 * libsysmodule
 * libpngdec
 * libjpgdec
+* libgem
+

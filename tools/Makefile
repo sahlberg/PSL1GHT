@@ -1,4 +1,4 @@
-TARGETS	:=	ps3load raw2h sprxlinker vpcomp PS3Py
+TARGETS	:=	geohot ps3load raw2h sprxlinker vpcomp cgcomp PS3Py
 
 all:
 	@for dir in $(TARGETS); do \

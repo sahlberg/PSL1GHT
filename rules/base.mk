@@ -1,11 +1,14 @@
-OBJCOPY		:= $(PREFIX)objcopy
-AR			:= $(PREFIX)ar
-AS			:= $(PREFIX)gcc
-CC			:= $(PREFIX)gcc
-CXX			:= $(PREFIX)g++
-LD			:= $(CC)
-STRIP		:= $(PREFIX)strip
-RAW2H		:= $(PSL1GHT)/host/bin/raw2h
+OBJCOPY		:=	$(PREFIX)objcopy
+AR			:=	$(PREFIX)ar
+AS			:=	$(PREFIX)gcc
+CC			:=	$(PREFIX)gcc
+CXX			:=	$(PREFIX)g++
+STRIP		:=	$(PREFIX)strip
+RAW2H		:=	$(PSL1GHT)/host/bin/raw2h
+
+ifeq ($(findstring $(PREFIX),$(LD)),)
+LD			:=	$(CC)
+endif
 
 DEPSOPTIONS	=	-MMD -MP -MF $(DEPSDIR)/$*.d
 

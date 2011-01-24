@@ -1,62 +1,63 @@
-#include "rsx/realityVP.h"
 #include "string.h"
+#include "rsx/reality_program.h"
 
 void *realityVertexProgramGetUCode(realityVertexProgram *vertexprogram)
 {
 	unsigned char *ptr=(unsigned char *)vertexprogram;
 
-	return (void*)(ptr+vertexprogram->UCodeOffset);
+	return (void*)(ptr+vertexprogram->ucode_off);
 }
 
-unsigned int realityVertexProgramGetInputMask(realityVertexProgram *vertexprogram)
+u32 realityVertexProgramGetInputMask(realityVertexProgram *vertexprogram)
 {
-	return vertexprogram->InputMask;
+	return vertexprogram->input_mask;
 }
 
-unsigned int realityVertexProgramGetOutputMask(realityVertexProgram *vertexprogram)
+u32 realityVertexProgramGetOutputMask(realityVertexProgram *vertexprogram)
 {
-	return vertexprogram->OutputMask;
+	return vertexprogram->output_mask;
 }
 
-realityVertexProgramAttribute *realityVertexProgramGetAttributes(realityVertexProgram *vertexprogram)
+realityProgramAttrib *realityVertexProgramGetAttributes(realityVertexProgram *vertexprogram)
 {
-	return (realityVertexProgramAttribute*) (((unsigned char*)vertexprogram)+vertexprogram->AttributesOffset);
+	return (realityProgramAttrib*) (((unsigned char*)vertexprogram)+vertexprogram->attrib_off);
 }
 
-int realityVertexProgramGetInputAttribute(realityVertexProgram *vertexprogram,const char *name)
+s32 realityVertexProgramGetAttribute(realityVertexProgram *vertexprogram,const char *name)
 {
 	int i;
-	realityVertexProgramAttribute *attributes = realityVertexProgramGetAttributes(vertexprogram);
-	for(i=0;i<vertexprogram->NumAttributes;++i)
+	realityProgramAttrib *attributes = realityVertexProgramGetAttributes(vertexprogram);
+	for(i=0;i<vertexprogram->num_attrib;++i)
 	{
 		char *namePtr;
-		if(attributes[i].NameOffset==0)
+		if(attributes[i].name_off==0)
 			continue;
-		namePtr=((char*)vertexprogram)+attributes[i].NameOffset;
+		namePtr=((char*)vertexprogram)+attributes[i].name_off;
 		if(strcasecmp(name,namePtr)==0)
-			return attributes[i].Index;
+			return attributes[i].index;
 	}
 
 	return -1;
 }
 
-realityVertexProgramConstant *realityVertexProgramGetConstants(realityVertexProgram *vertexprogram)
+realityProgramConst *realityVertexProgramGetConstants(realityVertexProgram *vertexprogram)
 {
-	return (realityVertexProgramConstant*) (((unsigned char*)vertexprogram)+vertexprogram->ConstantsOffset);
+	return (realityProgramConst*) (((unsigned char*)vertexprogram)+vertexprogram->const_off);
 }
 
-int realityVertexProgramGetConstant(realityVertexProgram *vertexprogram,const char *name)
+s32 realityVertexProgramGetConstant(realityVertexProgram *vertexprogram,const char *name)
 {
-	int i;
-	realityVertexProgramConstant *constants = realityVertexProgramGetConstants(vertexprogram);
-	for(i=0;i<vertexprogram->NumConstants;++i)
+	s32 i;
+	realityProgramConst *constants = realityVertexProgramGetConstants(vertexprogram);
+
+	for(i=0;i<vertexprogram->num_const;++i)
 	{
 		char *namePtr;
-		if(constants[i].NameOffset==0)
+		if(constants[i].name_off==0)
 			continue;
-		namePtr=((char*)vertexprogram)+constants[i].NameOffset;
+		namePtr=((char*)vertexprogram)+constants[i].name_off;
 		if(strcasecmp(name,namePtr)==0)
-			return constants[i].Index;
+			return i;
 	}
 
 	return -1;

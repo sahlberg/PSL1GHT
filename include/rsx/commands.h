@@ -1,11 +1,13 @@
 #pragma once
 
 #include <rsx/gcm.h>
-#include "rsx/realityVP.h"
+#include "rsx/reality_program.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define REALITY_TRANSFER_SURFACE_FMT_Y32		0x0b
 
 // Set the colour for clearing buffers, should be in ARGB format.
 void realitySetClearColor(gcmContextData *context, uint32_t color);
@@ -114,14 +116,17 @@ typedef struct {
 	uint32_t size;
 	uint32_t num_regs;
 	uint32_t data[];
-} realityFragmentProgram; 
+} realityFragmentProgram_old; 
 
 void realityLoadVertexProgram(gcmContextData *context, realityVertexProgram *prog);
 void realityLoadVertexProgram_old(gcmContextData *context, realityVertexProgram_old *prog);
 void realitySetVertexProgramConstant4f(gcmContextData *context, int constant, float values[4]);
-void realitySetVertexProgramConstant4fBlock(gcmContextData *context, int constant, int num4fConstants, float *values);
-void realityInstallFragmentProgram(gcmContextData *context, realityFragmentProgram *prog, uint32_t *addr);
-void realityLoadFragmentProgram(gcmContextData *context, realityFragmentProgram *prog);
+void realitySetVertexProgramConstant4fBlock(gcmContextData *context, realityVertexProgram *prog, int index, int num4fConstants, float *values);
+void realityLoadFragmentProgram(gcmContextData *context, realityFragmentProgram *prog,u32 offset,u32 location);
+void realitySetFragmentProgramParameter(gcmContextData *context,realityFragmentProgram *program,s32 index,const f32 *value,u32 offset);
+
+void realityInstallFragmentProgram_old(gcmContextData *context, realityFragmentProgram_old *prog, uint32_t *addr);
+void realityLoadFragmentProgram_old(gcmContextData *context, realityFragmentProgram_old *prog);
 
 typedef struct {
 	uint32_t offset;
@@ -171,6 +176,8 @@ void realityDepthTestFunc(gcmContextData *context, uint32_t function);
 void realityDepthWriteEnable(gcmContextData *context, uint32_t enable);
 
 void realityZControl(gcmContextData *context, uint8_t cullNearFar, uint8_t zClampEnable, uint8_t cullIngnoreW);
+
+void realityInlineTransfer(gcmContextData *context,const u32 dstOffset,const void *srcAddress,const u32 sizeInWords,const u8 location);
 
 #ifdef __cplusplus
 }

@@ -3,6 +3,14 @@
 #include <rsx/buffer.h>
 #include <rsx/reality.h>
 
+static __inline__ f32 swapF32_16(f32 v)
+{
+	ieee32 d;
+	d.f = v;
+	d.u = ( ( ( d.u >> 16 ) & 0xffff ) << 0 ) | ( ( ( d.u >> 0 ) & 0xffff ) << 16 );
+	return d.f;
+}
+
 void realitySetClearColor(gcmContextData *context, uint32_t color) {
 	COMMAND_LENGTH(context, 2);
 	commandBufferPutCmd1(context, NV30_3D_CLEAR_COLOR_VALUE, color);
@@ -109,14 +117,14 @@ void realityLoadVertexProgram_old(gcmContextData *context, realityVertexProgram_
 }
 
 void realityLoadVertexProgram(gcmContextData *context, realityVertexProgram *prog) {
-	int inst, command_size = prog->NumInsts * 5 + 7;
+	int inst, command_size = prog->num_insn * 5 + 7;
 	unsigned int *ucode = (unsigned int*)realityVertexProgramGetUCode(prog);
-	realityVertexProgramConstant *constants;
+	realityProgramConst *constants;
 	COMMAND_LENGTH(context, command_size);
 	
 	commandBufferPutCmd1(context, NV30_3D_VP_UPLOAD_FROM_ID, 0);
 	
-	for(inst = 0; inst < prog->NumInsts*4; inst += 4) {
+	for(inst = 0; inst < prog->num_insn*4; inst += 4) {
 		commandBufferPutCmd4(context, NV30_3D_VP_UPLOAD_INST(inst), 
 					ucode[inst + 0],
 					ucode[inst + 1],
@@ -125,16 +133,16 @@ void realityLoadVertexProgram(gcmContextData *context, realityVertexProgram *pro
 	}
 
 	commandBufferPutCmd1(context, NV30_3D_VP_START_FROM_ID, 0);
-	commandBufferPutCmd2(context, NV40_3D_VP_ATTRIB_EN, prog->InputMask, prog->OutputMask);
+	commandBufferPutCmd2(context, NV40_3D_VP_ATTRIB_EN, prog->input_mask, prog->output_mask);
 
 	constants = realityVertexProgramGetConstants(prog);
 
 	if(constants)
 	{
 		int c;
-		for(c=0;c<prog->NumConstants;++c)
+		for(c=0;c<prog->num_const;++c)
 		{
-			realitySetVertexProgramConstant4f(context,constants[c].Index,(float*)constants[c].Values);
+			realitySetVertexProgramConstant4f(context,constants[c].index,(float*)constants[c].values);
 		}
 	}
 }
@@ -152,34 +160,51 @@ void realitySetVertexProgramConstant4f(gcmContextData *context, int num, float v
 							);
 }
 
-void realitySetVertexProgramConstant4fBlock(gcmContextData *context, int constant, int num4fConstants, float *values)
+void realitySetVertexProgramConstant4fBlock(gcmContextData *context, realityVertexProgram *prog, int index, int num4fConstants, float *values)
 {
 	int n;
+	realityProgramConst *constants = realityVertexProgramGetConstants(prog);
+
 	for(n=0;n<num4fConstants;++n)
 	{
-		realitySetVertexProgramConstant4f(context,constant+n,values+4*n);
+		realitySetVertexProgramConstant4f(context,constants[index].index+n,values+4*n);
 	}
 }
 
-void realityInstallFragmentProgram(gcmContextData *context, realityFragmentProgram *prog, uint32_t *addr) {
-	// We don't actually need context, but if we leave it out people will forget.
-	int i;
-	for( i = 0; i < prog->size; ++i ) {
-		addr[i] = (((prog->data[i] >> 16 ) & 0xffff) << 0) |
-			    (((prog->data[i] >> 0 ) & 0xffff) << 16);
-	}
-	assert(realityAddressToOffset(addr, &prog->offset) == 0);
-}
+void realityLoadFragmentProgram(gcmContextData *context, realityFragmentProgram *prog,u32 offset,u32 location)
+{
+	u32 fpcontrol;
 
-void realityLoadFragmentProgram(gcmContextData *context, realityFragmentProgram *prog) {
 	COMMAND_LENGTH(context, 4);
-	assert(prog->offset != 0);
+	
+	assert(offset!=0);
+	
 	commandBufferPutCmd1(context, NV30_3D_FP_ACTIVE_PROGRAM,
-				prog->offset | NV30_3D_FP_ACTIVE_PROGRAM_DMA0);
+						 offset | (location + 1));
+
+	fpcontrol = prog->fp_control | (prog->num_regs << NV40_3D_FP_CONTROL_TEMP_COUNT__SHIFT);
 	commandBufferPutCmd1(context, NV30_3D_FP_CONTROL, 
- 				prog->num_regs << NV40_3D_FP_CONTROL_TEMP_COUNT__SHIFT);
+ 						 fpcontrol);
 }
 
+void realitySetFragmentProgramParameter(gcmContextData *context,realityFragmentProgram *program,s32 index,const f32 *value,u32 offset)
+{
+	f32 params[4] = {0.0f,0.0f,0.0f,0.0f};
+	realityProgramConst *consts = realityFragmentProgramGetConsts(program);
+
+	switch(consts[index].type) {
+		case PARAM_FLOAT4:
+			params[3] = swapF32_16(value[3]);
+		case PARAM_FLOAT3:
+			params[2] = swapF32_16(value[2]);
+		case PARAM_FLOAT2:
+			params[1] = swapF32_16(value[1]);
+		case PARAM_FLOAT:
+			params[0] = swapF32_16(value[0]);
+			break;
+	}
+	realityInlineTransfer(context,offset + consts[index].index,params,4,REALITY_RSX_MEMORY);
+}
 
 void realitySetTexture(gcmContextData *context, uint32_t unit, realityTexture *tex) {
 	COMMAND_LENGTH(context, 11);
@@ -334,4 +359,56 @@ void realityDepthWriteEnable(gcmContextData *context, uint32_t enable)
 {
 	COMMAND_LENGTH(context,2);
 	commandBufferPutCmd1(context, NV30_3D_DEPTH_WRITE_ENABLE, enable);
+}
+
+void realityInlineTransfer(gcmContextData *context,const u32 dstOffset,const void *srcAddress,const u32 sizeInWords,const u8 location)
+{
+	u32 *src;
+	u32 cnt;
+	u32 padSizeInWords;
+	u32 alignedVideoOffset;
+	u32 pixelShift;
+
+	alignedVideoOffset = dstOffset&~0x3f;
+	pixelShift = (dstOffset&0x3f)>>2;
+
+	padSizeInWords = (sizeInWords + 1)&~0x01;
+
+	COMMAND_LENGTH(context,12 + padSizeInWords);
+
+	commandBufferPutCmd1(context,NV3062TCL_SET_CONTEXT_DMA_IMAGE_DEST,0xFEED0000 + location);
+	commandBufferPutCmd1(context,NV3062TCL_SET_OFFSET_DEST,alignedVideoOffset);
+	commandBufferPutCmd2(context,NV3062TCL_SET_COLOR_FORMAT,REALITY_TRANSFER_SURFACE_FMT_Y32,0x10001000);
+	commandBufferPutCmd3(context,NV308ATCL_POINT,((0 << 16) | pixelShift),((1 << 16) | sizeInWords),((1 << 16) | sizeInWords));
+
+	commandBufferPut(context,(NV308ATCL_COLOR | (padSizeInWords<<18)));
+
+	cnt = 0;
+	src = (u32*)srcAddress;
+	while(cnt<sizeInWords) {
+		commandBufferPut(context,src[cnt]);
+		cnt++;
+	}
+	if(padSizeInWords!=sizeInWords)
+		commandBufferPut(context,0);
+}
+
+
+void realityInstallFragmentProgram_old(gcmContextData *context, realityFragmentProgram_old *prog, uint32_t *addr) {
+	// We don't actually need context, but if we leave it out people will forget.
+	int i;
+	for( i = 0; i < prog->size; ++i ) {
+		addr[i] = (((prog->data[i] >> 16 ) & 0xffff) << 0) |
+			    (((prog->data[i] >> 0 ) & 0xffff) << 16);
+	}
+	assert(realityAddressToOffset(addr, &prog->offset) == 0);
+}
+
+void realityLoadFragmentProgram_old(gcmContextData *context, realityFragmentProgram_old *prog) {
+	COMMAND_LENGTH(context, 4);
+	assert(prog->offset != 0);
+	commandBufferPutCmd1(context, NV30_3D_FP_ACTIVE_PROGRAM,
+				prog->offset | NV30_3D_FP_ACTIVE_PROGRAM_DMA0);
+	commandBufferPutCmd1(context, NV30_3D_FP_CONTROL, 
+ 				prog->num_regs << NV40_3D_FP_CONTROL_TEMP_COUNT__SHIFT);
 }

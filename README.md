@@ -36,7 +36,7 @@ The SDK also includes a few standalone tools to help compilation. A host gcc
 is required to build raw2h, ps3load, and sprxlinker requires libelf. ps3load
 requires zlib installed. Python 2.x is required to run fself.py, sfo.py, and
 pkg.py. Nvidia's [Cg Toolkit](http://developer.nvidia.com/object/cg_toolkit.html)
-is reqired for compiling vertex programs. The signing tools require libgmp.
+is required for compiling vertex programs. The signing tools require libgmp.
 
 Most of the PSL1GHT samples included in the samples/ directory require various
 libraries from [ps3libraries](http://github.com/ps3dev/ps3libraries) to be

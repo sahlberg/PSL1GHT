@@ -385,7 +385,7 @@ inline const Vector3 rotate( Quat quat, Vector3 vec )
 
 inline const Quat conj( Quat quat )
 {
-    return Quat( spu_xor( quat.get128(), ((vec_float4)(vec_int4){0x80000000,0x80000000,0x80000000,0}) ) );
+    return Quat( spu_xor( quat.get128(), ((vec_float4)(vec_uint4){0x80000000,0x80000000,0x80000000,0}) ) );
 }
 
 inline const Quat select( Quat quat0, Quat quat1, bool select1 )

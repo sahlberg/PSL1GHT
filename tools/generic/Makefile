@@ -28,8 +28,9 @@ ifneq (,$(findstring CYGWIN,$(UNAME)))
 endif
 
 ifneq (,$(findstring Darwin,$(shell uname -s)))
-	SDK	:=	/Developer/SDKs/MacOSX10.4u.sdk
-	CFLAGS += -mmacosx-version-min=10.4 -isysroot $(SDK) -Wl,-syslibroot,$(SDK) -arch i386 -arch ppc
+	SDK	:=	$(shell xcrun --show-sdk-path)
+	OSX_MIN := $(shell defaults read $(shell xcrun --show-sdk-platform-path)/Info MinimumSDKVersion 2> /dev/null || 10.4)
+	CFLAGS += -mmacosx-version-min=$(OSX_MIN) -isysroot $(SDK) -Wl,-syslibroot,$(SDK)
 endif
 
 TARGETS	:=	$(patsubst %.c,%$(exeext),$(wildcard *.c)) \

@@ -32,6 +32,7 @@ extern long int __librt_telldir_r(struct _reent *r,DIR *dirp);
 extern void __librt_rewinddir_r(struct _reent *r,DIR *dirp);
 extern void __librt_seekdir_r(struct _reent *r,DIR *dirp,long int loc);
 extern int __librt_rmdir_r(struct _reent *r,const char *dirname);
+extern int __librt_link_r(struct _reent *r,const char *old,const char *new);
 extern int __librt_unlink_r(struct _reent *r,const char *path);
 extern int __librt_access_r(struct _reent *r,const char *path,int amode);
 
@@ -78,6 +79,7 @@ static void __syscalls_init(void)
 	__syscalls.rewinddir_r = __librt_rewinddir_r;
 	__syscalls.seekdir_r = __librt_seekdir_r;
 	__syscalls.rmdir_r = __librt_rmdir_r;
+	__syscalls.link_r = __librt_link_r;
 	__syscalls.unlink_r = __librt_unlink_r;
 	__syscalls.access_r = __librt_access_r;
 

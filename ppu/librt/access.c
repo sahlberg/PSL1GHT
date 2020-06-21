@@ -17,7 +17,6 @@
 int _access(const char *fn, int flags, int* _errno)
 {
 	struct stat s;
-	*_errno = 0;
 
 	/* Did the pass us the right flags? */
 	if ( (flags != F_OK) && (flags != R_OK) && (flags != W_OK) && (flags != X_OK) ) {

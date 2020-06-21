@@ -31,38 +31,62 @@
                                           SSL_LOAD_CERT_SCE03 | \
                                           SSL_LOAD_CERT_SCE04 | \
                                           SSL_LOAD_CERT_SCE05)
-
 #define SSL_LOAD_CERT_NORMAL             (SSL_LOAD_CERT_BALTIMORE_CT      | \
-                                          SSL_LOAD_CERT_CLASS1_PCA_G2_V2  | \
-                                          SSL_LOAD_CERT_CLASS1_PCA_G3_V2  | \
-                                          SSL_LOAD_CERT_CLASS1_PCA_SS_V4  | \
-                                          SSL_LOAD_CERT_CLASS2_PCA_G2_V2  | \
-                                          SSL_LOAD_CERT_CLASS2_PCA_G3_V2  | \
-                                          SSL_LOAD_CERT_CLASS2_PCA_SS_V4  | \
                                           SSL_LOAD_CERT_CLASS3_PCA_G2_V2  | \
                                           SSL_LOAD_CERT_CLASS3_PCA_G3_V2  | \
                                           SSL_LOAD_CERT_CLASS3_PCA_SS_V4  | \
-                                          SSL_LOAD_CERT_CLASS4_PCA_G2_V2  | \
-                                          SSL_LOAD_CERT_CLASS4_PCA_G3_V2  | \
                                           SSL_LOAD_CERT_ENTRUST_NET_SS_CA | \
                                           SSL_LOAD_CERT_EQUIFAX_SEC_CA    | \
                                           SSL_LOAD_CERT_EQUIFAX_SEC_EBUS1 | \
                                           SSL_LOAD_CERT_GEOTRUST_GCA      | \
                                           SSL_LOAD_CERT_GLOBALSIGN_RCA    | \
                                           SSL_LOAD_CERT_GTE_CT_G_RCA      | \
-                                          SSL_LOAD_CERT_GTE_CT_ROOT       | \
                                           SSL_LOAD_CERT_RSA1024_V1        | \
                                           SSL_LOAD_CERT_RSA2048_V3        | \
-                                          SSL_LOAD_CERT_RSA_SECURE_SERVER | \
                                           SSL_LOAD_CERT_THAWTE_PREM_SCA   | \
                                           SSL_LOAD_CERT_THAWTE_SCA        | \
                                           SSL_LOAD_CERT_VALICERT_CLASS2   | \
-                                          SSL_LOAD_CERT_VERISIGN_TSA_CA   | \
                                           SSL_LOAD_CERT_AAA_CERT_SERVICES | \
                                           SSL_LOAD_CERT_ADDTRUST_EXT_CA   | \
                                           SSL_LOAD_CERT_UTN_USERFIRST_HW  | \
                                           SSL_LOAD_CERT_EQUIFAX_SEC_G_EBUS1 | \
-                                          SSL_LOAD_CERT_CLASS3_PCA_G5)
+                                          SSL_LOAD_CERT_CLASS3_PCA_G5     | \
+                                          SSL_LOAD_CERT_DIGICERT_HA_EV_RCA| \
+                                          SSL_LOAD_CERT_DIGICERT_A_ID_RCA | \
+                                          SSL_LOAD_CERT_DIGICERT_GLOBAL_RCA | \
+                                          SSL_LOAD_CERT_CT_G_ROOT           | \
+                                          SSL_LOAD_CERT_ENTRUST_CA2048      | \
+                                          SSL_LOAD_CERT_ENTRUST_RCA         | \
+                                          SSL_LOAD_CERT_GODADDY_CLASS2_CA   | \
+                                          SSL_LOAD_CERT_STARFIELD_CLASS2_CA | \
+                                          SSL_LOAD_CERT_STARFIELD_S_RC      | \
+                                          SSL_LOAD_CERT_THATE_PRIMARY_RCA   | \
+                                          SSL_LOAD_CERT_VALICERT_CLASS1_VA  | \
+                                          SSL_LOAD_CERT_SECOM_RCA1          | \
+                                          SSL_LOAD_CERT_SECURE_TRUST_CA     | \
+                                          SSL_LOAD_CERT_SHA256)
+
+#define SSL_LOAD_CERT_SHA256            (SSL_LOAD_CERT_GLOBALSIGN_RCA_R2   | \
+                                         SSL_LOAD_CERT_ENTRUST_RCA_G2      | \
+                                         SSL_LOAD_CERT_VERISIGN_U_RCA      | \
+                                         SSL_LOAD_CERT_GODADDY_C2_CA_G2    | \
+                                         SSL_LOAD_CERT_STARFIELD_C2_CA_G2  | \
+                                         SSL_LOAD_CERT_STARFIELD_S_RC_G2   | \
+                                         SSL_LOAD_CERT_STARTCOM_CA         | \
+                                         SSL_LOAD_CERT_STARTCOM_CA_G2      | \
+                                         SSL_LOAD_CERT_SECOM_RCA2)
+
+#define SSL_LOAD_CERT_OBSOLETE     (SSL_LOAD_CERT_RSA_SECURE_SERVER | \
+                                         SSL_LOAD_CERT_VERISIGN_TSA_CA   | \
+                                         SSL_LOAD_CERT_GTE_CT_ROOT)
+#define SSL_LOAD_CERT_NOT_FOR_SERVER    (SSL_LOAD_CERT_CLASS1_PCA_G2_V2  | \
+                                         SSL_LOAD_CERT_CLASS1_PCA_G3_V2  | \
+                                         SSL_LOAD_CERT_CLASS1_PCA_SS_V4  | \
+                                         SSL_LOAD_CERT_CLASS2_PCA_G2_V2  | \
+                                         SSL_LOAD_CERT_CLASS2_PCA_G3_V2  | \
+                                         SSL_LOAD_CERT_CLASS2_PCA_SS_V4  | \
+                                         SSL_LOAD_CERT_CLASS4_PCA_G2_V2  | \
+                                         SSL_LOAD_CERT_CLASS4_PCA_G3_V2)
 
 #define SSL_LOAD_CERT_SCE01               (0x0000000000000001ULL)
 #define SSL_LOAD_CERT_SCE02               (0x0000000000000002ULL)
@@ -109,6 +133,28 @@
 #define SSL_LOAD_CERT_UTN_USERFIRST_HW    (0x0000000200000000ULL)
 #define SSL_LOAD_CERT_EQUIFAX_SEC_G_EBUS1 (0x0000000400000000ULL)
 #define SSL_LOAD_CERT_CLASS3_PCA_G5       (0x0000000800000000ULL)
+#define SSL_LOAD_CERT_DIGICERT_HA_EV_RCA  (0x0000001000000000ULL)
+#define SSL_LOAD_CERT_DIGICERT_A_ID_RCA   (0x0000002000000000ULL)
+#define SSL_LOAD_CERT_DIGICERT_GLOBAL_RCA (0x0000004000000000ULL)
+#define SSL_LOAD_CERT_CT_G_ROOT           (0x0000008000000000ULL)
+#define SSL_LOAD_CERT_ENTRUST_CA2048      (0x0000010000000000ULL)
+#define SSL_LOAD_CERT_ENTRUST_RCA         (0x0000020000000000ULL)
+#define SSL_LOAD_CERT_GLOBALSIGN_RCA_R2   (0x0000040000000000ULL)
+#define SSL_LOAD_CERT_GODADDY_CLASS2_CA   (0x0000080000000000ULL)
+#define SSL_LOAD_CERT_STARFIELD_CLASS2_CA (0x0000100000000000ULL)
+#define SSL_LOAD_CERT_STARFIELD_S_RC      (0x0000200000000000ULL)
+#define SSL_LOAD_CERT_THATE_PRIMARY_RCA   (0x0000400000000000ULL)
+#define SSL_LOAD_CERT_VALICERT_CLASS1_VA  (0x0000800000000000ULL)
+#define SSL_LOAD_CERT_SECOM_RCA1          (0x0001000000000000ULL)
+#define SSL_LOAD_CERT_SECURE_TRUST_CA     (0x0002000000000000ULL)
+#define SSL_LOAD_CERT_ENTRUST_RCA_G2      (0x0004000000000000ULL)
+#define SSL_LOAD_CERT_VERISIGN_U_RCA      (0x0008000000000000ULL)
+#define SSL_LOAD_CERT_GODADDY_C2_CA_G2    (0x0010000000000000ULL)
+#define SSL_LOAD_CERT_STARFIELD_C2_CA_G2  (0x0020000000000000ULL)
+#define SSL_LOAD_CERT_STARFIELD_S_RC_G2   (0x0040000000000000ULL)
+#define SSL_LOAD_CERT_STARTCOM_CA         (0x0080000000000000ULL)
+#define SSL_LOAD_CERT_STARTCOM_CA_G2      (0x0100000000000000ULL)
+#define SSL_LOAD_CERT_SECOM_RCA2          (0x0200000000000000ULL)
 
 
 #ifdef __cplusplus

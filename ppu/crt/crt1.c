@@ -37,7 +37,6 @@ extern void __librt_seekdir_r(struct _reent *r,DIR *dirp,long int loc);
 extern int __librt_rmdir_r(struct _reent *r,const char *dirname);
 extern int __librt_link_r(struct _reent *r,const char *old,const char *new);
 extern int __librt_unlink_r(struct _reent *r,const char *path);
-extern int __librt_access_r(struct _reent *r,const char *path,int amode);
 extern int __librt_utime_r(struct _reent *r,const char *path,const struct utimbuf *times);
 
 extern int __librt_usleep_r(struct _reent *r,useconds_t usec);
@@ -88,7 +87,6 @@ static void __syscalls_init(void)
 	__syscalls.rmdir_r = __librt_rmdir_r;
 	__syscalls.link_r = __librt_link_r;
 	__syscalls.unlink_r = __librt_unlink_r;
-	__syscalls.access_r = __librt_access_r;
 	__syscalls.utime_r = __librt_utime_r;
 
 	__syscalls.sleep_r = __librt_sleep_r;

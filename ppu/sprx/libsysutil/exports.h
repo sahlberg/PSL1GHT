@@ -43,6 +43,8 @@ EXPORT(oskSetLayoutMode, 0xf0ec3ccc);
 EXPORT(sysUtilRegisterCallbackEx, 0x9d98afa0);
 EXPORT(sysUtilCheckCallback, 0x189a74da);
 EXPORT(sysUtilUnregisterCallback, 0x02ff3c1b);
+EXPORT(sysUtilGetSystemParamInt, 0x40e895d3);
+EXPORT(sysUtilGetSystemParamString, 0x938013a0);
 
 /* Save utility support */
 EXPORT(sysSaveListLoad2Ex, 0x1dfbfdd6);

@@ -20,7 +20,7 @@ static __inline__ f32 swapF32_16(f32 v)
 
 s32 __attribute__((noinline)) rsxContextCallback(gcmContextData *context,u32 count)
 {
-	register s32 result asm("3");
+	register s32 result asm("r3");
 	asm volatile (
 		"stdu	1,-128(1)\n"
 		"mr		31,2\n"
@@ -30,7 +30,8 @@ s32 __attribute__((noinline)) rsxContextCallback(gcmContextData *context,u32 cou
 		"bctrl\n"
 		"mr		2,31\n"
 		"addi	1,1,128\n"
-		: : "b"(context->callback)
+		: "=r"(result)
+		: "b"(context->callback)
 		: "r31", "r0", "lr"
 	);
 	return result;

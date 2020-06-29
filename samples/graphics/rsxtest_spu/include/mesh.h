@@ -80,7 +80,7 @@ class SMeshBuffer
 {
 public:
 	SMeshBuffer() : pos_off(0),nrm_off(0),col_off(0),uv_off(0),ind_off(0) {};
-	~SMeshBuffer()
+	virtual ~SMeshBuffer()
 	{
 	}
 

@@ -340,7 +340,6 @@ void drawFrame()
 
 int main(int argc,const char *argv[])
 {
-	s32 ret,i;
 	padInfo padinfo;
 	padData paddata;
 	rsxProgramConst *consts = rsxFragmentProgramGetConsts(fpo);
@@ -363,17 +362,17 @@ int main(int argc,const char *argv[])
 	setRenderTarget(curr_fb);
 	rsxFinish(context,0);
 
-	ret = atexit(program_exit_callback);
-	ret = sysUtilRegisterCallback(0,sysutil_exit_callback,NULL);
+	atexit(program_exit_callback);
+	sysUtilRegisterCallback(0,sysutil_exit_callback,NULL);
 
 	delete cube;
 
 	running = 1;
 	while(running) {
-		ret = sysUtilCheckCallback();
+		sysUtilCheckCallback();
 
 		ioPadGetInfo(&padinfo);
-		for(i=0; i<MAX_PADS; i++){
+		for(int i=0; i < MAX_PADS; i++){
 			if(padinfo.status[i]){
 				ioPadGetData(i, &paddata);
 

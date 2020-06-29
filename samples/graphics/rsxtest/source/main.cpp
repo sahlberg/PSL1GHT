@@ -553,7 +553,6 @@ void drawFrame()
 
 int main(int argc,const char *argv[])
 {
-	s32 ret,i;
 	padInfo padinfo;
 	padData paddata;
 	void *host_addr = memalign(1024*1024,HOST_SIZE);
@@ -569,8 +568,8 @@ int main(int argc,const char *argv[])
 	donut = createDonut(3.0f,1.5f,32,32);
 	cube = createCube(5.0f);
 
-	ret = atexit(program_exit_callback);
-	ret = sysUtilRegisterCallback(0,sysutil_exit_callback,NULL);
+	atexit(program_exit_callback);
+	sysUtilRegisterCallback(0,sysutil_exit_callback,NULL);
 
 	P = transpose(Matrix4::perspective(DEGTORAD(45.0f),aspect_ratio,1.0f,3000.0f));
 
@@ -580,10 +579,10 @@ int main(int argc,const char *argv[])
 
 	running = 1;
 	while(running) {
-		ret = sysUtilCheckCallback();
+		sysUtilCheckCallback();
 
 		ioPadGetInfo(&padinfo);
-		for(i=0; i<MAX_PADS; i++){
+		for(int i=0; i < MAX_PADS; i++){
 			if(padinfo.status[i]){
 				ioPadGetData(i, &paddata);
 

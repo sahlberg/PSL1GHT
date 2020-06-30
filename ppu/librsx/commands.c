@@ -30,7 +30,7 @@ s32 __attribute__((noinline)) rsxContextCallback(gcmContextData *context,u32 cou
 		"bctrl\n"
 		"mr		2,31\n"
 		"addi	1,1,128\n"
-		: "=r"(result)
+		: "+r"(result)
 		: "b"(context->callback)
 		: "r31", "r0", "lr"
 	);

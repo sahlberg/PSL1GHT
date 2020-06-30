@@ -38,6 +38,30 @@
 /*! \brief On-screen keyboard has canceled input. */
 #define SYSUTIL_OSK_INPUT_CANCELED              0x0506
 
+#define SYSUTIL_SYSTEMPARAM_ID_LANG                             0x0111
+#define SYSUTIL_SYSTEMPARAM_ID_ENTER_BUTTON_ASSIGN              0x0112
+#define SYSUTIL_SYSTEMPARAM_ID_NICKNAME                         0x0113
+#define SYSUTIL_SYSTEMPARAM_ID_DATE_FORMAT                      0x0114
+#define SYSUTIL_SYSTEMPARAM_ID_TIME_FORMAT                      0x0115
+#define SYSUTIL_SYSTEMPARAM_ID_TIMEZONE                         0x0116
+#define SYSUTIL_SYSTEMPARAM_ID_SUMMERTIME                       0x0117
+#define SYSUTIL_SYSTEMPARAM_ID_GAME_PARENTAL_LEVEL              0x0121
+#define SYSUTIL_SYSTEMPARAM_ID_GAME_PARENTAL_LEVEL0_RESTRICT    0x0123
+#define SYSUTIL_SYSTEMPARAM_ID_INTERNET_BROWSER_START_RESTRICT  0x0125
+#define SYSUTIL_SYSTEMPARAM_ID_CURRENT_USERNAME                 0x0131
+#define SYSUTIL_SYSTEMPARAM_ID_CURRENT_USER_HAS_NP_ACCOUNT      0x0141
+#define SYSUTIL_SYSTEMPARAM_ID_CAMERA_PLFREQ                    0x0151
+#define SYSUTIL_SYSTEMPARAM_ID_PAD_RUMBLE                       0x0152
+#define SYSUTIL_SYSTEMPARAM_ID_KEYBOARD_TYPE                    0x0153
+#define SYSUTIL_SYSTEMPARAM_ID_JAPANESE_KEYBOARD_ENTRY_METHOD   0x0154
+#define SYSUTIL_SYSTEMPARAM_ID_CHINESE_KEYBOARD_ENTRY_METHOD    0x0155
+#define SYSUTIL_SYSTEMPARAM_ID_PAD_AUTOOFF                      0x0156
+#define SYSUTIL_SYSTEMPARAM_ID_MAGNETOMETER                     0x0157
+
+#define SYSUTIL_SYSTEMPARAM_NICKNAME_SIZE                       128
+#define SYSUTIL_SYSTEMPARAM_CURRENT_USERNAME_SIZE               64
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -93,6 +117,9 @@ to all 4 slots in order, so each manager will see all of them.
       May be \c NULL.
 */
 s32 sysUtilRegisterCallback(s32 slot,sysutilCallback cb,void *usrdata);
+
+s32 sysUtilGetSystemParamInt(s32 id,s32 *value);
+s32 sysUtilGetSystemParamString(s32 id,char *buf,u32 bufsize);
 
 #ifdef __cplusplus
 	}

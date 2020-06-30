@@ -24,8 +24,8 @@ s32 __attribute__((noinline)) rsxContextCallback(gcmContextData *context,u32 cou
 	asm volatile (
 		"stdu	1,-128(1)\n"
 		"mr		31,2\n"
-		"lwz	0,0(%0)\n"
-		"lwz	2,4(%0)\n"
+		"lwz	0,0(%1)\n"
+		"lwz	2,4(%1)\n"
 		"mtctr	0\n"
 		"bctrl\n"
 		"mr		2,31\n"

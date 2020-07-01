@@ -4,8 +4,7 @@
 ## Uname string
 UNAME=$(uname -a)
 
-if [[ $UNAME =~ "CYGWIN" || $UNAME =~ "MINGW" ]];
-then 
+ 
 	## Download a fresh cg.dll
 	rm -f cg.zip;
 	rm -f cg.dll;
@@ -20,12 +19,12 @@ then
 	echo "Installing cg.dll in $PS3DEV/bin"
 	unzip cg.zip
 	rm -f cg.zip
-	CGHASH=$(rhash -C cg.dll -p "%{crc32}") 
+	CGHASH=$(rhash -C cg.dll -p "%{crc32}")
+	## CRC HASH values taken from dll inside original NVIDIA CG Tool Kit. Dll can't be downloaded directly from NIVIDA web site.
 	if [[ $CGHASH =~ "28f6073b" || $CGHASH =~ "e5228ec2" ]];
 	then
 		chmod 766 cg.dll
 		mv -f cg.dll $PS3DEV/bin;
 	else
 		echo "Error - cg.dll: wrong CRC32";
-	fi;
-fi
+	fi

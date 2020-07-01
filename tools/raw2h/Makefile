@@ -1,3 +1,12 @@
+#---------------------------------------------------------------------------------
+# Clear the implicit built in rules
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(PS3DEV)),)
+$(error "Please set PS3DEV in your environment. export PS3DEV=<path>")
+endif
+
 TARGET		:= raw2h
 SOURCE		:= .
 
@@ -14,7 +23,9 @@ clean:
 	@rm -rf $(TARGET) *.exe
 
 install: all
-	@cp $(TARGET) $(PSL1GHT)/host/bin/
+	@echo Installing $(TARGET)
+	@[ -d $(PS3DEV)/bin ] || mkdir -p $(PS3DEV)/bin
+	@cp $(TARGET) $(PS3DEV)/bin/
 
 $(TARGET): $(CFILES)
 	@$(CC) $(CFLAGS) $< -o $@

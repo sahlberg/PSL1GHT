@@ -142,7 +142,7 @@ EXPORT(sysSpuImageImport, 0xebe5f72f);
 EXPORT(sysSpuPrintfAttachGroup, 0xdd0c1e09); /* sysPrxForUser */
 EXPORT(sysSpuPrintfAttachThread, 0x1ae10b92); /* sysPrxForUser */
 EXPORT(sysSpuPrintfDetachGroup, 0x5fdfb2fe); /* sysPrxForUser */
-EXPORT(sysSpuPrintfDetach_Tread, 0xb3bbcf2a); /* sysPrxForUser */
+EXPORT(sysSpuPrintfDetachThread, 0xb3bbcf2a); /* sysPrxForUser */
 EXPORT(sysSpuPrintfFinalize, 0xdd3b27ac); /* sysPrxForUser */
 EXPORT(sysSpuPrintfInitialize, 0x45fe2fce); /* sysPrxForUser */
 

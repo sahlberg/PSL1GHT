@@ -145,7 +145,7 @@ s32 sysSpuPrintfAttachThread(sys_spu_thread_t thread);
  \return
  zero if no error occured, nonzero otherwise.
 */
-s32 sysSpuPrintfDetach_Tread(sys_spu_thread_t thread);
+s32 sysSpuPrintfDetachThread(sys_spu_thread_t thread);
 
 /*! \brief Terminate Spu printf service
  \param none

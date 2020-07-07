@@ -122,6 +122,20 @@ to the Cell Broadband Engine documentation.
 #define SPU_Sig_Notify_1						0x1400C	//!< Signal notification 1
 #define SPU_Sig_Notify_2						0x1C00C	//!< Signal notification 2
 
+#define SPU_THREAD_GROUP_TYPE_NORMAL						0x0
+#define SPU_THREAD_GROUP_TYPE_SEQUENTIAL					0x1
+#define SPU_THREAD_GROUP_TYPE_SYSTEM						0x2
+#define SPU_THREAD_GROUP_TYPE_MEMORY_FROM_CONTAINER 		0x4
+
+#define SPU_THREAD_GROUP_JOIN_GROUP_EXIT					0x0001
+#define SPU_THREAD_GROUP_JOIN_ALL_THREADS_EXIT				0x0002
+#define SPU_THREAD_GROUP_JOIN_TERMINATED					0x0004
+
+#define SPU_THREAD_GROUP_EVENT_RUN							0x1
+#define SPU_THREAD_GROUP_EVENT_RUN_KEY						0xFFFFFFFF53505500ULL
+#define SPU_THREAD_GROUP_EVENT_EXCEPTION					0x2
+#define SPU_THREAD_GROUP_EVENT_EXCEPTION_KEY				0xFFFFFFFF53505503ULL
+
 //! No thread attributes
 #define SPU_THREAD_ATTR_NONE					0x00
 //! Enables interrupts.
@@ -211,20 +225,83 @@ typedef struct _sys_spu_thread_arg
 */
 typedef struct _sys_spu_thread_attr
 {
-	u32 nameAddress;	//!< Effective address of the thread's name string.
-	u32 nameSize;		//!< Size of the name string in bytes (including terminating null byte).
-	u32 attribute;		//!< OR'ed list of SPU thread attribute flags (or \ref SPU_THREAD_ATTR_NONE)
+	const char *name ATTRIBUTE_PRXPTR;	//!< Effective address of the thread's name string.
+	u32 nsize;							//!< Size of the name string in bytes (including terminating null byte).
+	u32 option;							//!< OR'ed list of SPU thread attribute flags (or \ref SPU_THREAD_ATTR_NONE)
 } sysSpuThreadAttribute;
 
 //! A structure containing SPU thread group attributes.
 typedef struct _sys_spu_thread_group_attr
 {
-	u32 nameSize;		//!< Size of the name string in bytes (including terminating null byte).
-	u32 nameAddress;	//!< Effective address of the thread group's name string.
-	u32 groupType;		//!< Thread group type (\c 0 for normal thread groups).
-	u32 memContainer;	//!< Memory container id (\c 0 for normal thread groups).
+	u32 nsize;							//!< Size of the name string in bytes (including terminating null byte).
+	const char *name ATTRIBUTE_PRXPTR;	//!< Effective address of the thread group's name string.
+	u32 type;							//!< Thread group type (\c 0 for normal thread groups).
+	union {
+		sys_mem_container_t ct;			//!< Memory container id (\c 0 for normal thread groups).
+	} option;
 } sysSpuThreadGroupAttribute;
 
+#define sysSpuThreadAttributeInitialize(x)		\
+	do {										\
+		x.name = NULL;							\
+		x.nsize = 0;							\
+		x.option = SPU_THREAD_ATTR_NONE;		\
+	} while(0)
+	
+#define sysSpuThreadAttributeName(x, s)				\
+	do {											\
+		x.name = s;									\
+		if(s == NULL) {								\
+			x.nsize = 0;							\
+		} else {									\
+			int n = 0;								\
+			for(; (n<127) && (s[n] != '\0'); n++)	\
+				;									\
+			x.nsize = n + 1;						\
+		}											\
+	} while(0)
+
+#define sysSpuThreadAttributeOption(x, f)		\
+	do {										\
+		x.option = f;							\
+	} while(0)
+	
+#define sysSpuThreadArgumentInitialize(x)		\
+	do {										\
+		x.arg0 = x.arg1 = x.arg2 = x.arg3 = 0;	\
+	} while(0)
+	
+#define sysSpuThreadGroupAttributeInitialize(x)	\
+	do {										\
+		x.name = NULL;							\
+		x.nsize = 0;							\
+		x.type = SPU_THREAD_GROUP_TYPE_NORMAL;	\
+	} while(0)
+	
+#define sysSpuThreadGroupAttributeName(x, s)		\
+	do {											\
+		x.name = s;									\
+		if(s == NULL) {								\
+			x.nsize = 0;							\
+		} else {									\
+			int n = 0;								\
+			for(; (n<127) && (s[n] != '\0'); n++)	\
+				;									\
+			x.nsize = n + 1;						\
+		}											\
+	} while(0)
+	
+#define sysSpuThreadGroupAttributeType(x, t)		\
+	do {											\
+		x.type = t;									\
+	} while(0)
+
+#define sysSpuThreadGroupAttributeMemoryContainer(x, ct)		\
+	do {														\
+		x.type |= SPU_THREAD_GROUP_TYPE_MEMORY_FROM_CONTAINER;	\
+		x.option.ct = ct;										\
+	} while(0)
+	
 /*! \brief Initialize the SPU management.
  \param spus
  Total number of needed SPUs (from 1 to 6).

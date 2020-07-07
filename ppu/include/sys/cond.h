@@ -24,6 +24,14 @@ typedef struct sys_cond_attr
 	char name[8];		/*!< Name. */
 } sys_cond_attr_t;
 
+#define sysCondAttrInitialize(x)                \
+    do {                                        \
+        x.attr_pshared = SYS_COND_ATTR_PSHARED; \
+        x.key = 0;                              \
+        x.flags = 0;                            \
+        x.name[0] = '\0';                       \
+    } while(0)
+
 /*! \brief Create a condition variable.
 \param cond Pointer to storage for the created condition variable identifier.
 \param mutex Pointer to the associated mutex.

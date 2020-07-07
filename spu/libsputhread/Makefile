@@ -45,7 +45,7 @@ VPATH :=	$(BASEDIR)
 OBJS		:= \
 			spu_thread_group_exit.o spu_thread_group_yield.o spu_thread_exit.o \
 			spu_thread_send_event.o spu_thread_receive_event.o spu_thread_throw_event.o \
-			spu_thread_tryreceive_event.o
+			spu_thread_tryreceive_event.o spu_call_event_va_arg.o
 
 all: spu
 

@@ -21,7 +21,7 @@
 #define SYS_MUTEX_ATTR_NOT_RECURSIVE	0x0020
 
 /*! \brief Default sharing policy for mutex attributes. */
-#define SYS_MUTEX_ATTR_PSHARED			0x0200
+#define SYS_MUTEX_ATTR_NOT_PSHARED		0x0200
 
 /*! \brief Mutex is adaptive. */
 #define SYS_MUTEX_ATTR_ADAPTIVE			0x1000
@@ -68,6 +68,17 @@ typedef struct sys_mutex_attr
 	/*! \brief Mutex name. */
 	char name[8];
 } sys_mutex_attr_t;
+
+#define sysMutexAttrInitialize(x)		                	\
+    do{                                                 	\
+        x.attr_protocol = SYS_MUTEX_PROTOCOL_PRIO;      	\
+        x.attr_recursive = SYS_MUTEX_ATTR_NOT_RECURSIVE;    \
+        x.attr_pshared = SYS_MUTEX_ATTR_NOT_PSHARED;   		\
+        x.attr_adaptive = SYS_MUTEX_ATTR_NOT_ADAPTIVE;      \
+        x.key = 0;                                      	\
+        x.flags = 0;                                    	\
+        x.name[0] = '\0';                               	\
+    }while(0)
 
 /*! \brief Create a mutex.
 \param mutex Pointer to storage for the mutex id.

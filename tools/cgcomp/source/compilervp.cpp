@@ -1,54 +1,46 @@
 #include "types.h"
 
 #include "parser.h"
-#include "compiler.h"
+#include "compilervp.h"
 
 #define gen_op(o,t) \
 	((NVFX_VP_INST_SLOT_##t<<7)|NVFX_VP_INST_##t##_OP_##o)
 
+#define gen_op_nv40(o,t) \
+	((NVFX_VP_INST_SLOT_##t<<7)|NV40_VP_INST_##t##_OP_##o)
+
 #define arith(s,d,m,s0,s1,s2) \
-	nvfx_insn((s), 0, -1, (d), (m), (s0), (s1), (s2))
+	nvfx_insn((s), 0, -1, -1, (d), (m), (s0), (s1), (s2))
 
 #define arith_ctor(ins,d,s0,s1,s2) \
 	nvfx_insn_ctor((ins), (d), (s0), (s1), (s2))
 
-static INLINE s32 ffs(u32 u)
-{
-	u32 i = 0;
-	if(!(u&0xffffffff)) return 0;
-	while(!(u&0x1)) {
-		u >>= 1;
-		i++;
-	}
-	return i + 1;
-}
-
-CCompiler::CCompiler()
+CCompilerVP::CCompilerVP()
 {
 	m_nInputMask = 0;
 	m_nOutputMask = 0;
 	m_nInstructions = 0;
 	m_nConsts = 0;
 	m_rTemps = 0;
-	m_nNumRegs = 1;
+	m_nNumRegs = 0;
 	m_rTempsDiscard = 0;
 	m_nCurInstruction = 0;
 	m_pInstructions = NULL;
 	m_pConstData = NULL;
-	m_rTemp = NULL;
-	m_rConst = NULL;
 }
 
-CCompiler::~CCompiler()
+CCompilerVP::~CCompilerVP()
 {
 }
 
-void CCompiler::Prepare(CParser *pParser)
+void CCompilerVP::Prepare(CParser *pParser)
 {
 	s32 high_const = -1,high_temp = -1;
 	u32 i,j,nICount = pParser->GetInstructionCount();
 	struct nvfx_insn *insns = pParser->GetInstructions();
 	
+	m_lParameters = pParser->GetParameters();
+
 	for(i=0;i<nICount;i++) {
 		struct nvfx_insn *insn = &insns[i];
 
@@ -76,21 +68,17 @@ void CCompiler::Prepare(CParser *pParser)
 	}
 
 	if(++high_temp) {
-		m_nNumRegs = high_temp;
-		m_rTemp = (struct nvfx_reg*)calloc(high_temp,sizeof(struct nvfx_reg));
-		for(i=0;i<(u32)high_temp;i++) m_rTemp[i] = temp();
+		for(i=0;i<(u32)high_temp;i++) (void)temp();
 		m_rTempsDiscard = 0;
 	}
 
 	if(++high_const) {
-		m_rConst = (struct nvfx_reg*)calloc(high_const,sizeof(struct nvfx_reg));
-		for(i=0;i<(u32)high_const;i++) m_rConst[i] = constant(i,0.0f,0.0f,0.0f,0.0f);
+		for(i=0;i<(u32)high_const;i++) (void)constant(i,0.0f,0.0f,0.0f,0.0f);
 	}
 }
 
-void CCompiler::Compile(CParser *pParser)
+void CCompilerVP::Compile(CParser *pParser)
 {
-	struct nvfx_src tmp;
 	struct nvfx_relocation reloc;
 	std::vector<u32> insns_pos;
 	std::list<struct nvfx_relocation> label_reloc;
@@ -101,25 +89,23 @@ void CCompiler::Compile(CParser *pParser)
 	Prepare(pParser);
 
 	for(i=0;i<nICount;i++) {
-                //u32 idx = (u32)insns_pos.size();
 		struct nvfx_insn *insn = &insns[i];
 
 		insns_pos.push_back(m_nInstructions);
 		switch(insn->op) {
 			case OPCODE_NOP:
-				tmp_insn = arith(0,none.reg,0,none,none,none);
-				emit_insn(gen_op(NOP,VEC),&tmp_insn);
+				emit_nop();
 				break;
 			case OPCODE_ABS:
-				tmp_insn = arith_ctor(insn,insn->dst,abs(insn->src[0]),none,none);
-				emit_insn(gen_op(MOV,VEC),&tmp_insn);
+				emit_abs(insn);
 				break;
 			case OPCODE_ADD:
-				emit_insn(gen_op(ADD,VEC),insn);
+				emit_insn(insn,gen_op(ADD,VEC));
 				break;
 			case OPCODE_ARA:
 				break;
 			case OPCODE_ARL:
+				emit_insn(insn,gen_op(ARL,VEC));
 				break;
 			case OPCODE_ARR:
 				break;
@@ -128,131 +114,128 @@ void CCompiler::Compile(CParser *pParser)
 				reloc.target = insn->dst.index;
 				label_reloc.push_back(reloc);
 
-				tmp_insn = arith(0,none.reg,0,none,none,none);
-				emit_insn(gen_op(BRA,SCA),&tmp_insn);
+				tmp_insn = arith_ctor(insn, none.reg, none, none, none);
+				emit_insn(&tmp_insn,gen_op(BRA,SCA));
 				break;
 			case OPCODE_CAL:
 				reloc.location = m_nInstructions;
 				reloc.target = insn->dst.index;
 				label_reloc.push_back(reloc);
 
-				tmp_insn = arith(0,none.reg,0,none,none,none);
-				emit_insn(gen_op(CAL,SCA),&tmp_insn);
+				tmp_insn = arith_ctor(insn, none.reg, none, none, none);
+				emit_insn(&tmp_insn,gen_op(CAL,SCA));
 				break;
 			case OPCODE_COS:
-				emit_insn(gen_op(COS,SCA),insn);
+				emit_insn(insn,gen_op(COS,SCA));
 				break;
 			case OPCODE_DP3:
-				emit_insn(gen_op(DP3,VEC),insn);
+				emit_insn(insn,gen_op(DP3,VEC));
 				break;
 			case OPCODE_DP4:
-				emit_insn(gen_op(DP4,VEC),insn);
+				emit_insn(insn,gen_op(DP4,VEC));
 				break;
 			case OPCODE_DPH:
-				emit_insn(gen_op(DPH,VEC),insn);
+				emit_insn(insn,gen_op(DPH,VEC));
 				break;
 			case OPCODE_DST:
-				emit_insn(gen_op(DST,VEC),insn);
+				emit_insn(insn,gen_op(DST,VEC));
 				break;
 			case OPCODE_EX2:
-				emit_insn(gen_op(EX2,SCA),insn);
+				emit_insn(insn,gen_op(EX2,SCA));
 				break;
 			case OPCODE_EXP:
-				emit_insn(gen_op(EXP,SCA),insn);
+				emit_insn(insn,gen_op(EXP,SCA));
 				break;
 			case OPCODE_FLR:
-				emit_insn(gen_op(FLR,VEC),insn);
+				emit_insn(insn,gen_op(FLR,VEC));
 				break;
 			case OPCODE_FRC:
-				emit_insn(gen_op(FRC,VEC),insn);
+				emit_insn(insn,gen_op(FRC,VEC));
 				break;
 			case OPCODE_LG2:
-				emit_insn(gen_op(LG2,SCA),insn);
+				emit_insn(insn,gen_op(LG2,SCA));
 				break;
 			case OPCODE_LIT:
-				emit_insn(gen_op(LIT,SCA),insn);
+				emit_insn(insn,gen_op(LIT,SCA));
 				break;
 			case OPCODE_LOG:
-				emit_insn(gen_op(LOG,SCA),insn);
+				emit_insn(insn,gen_op(LOG,SCA));
+				break;
+			case OPCODE_LRP:
+				emit_lrp(insn);
 				break;
 			case OPCODE_MAD:
-				emit_insn(gen_op(MAD,VEC),insn);
+				emit_insn(insn,gen_op(MAD,VEC));
 				break;
 			case OPCODE_MAX:
-				emit_insn(gen_op(MAX,VEC),insn);
+				emit_insn(insn,gen_op(MAX,VEC));
 				break;
 			case OPCODE_MIN:
-				emit_insn(gen_op(MIN,VEC),insn);
+				emit_insn(insn,gen_op(MIN,VEC));
 				break;
 			case OPCODE_MOV:
-				emit_insn(gen_op(MOV,VEC),insn);
+				emit_insn(insn,gen_op(MOV,VEC));
 				break;
 			case OPCODE_MUL:
-				emit_insn(gen_op(MUL,VEC),insn);
+				emit_insn(insn,gen_op(MUL,VEC));
 				break;
 			case OPCODE_POW:
-				tmp = nvfx_src(temp());
-				
-				tmp_insn = arith(0, tmp.reg, NVFX_VP_MASK_X, none, none, insn->src[0]);
-				emit_insn(gen_op(LG2,SCA),&tmp_insn);
-
-				tmp_insn = arith(0, tmp.reg, NVFX_VP_MASK_X, swz(tmp, X, X, X, X), insn->src[1], none);
-				emit_insn(gen_op(MUL,VEC),&tmp_insn);
-				
-				tmp_insn = arith_ctor(insn, insn->dst, none, none, swz(tmp, X, X, X, X));
-				emit_insn(gen_op(EX2,SCA),&tmp_insn);
+				emit_pow(insn);
 				break;
 			case OPCODE_RCC:
-				emit_insn(gen_op(RCC,SCA),insn);
+				emit_insn(insn,gen_op(RCC,SCA));
 				break;
 			case OPCODE_RCP:
-				emit_insn(gen_op(RCP,SCA),insn);
+				emit_insn(insn,gen_op(RCP,SCA));
 				break;
 			case OPCODE_RSQ:
-				emit_insn(gen_op(RSQ,SCA),insn);
+				emit_insn(insn,gen_op(RSQ,SCA));
 				break;
 			case OPCODE_SEQ:
-				emit_insn(gen_op(SEQ,VEC),insn);
+				emit_insn(insn,gen_op(SEQ,VEC));
 				break;
 			case OPCODE_SFL:
-				emit_insn(gen_op(SFL,VEC),insn);
+				emit_insn(insn,gen_op(SFL,VEC));
 				break;
 			case OPCODE_SGE:
-				emit_insn(gen_op(SGE,VEC),insn);
+				emit_insn(insn,gen_op(SGE,VEC));
 				break;
 			case OPCODE_SGT:
-				emit_insn(gen_op(SGT,VEC),insn);
+				emit_insn(insn,gen_op(SGT,VEC));
 				break;
 			case OPCODE_SIN:
-				emit_insn(gen_op(SIN,SCA),insn);
+				emit_insn(insn,gen_op(SIN,SCA));
 				break;
 			case OPCODE_SLE:
-				emit_insn(gen_op(SLE,VEC),insn);
+				emit_insn(insn,gen_op(SLE,VEC));
 				break;
 			case OPCODE_SLT:
-				emit_insn(gen_op(SLT,VEC),insn);
+				emit_insn(insn,gen_op(SLT,VEC));
 				break;
 			case OPCODE_SNE:
-				emit_insn(gen_op(SNE,VEC),insn);
+				emit_insn(insn,gen_op(SNE,VEC));
 				break;
 			case OPCODE_SSG:
-				emit_insn(gen_op(SSG,VEC),insn);
+				emit_insn(insn,gen_op(SSG,VEC));
 				break;
 			case OPCODE_STR:
-				emit_insn(gen_op(STR,VEC),insn);
+				emit_insn(insn,gen_op(STR,VEC));
 				break;
 			case OPCODE_SUB:
-				tmp_insn = arith_ctor(insn,insn->dst,insn->src[0],none,neg(insn->src[2]));
-				emit_insn(gen_op(ADD,VEC),&tmp_insn);
+				emit_sub(insn);
+				break;
+			case OPCODE_TEX:
+				emit_tex(insn);
 				break;
 			case OPCODE_END:
-				if(m_nInstructions) m_pInstructions[m_nCurInstruction].data[3] |= NVFX_VP_INST_LAST;
-				else {
-					tmp_insn = arith(0,none.reg,0,none,none,none);
-					emit_insn(gen_op(NOP,VEC),&tmp_insn);
-					m_pInstructions[m_nCurInstruction].data[3] |= NVFX_VP_INST_LAST;
+				if(!m_nInstructions)  {
+					emit_nop();
 				}
+				m_pInstructions[m_nCurInstruction].data[3] |= NVFX_VP_INST_LAST;
 				break;
+			default:
+				fprintf(stderr, "Unknown instruction \"%d\"\n", insn->op);
+				exit(EXIT_FAILURE);
 		}
 		release_temps();
 	}
@@ -267,23 +250,21 @@ void CCompiler::Compile(CParser *pParser)
 	}
 }
 
-void CCompiler::emit_insn(u8 opcode,struct nvfx_insn *insn)
+void CCompilerVP::emit_insn(struct nvfx_insn *insn,u8 opcode)
 {
 	u32 *hw;
 	u32 slot = opcode>>7;
 	u32 op = opcode&0x7f;
 
-	m_nCurInstruction = m_nInstructions++;
-	m_pInstructions = (struct vertex_program_exec*)realloc(m_pInstructions,m_nInstructions*sizeof(struct vertex_program_exec));
-
+	m_nCurInstruction = grow_insns(1);
 	memset(&m_pInstructions[m_nCurInstruction],0,sizeof(struct vertex_program_exec));
 
 	hw = m_pInstructions[m_nCurInstruction].data;
 
-	emit_dst(hw,slot,insn);
-	emit_src(hw,0,&insn->src[0]);
-	emit_src(hw,1,&insn->src[1]);
-	emit_src(hw,2,&insn->src[2]);
+	emit_dst(insn,slot);
+	emit_src(insn,0);
+	emit_src(insn,1);
+	emit_src(insn,2);
 
 	hw[0] |= (insn->cc_cond << NVFX_VP(INST_COND_SHIFT));
 	hw[0] |= (insn->cc_test << NVFX_VP(INST_COND_TEST_SHIFT));
@@ -295,10 +276,11 @@ void CCompiler::emit_insn(u8 opcode,struct nvfx_insn *insn)
 	if(insn->cc_update)
 		hw[0] |= NVFX_VP(INST_COND_UPDATE_ENABLE);
 
+	if(insn->cc_update_reg)
+		hw[0] |= NVFX_VP(INST_COND_REG_SELECT_1);
+
 	if(insn->sat)
-	{
 		hw[0] |= NV40_VP_INST_SATURATE;
-	}
 
 	if (slot == 0) {
 		hw[1] |= (op << NV40_VP_INST_VEC_OPCODE_SHIFT);
@@ -311,9 +293,10 @@ void CCompiler::emit_insn(u8 opcode,struct nvfx_insn *insn)
 	}
 }
 
-void CCompiler::emit_dst(u32 *hw,u8 slot,struct nvfx_insn *insn)
+void CCompilerVP::emit_dst(struct nvfx_insn *insn,u8 slot)
 {
 	struct nvfx_reg *dst = &insn->dst;
+	u32 *hw = m_pInstructions[m_nCurInstruction].data;
 
 	switch(dst->type) {
 		case NVFXSR_NONE:
@@ -324,6 +307,9 @@ void CCompiler::emit_dst(u32 *hw,u8 slot,struct nvfx_insn *insn)
 				hw[3] |= NV40_VP_INST_SCA_DEST_TEMP_MASK;
 			break;
 		case NVFXSR_TEMP:
+			if(m_nNumRegs<(s32)(dst->index + 1))
+				m_nNumRegs = (dst->index + 1);
+		case NVFXSR_ADDRESS:
 			hw[3] |= NV40_VP_INST_DEST_MASK;
 			if (slot == 0)
 				hw[0] |= (dst->index << NV40_VP_INST_VEC_DEST_TEMP_SHIFT);
@@ -369,7 +355,7 @@ void CCompiler::emit_dst(u32 *hw,u8 slot,struct nvfx_insn *insn)
 				case NV40_VP_INST_DEST_FOGC : m_nOutputMask |= (1 << 4); break;
 				case NV40_VP_INST_DEST_PSZ  : m_nOutputMask |= (1 << 5); break;
 				default:
-					if(dst->index>=NV40_VP_INST_DEST_TC(0) && dst->index<=NV40_VP_INST_DEST_TC(7)) m_nOutputMask |= (1<<(dst->index - NV40_VP_INST_DEST_TC0 + 14));
+					if(dst->index>=NV40_VP_INST_DEST_TC(0) && dst->index<=NV40_VP_INST_DEST_TC(7)) m_nOutputMask |= (0x4000 << (dst->index - NV40_VP_INST_DEST_TC0));
 					break;
 			}
 			hw[3] |= (dst->index << NV40_VP_INST_DEST_SHIFT);
@@ -384,10 +370,12 @@ void CCompiler::emit_dst(u32 *hw,u8 slot,struct nvfx_insn *insn)
 	}
 }
 
-void CCompiler::emit_src(u32 *hw, u8 pos, struct nvfx_src *src)
+void CCompilerVP::emit_src(struct nvfx_insn *insn,u8 pos)
 {
 	u32 sr = 0;
 	struct nvfx_relocation reloc;
+	struct nvfx_src *src = &insn->src[pos];
+	u32 *hw = m_pInstructions[m_nCurInstruction].data;
 
 	switch(src->reg.type) {
 		case NVFXSR_TEMP:
@@ -406,6 +394,10 @@ void CCompiler::emit_src(u32 *hw, u8 pos, struct nvfx_src *src)
 			reloc.location = m_nCurInstruction;
 			reloc.target = src->reg.index;
 			m_lConstRelocation.push_back(reloc);
+			break;
+		case NVFXSR_SAMPLER:
+			sr |= (NVFX_VP(SRC_REG_TYPE_INPUT) << NVFX_VP(SRC_REG_TYPE_SHIFT));
+			sr |= (src->reg.index << NVFX_VP(SRC_TEMP_SRC_SHIFT));
 			break;
 		case NVFXSR_NONE:
 			sr |= (NVFX_VP(SRC_REG_TYPE_INPUT) <<
@@ -449,27 +441,119 @@ void CCompiler::emit_src(u32 *hw, u8 pos, struct nvfx_src *src)
 	}
 }
 
-struct nvfx_reg CCompiler::temp()
+void CCompilerVP::emit_pow(struct nvfx_insn *insn)
 {
-	s32 idx = ffs(~m_rTemps) - 1;
+	struct nvfx_src tmp;
+	struct nvfx_insn tmp_insn;
+	struct nvfx_src none = nvfx_src(nvfx_reg(NVFXSR_NONE,0));
+
+	tmp = nvfx_src(temp());
+
+	tmp_insn = arith(0, tmp.reg, NVFX_VP_MASK_X, none, none, insn->src[0]);
+	emit_insn(&tmp_insn,gen_op(LG2,SCA));
+
+	tmp_insn = arith(0, tmp.reg, NVFX_VP_MASK_X, swz(tmp, X, X, X, X), insn->src[1], none);
+	emit_insn(&tmp_insn,gen_op(MUL,VEC));
+
+	tmp_insn = arith_ctor(insn, insn->dst, none, none, swz(tmp, X, X, X, X));
+	emit_insn(&tmp_insn,gen_op(EX2,SCA));
+}
+
+void CCompilerVP::emit_abs(struct nvfx_insn *insn)
+{
+	struct nvfx_insn tmp_insn;
+	struct nvfx_src none = nvfx_src(nvfx_reg(NVFXSR_NONE,0));
+
+	tmp_insn = arith_ctor(insn,insn->dst,abs(insn->src[0]),none,none);
+	emit_insn(&tmp_insn,gen_op(MOV,VEC));
+}
+
+void CCompilerVP::emit_sub(struct nvfx_insn *insn)
+{
+	struct nvfx_insn tmp_insn;
+	struct nvfx_src none = nvfx_src(nvfx_reg(NVFXSR_NONE,0));
+
+	tmp_insn = arith_ctor(insn,insn->dst,insn->src[0],none,neg(insn->src[2]));
+	emit_insn(&tmp_insn,gen_op(ADD,VEC));
+}
+
+void CCompilerVP::emit_tex(struct nvfx_insn *insn)
+{
+	struct nvfx_insn tmp_insn;
+	struct nvfx_src tmp = nvfx_src(temp());
+	param vpi = GetInputAttrib(insn->src[0].reg.index);
+	struct nvfx_src none = nvfx_src(nvfx_reg(NVFXSR_NONE,0));
+
+	if(vpi.type==PARAM_FLOAT) {
+		tmp_insn = arith(0, tmp.reg, NVFX_VP_MASK_X, insn->src[0], none, none);
+		emit_insn(&tmp_insn, gen_op(MOV,VEC));
+
+		tmp_insn = arith(0, tmp.reg, NVFX_VP_MASK_W, swz(insn->src[0], X, X, X, X), swz(insn->src[0], X, X, X, X), none);
+		emit_insn(&tmp_insn,gen_op(SFL,VEC));
+
+		tmp_insn = arith_ctor(insn, insn->dst, swz(tmp, X, X, W, W), insn->src[1], none);
+		emit_insn(&tmp_insn,gen_op_nv40(TXL,VEC));
+	} else if(vpi.type==PARAM_FLOAT2) {
+		tmp_insn = arith(0, tmp.reg, (NVFX_VP_MASK_X | NVFX_VP_MASK_Y), insn->src[0], none, none);
+		emit_insn(&tmp_insn, gen_op(MOV,VEC));
+
+		tmp_insn = arith(0, tmp.reg, NVFX_VP_MASK_W, swz(insn->src[0], X, X, X, X), swz(insn->src[0], X, X, X, X), none);
+		emit_insn(&tmp_insn,gen_op(SFL,VEC));
+
+		tmp_insn = arith_ctor(insn, insn->dst, swz(tmp, X, Y, W, W), insn->src[1], none);
+		emit_insn(&tmp_insn,gen_op_nv40(TXL,VEC));
+	} else if(vpi.type==PARAM_FLOAT3) {
+		tmp_insn = arith(0, tmp.reg, (NVFX_VP_MASK_X | NVFX_VP_MASK_Y | NVFX_VP_MASK_Z), insn->src[0], none, none);
+		emit_insn(&tmp_insn, gen_op(MOV,VEC));
+
+		tmp_insn = arith(0, tmp.reg, NVFX_VP_MASK_W, swz(insn->src[0], X, X, X, X), swz(insn->src[0], X, X, X, X), none);
+		emit_insn(&tmp_insn,gen_op(SFL,VEC));
+
+		tmp_insn = arith_ctor(insn, insn->dst, swz(tmp, X, Y, Z, W), insn->src[1], none);
+		emit_insn(&tmp_insn,gen_op_nv40(TXL,VEC));
+	}
+}
+
+void CCompilerVP::emit_lrp(struct nvfx_insn *insn)
+{
+	struct nvfx_insn tmp_insn;
+	struct nvfx_src tmp = nvfx_src(temp());
+
+	tmp_insn = arith(0, tmp.reg, insn->mask, neg(insn->src[0]), insn->src[2], insn->src[2]);
+	emit_insn(&tmp_insn,gen_op(MAD,VEC));
+
+	tmp_insn = arith(insn->sat, insn->dst, insn->mask, insn->src[0], insn->src[1], tmp);
+	emit_insn(&tmp_insn,gen_op(MAD,VEC));
+}
+
+void CCompilerVP::emit_nop()
+{
+	struct nvfx_insn tmp_insn;
+	struct nvfx_src none = nvfx_src(nvfx_reg(NVFXSR_NONE,0));
+
+	tmp_insn = arith(0,none.reg,0,none,none,none);
+	emit_insn(&tmp_insn,gen_op(NOP,VEC));
+}
+
+struct nvfx_reg CCompilerVP::temp()
+{
+	s32 idx = __builtin_ctzll(~m_rTemps);
 
 	if(idx<0) return nvfx_reg(NVFXSR_NONE,0);
 
 	m_rTemps |= (1<<idx);
 	m_rTempsDiscard |= (1<<idx);
 
-	if((s32)m_nNumRegs<idx) m_nNumRegs = idx;
-
 	return nvfx_reg(NVFXSR_TEMP,idx);
 }
 
-void CCompiler::release_temps()
+void CCompilerVP::release_temps()
 {
 	m_rTemps &= ~m_rTempsDiscard;
 	m_rTempsDiscard = 0;
 }
 
-struct nvfx_reg CCompiler::constant(s32 pipe, f32 x, f32 y, f32 z, f32 w)
+struct nvfx_reg CCompilerVP::constant(s32 pipe, f32 x, f32 y, f32 z, f32 w)
 {
 	int idx;
 	struct vertex_program_data *vpd;
@@ -490,4 +574,14 @@ struct nvfx_reg CCompiler::constant(s32 pipe, f32 x, f32 y, f32 z, f32 w)
 	vpd->value[2] = z;
 	vpd->value[3] = w;
 	return nvfx_reg(NVFXSR_CONST,idx);
+}
+
+int CCompilerVP::grow_insns(int count)
+{
+	int pos = m_nInstructions;
+
+	m_nInstructions += count;
+	m_pInstructions = (struct vertex_program_exec*)realloc(m_pInstructions,m_nInstructions*sizeof(struct vertex_program_exec));
+
+	return pos;
 }

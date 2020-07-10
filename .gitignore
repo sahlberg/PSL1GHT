@@ -2,11 +2,13 @@
 *.elf
 *.self
 *.pkg
+*.bin
 *.o
 *.a
 *.d
 *.so
 *.dll
+*.task
 *.elf.map
 build/
 .idea/

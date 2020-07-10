@@ -154,6 +154,8 @@ s32 sysSpuPrintfDetachThread(sys_spu_thread_t thread);
 */
 s32 sysSpuPrintfFinalize();
 
+s32 sysSpuImageOpenELF(sysSpuImage* image, const char* path);
+
 #ifdef __cplusplus
 	}
 #endif

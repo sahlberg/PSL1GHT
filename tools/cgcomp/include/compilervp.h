@@ -14,11 +14,11 @@ struct vertex_program_data
 
 class CParser;
 
-class CCompiler
+class CCompilerVP
 {
 public:
-	CCompiler();
-	virtual ~CCompiler();
+	CCompilerVP();
+	virtual ~CCompilerVP();
 
 	void Compile(CParser *pParser);
 
@@ -33,14 +33,37 @@ public:
 private:
 	void Prepare(CParser *pParser);
 
-	void emit_insn(u8 opcode,struct nvfx_insn *insn);
-	void emit_dst(u32 *hw,u8 slot,struct nvfx_insn *insn);
-	void emit_src(u32 *hw,u8 pos,struct nvfx_src *src);
+	void emit_insn(struct nvfx_insn *insn,u8 opcode);
+	void emit_dst(struct nvfx_insn *insn,u8 slot);
+	void emit_src(struct nvfx_insn *insn,u8 pos);
+	void emit_pow(struct nvfx_insn *insn);
+	void emit_abs(struct nvfx_insn *insn);
+	void emit_sub(struct nvfx_insn *insn);
+	void emit_tex(struct nvfx_insn *insn);
+	void emit_lrp(struct nvfx_insn *insn);
+	void emit_nop();
+
+	int grow_insns(int count);
 
 	struct nvfx_reg temp();
 	struct nvfx_reg constant(s32 pipe,f32 x,f32 y,f32 z,f32 w);
 
 	void release_temps();
+
+	inline param GetInputAttrib(int index)
+	{
+		s32 i;
+		std::list<param>::iterator it = m_lParameters.begin();
+		for(;it!=m_lParameters.end();it++) {
+			for(i=0;i<it->count;i++) {
+				if((int)(it->index + i)==index) {
+					if(!it->is_const && !it->is_internal)
+						return *it;
+				}
+			}
+		}
+		return param();
+	}
 
 	int m_nNumRegs;
 	int m_nInputMask;
@@ -56,9 +79,9 @@ private:
 	int m_rTemps;
 	int m_rTempsDiscard;
 
-	struct nvfx_reg *m_rTemp;
 	struct nvfx_reg *m_rConst;
 
+	std::list<param> m_lParameters;
 	std::list<struct nvfx_relocation> m_lConstRelocation;
 	std::list<struct nvfx_relocation> m_lBranchRelocation;
 };

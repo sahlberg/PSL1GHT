@@ -380,15 +380,20 @@ static void setDrawEnv()
 void init_shader()
 {
 	u32 fpsize = 0;
+	u32 vpsize = 0;
 
-	vp_ucode = rsxVertexProgramGetUCode(vpo);
+	rsxVertexProgramGetUCode(vpo, &vp_ucode, &vpsize);
+	printf("vpsize: %d\n", vpsize);
+
 	projMatrix_id = rsxVertexProgramGetConst(vpo,"projMatrix");
 	modelViewMatrix_id = rsxVertexProgramGetConst(vpo,"modelViewMatrix");
 	vertexPosition_id = rsxVertexProgramGetAttrib(vpo,"vertexPosition");
 	vertexNormal_id = rsxVertexProgramGetAttrib(vpo,"vertexNormal");
 	vertexTexcoord_id = rsxVertexProgramGetAttrib(vpo,"vertexTexcoord");
 
-	fp_ucode = rsxFragmentProgramGetUCode(fpo,&fpsize);
+	rsxFragmentProgramGetUCode(fpo, &fp_ucode, &fpsize);
+	printf("fpsize: %d\n", fpsize);
+
 	fp_buffer = (u32*)rsxMemalign(64,fpsize);
 	memcpy(fp_buffer,fp_ucode,fpsize);
 	rsxAddressToOffset(fp_buffer,&fp_offset);
@@ -442,7 +447,7 @@ void drawFrame()
 	setDrawEnv();
 
 	rsxSetClearColor(context,color);
-	rsxSetClearDepthValue(context,0xffff);
+	rsxSetClearDepthStencil(context,0xffff);
 	rsxClearSurface(context,GCM_CLEAR_R |
 							GCM_CLEAR_G |
 							GCM_CLEAR_B |
@@ -450,7 +455,7 @@ void drawFrame()
 							GCM_CLEAR_S |
 							GCM_CLEAR_Z);
 
-	rsxZControl(context,0,1,1);
+	rsxSetZControl(context,0,1,1);
 
 	for(i=0;i<8;i++)
 		rsxSetViewportClip(context,i,display_width,display_height);
@@ -480,14 +485,14 @@ void drawFrame()
 	rsxSetVertexProgramParameter(context,vpo,projMatrix_id,(float*)&P);
 	rsxSetVertexProgramParameter(context,vpo,modelViewMatrix_id,(float*)&modelViewMatrix);
 
-	rsxSetFragmentProgramParameter(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,lightColor_id,lightColor,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,shininess_id,&shininess,fp_offset);
+	rsxSetFragmentProgramParameter(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,lightColor_id,lightColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,shininess_id,&shininess,fp_offset,GCM_LOCATION_RSX);
 
-	rsxSetFragmentProgramParameter(context,fpo,Kd_id,materialColorDiffuse,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,Ks_id,materialColorSpecular,fp_offset);
+	rsxSetFragmentProgramParameter(context,fpo,Kd_id,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,Ks_id,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
 
 	rsxLoadFragmentProgramLocation(context,fpo,fp_offset,GCM_LOCATION_RSX);
 
@@ -526,14 +531,14 @@ void drawFrame()
 	rsxSetVertexProgramParameter(context,vpo,projMatrix_id,(float*)&P);
 	rsxSetVertexProgramParameter(context,vpo,modelViewMatrix_id,(float*)&modelViewMatrix);
 
-	rsxSetFragmentProgramParameter(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,lightColor_id,lightColor,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,shininess_id,&shininess,fp_offset);
+	rsxSetFragmentProgramParameter(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,lightColor_id,lightColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,shininess_id,&shininess,fp_offset,GCM_LOCATION_RSX);
 
-	rsxSetFragmentProgramParameter(context,fpo,Kd_id,materialColorDiffuse,fp_offset);
-	rsxSetFragmentProgramParameter(context,fpo,Ks_id,materialColorSpecular,fp_offset);
+	rsxSetFragmentProgramParameter(context,fpo,Kd_id,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,Ks_id,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
 
 	rsxLoadFragmentProgramLocation(context,fpo,fp_offset,GCM_LOCATION_RSX);
 

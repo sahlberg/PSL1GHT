@@ -8,15 +8,19 @@
 #include <ppu-types.h>
 
 #define PARAM_FLOAT				0
-#define PARAM_FLOAT2			1
-#define PARAM_FLOAT3			2
-#define PARAM_FLOAT4			3
-#define PARAM_FLOAT4x4			4
-#define PARAM_SAMPLER1D			5
-#define PARAM_SAMPLER2D			6
-#define PARAM_SAMPLER3D			7
-#define PARAM_SAMPLERCUBE		8
-#define PARAM_SAMPLERRECT		9
+#define PARAM_FLOAT1			1
+#define PARAM_FLOAT2			2
+#define PARAM_FLOAT3			3
+#define PARAM_FLOAT4			4
+#define PARAM_FLOAT3x4			5
+#define PARAM_FLOAT4x4			6
+#define PARAM_FLOAT3x3			7
+#define PARAM_FLOAT4x3			8
+#define PARAM_SAMPLER1D			9
+#define PARAM_SAMPLER2D			10
+#define PARAM_SAMPLER3D			11
+#define PARAM_SAMPLERCUBE		12
+#define PARAM_SAMPLERRECT		13
 #define PARAM_UNKNOWN			0xff
 
 #ifdef __cplusplus
@@ -29,19 +33,22 @@ This data structure is filled by cgcomp, the offline compiler for shader program
 typedef struct rsx_vp
 {
 	u16 magic;			/*!< \brief magic identifier */
-	u16 num_attrib;		/*!< \brief number of used input attributes in the vertex program */
-	u32 attrib_off;		/*!< \brief offset to the attribute name table */
+	u16 _pad0;			/*!< \brief unused padding word. most be 0 */
+
+	u16 num_regs;		/*!< \brief number of used registers in the vertex program */
+	u16 num_attr;		/*!< \brief number of used input attributes in the vertex program */
+	u16 num_const;		/*!< \brief number of used constants in the vertex program */
+	u16 num_insn;		/*!< \brief number of vertex shader instructions */
+
+	u32 attr_off;		/*!< \brief offset to the attribute name table */
+	u32 const_off;		/*!< \brief offset to the constant name table */
+	u32 ucode_off;		/*!< \brief offset to the shader's micro code */
 
 	u32 input_mask;		/*!< \brief mask of input attributes in the vertex shader */
 	u32 output_mask;	/*!< \brief mask of result attributes passed to the fragment shader */
 
 	u16 const_start;	/*!< \brief start address in vertex shader's constant block memory */
-	u16 num_const;		/*!< \brief number of used constants in the vertex program */
-	u32 const_off;		/*!< \brief offset to the constant name table */
-
-	u16 start_insn;		/*!< \brief start address to load the vertex program to */
-	u16 num_insn;		/*!< \brief number of vertex shader instructions */
-	u32 ucode_off;		/*!< \brief offset to the shader's micro code */
+	u16 insn_start;		/*!< \brief start address to load the vertex program to */
 } rsxVertexProgram;
 
 /*! \brief Fragment program data structure.
@@ -50,23 +57,23 @@ This data structure is filled by cgcomp, the offline compiler for shader program
 typedef struct rsx_fp
 {
 	u16 magic;			/*!< \brief magic identifier */ 
-	u16 num_attrib;		/*!< \brief number of used input attributes in the fragment program */
-	u32 attrib_off;		/*!< \brief offset to the attribute name table */
+	u16 _pad0;			/*!< \brief unused padding word. most be 0 */
 
-	u32 num_regs;		/*!< \brief number of used registers in the fragment program */
+	u16 num_regs;		/*!< \brief number of used registers in the fragment program */
+	u16 num_attr;		/*!< \brief number of used input attributes in the fragment program */
+	u16 num_const;		/*!< \brief number of used constants in the fragment program */
+	u16 num_insn;		/*!< \brief number of fragment program instructions */
+
+	u32 attr_off;		/*!< \brief offset to the attribute name table */
+	u32 const_off;		/*!< \brief offset to the constant name table */
+	u32 ucode_off;		/*!< \brief offset to the shaders's micro code */
+
 	u32 fp_control;		/*!< \brief fragment program control mask */
 
 	u16 texcoords;		/*!< \brief bit mask of all used texture coords in the fragment program */
 	u16 texcoord2D;		/*!< \brief bit mask of used 2D texture coords in the fragment program */
 	u16 texcoord3D;		/*!< \brief bit mask of used 3D texture coords in the fragment program */
-
-	u16 _pad0;			/*!< \brief unused padding word. most be 0 */
-
-	u16 num_const;		/*!< \brief number of used constants in the fragment program */
-	u32 const_off;		/*!< \brief offset to the constant name table */
-
-	u16 num_insn;		/*!< \brief number of fragment program instructions */
-	u32 ucode_off;		/*!< \brief offset to the shaders's micro code */
+	u16 _pad1;			/*!< \brief unused padding word. most be 0 */
 } rsxFragmentProgram;
 
 /*! \brief Program const data structure. */
@@ -109,9 +116,10 @@ typedef struct rsx_attrib
 
 /*! \brief Get Ucode from RSX vertex program.
 \param vp Pointer the to vertex program structure.
-\return Pointer to the ucode.
+\param ucode Pointer-pointer to receive the vertex program ucode.
+\param size Pointer to receive the vertex program ucode size.
 */
-void* rsxVertexProgramGetUCode(rsxVertexProgram *vp);
+void rsxVertexProgramGetUCode(rsxVertexProgram *vp,void **ucode,u32 *size);
 
 /*! \brief Get the list of vertex program consts.
 \param vp Pointer the to vertex program structure.
@@ -141,9 +149,10 @@ s32 rsxVertexProgramGetAttrib(rsxVertexProgram *vp,const char *name);
 
 /*! \brief Get Ucode from RSX fragment program.
 \param fp Pointer the to fragment program structure.
-\return Pointer to the ucode.
+\param ucode Pointer-pointer to receive the fragment program ucode.
+\param size Pointer to receive the fragment program ucode size.
 */
-void* rsxFragmentProgramGetUCode(rsxFragmentProgram *fp,u32 *size);
+void rsxFragmentProgramGetUCode(rsxFragmentProgram *fp,void **ucode,u32 *size);
 
 /*! \brief Get the list of fragment program consts.
 \param fp Pointer the to fragment program structure.

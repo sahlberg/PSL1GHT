@@ -237,6 +237,7 @@
 #define NVFX_FP_OP_OPCODE_TXP 0x18
 #define NVFX_FP_OP_OPCODE_TXD 0x19
 #define NVFX_FP_OP_OPCODE_RCP 0x1A
+#define NVFX_FP_OP_OPCODE_RSQ 0x1B
 #define NVFX_FP_OP_OPCODE_EX2 0x1C
 #define NVFX_FP_OP_OPCODE_LG2 0x1D
 #define NVFX_FP_OP_OPCODE_STR 0x20
@@ -251,10 +252,11 @@
 #define NVFX_FP_OP_OPCODE_UP2US 0x2A
 #define NVFX_FP_OP_OPCODE_DP2A 0x2E
 #define NVFX_FP_OP_OPCODE_TXB 0x31
+#define NVFX_FP_OP_OPCODE_DP2 0x38
+#define NVFX_FP_OP_OPCODE_NRM 0x39
 #define NVFX_FP_OP_OPCODE_DIV 0x3A
 
 /* NV30 only fragment program opcodes */
-#define NVFX_FP_OP_OPCODE_RSQ_NV30 0x1B
 #define NVFX_FP_OP_OPCODE_LIT_NV30 0x1E
 #define NVFX_FP_OP_OPCODE_LRP_NV30 0x1F
 #define NVFX_FP_OP_OPCODE_POW_NV30 0x26
@@ -263,6 +265,9 @@
 /* NV40 only fragment program opcodes */
 #define NVFX_FP_OP_OPCODE_TXL_NV40 0x2F
 #define NVFX_FP_OP_OPCODE_LITEX2_NV40 0x3C
+
+/* NV40 (RSX) only fragment program opcodes */
+#define NVFX_FP_OP_OPCODE_DIVRSQ_NV40RSX 0x3B
 
 /* The use of these instructions appears to be indicated by bit 31 of DWORD 2.*/
 #define NV40_FP_OP_BRA_OPCODE_BRK                                    0x0
@@ -347,6 +352,9 @@
 #define NVFX_FP_OP_INDEX_INPUT          (1 << 30)
 #define NV40_FP_OP_ADDR_INDEX_SHIFT        19
 #define NV40_FP_OP_ADDR_INDEX_MASK        (0xF << 19)
+#define NVFX_FP_OP_SRC2_ABS				(1 << 18)
+
+#define NV40_FP_OP_DISABLE_PC_SHIFT			31
 
 //== Register selection ==
 #define NVFX_FP_REG_TYPE_SHIFT           0
@@ -381,6 +389,8 @@
 #define NVFXSR_CONST	5
 #define NVFXSR_IMM	6
 #define NVFXSR_RELOCATED	7
+#define NVFXSR_SAMPLER		8
+#define NVFXSR_ADDRESS		9
 
 #define NVFX_COND_FL  0
 #define NVFX_COND_LT  1
@@ -545,7 +555,8 @@ struct nvfx_insn
 {
 	u8 op;
 	s8 scale;
-	s32 unit;
+	s32 tex_unit;
+	s32 tex_target;
 	u8 mask;
 	u8 precision;
 	u8 cc_swz[4];
@@ -557,17 +568,20 @@ struct nvfx_insn
 	u8 cc_test : 1;
 	u8 cc_test_reg : 1;
 
+	u8 disable_pc : 1;
+
 	struct nvfx_reg dst;
 	struct nvfx_src src[3];
 };
 
-static INLINE struct nvfx_insn nvfx_insn(boolean sat,u32 op,s32 unit,struct nvfx_reg dst,u32 mask,struct nvfx_src s0,struct nvfx_src s1,struct nvfx_src s2)
+static INLINE struct nvfx_insn nvfx_insn(boolean sat,u32 op,s32 unit,s32 target,struct nvfx_reg dst,u32 mask,struct nvfx_src s0,struct nvfx_src s1,struct nvfx_src s2)
 {
 	struct nvfx_insn insn;
 
 	insn.op = op;
 	insn.scale = 0;
-	insn.unit = unit;
+	insn.tex_unit = unit;
+	insn.tex_target = target;
 	insn.mask =	mask;
 	insn.precision = FLOAT32;
 	insn.cc_swz[0] = 0; insn.cc_swz[1] = 1; insn.cc_swz[2] = 2; insn.cc_swz[3] = 3;
@@ -577,6 +591,7 @@ static INLINE struct nvfx_insn nvfx_insn(boolean sat,u32 op,s32 unit,struct nvfx
 	insn.cc_cond = NVFX_COND_TR;
 	insn.cc_test = 0;
 	insn.cc_test_reg = 0;
+	insn.disable_pc = 0;
 	insn.dst = dst;
 	insn.src[0] = s0; insn.src[1] = s1; insn.src[2] = s2;
 
@@ -589,7 +604,8 @@ static INLINE struct nvfx_insn nvfx_insn_ctor(struct nvfx_insn *insn,struct nvfx
 
 	dest_insn.op = insn->op;
 	dest_insn.scale = insn->scale;
-	dest_insn.unit = insn->unit;
+	dest_insn.tex_unit = insn->tex_unit;
+	dest_insn.tex_target = insn->tex_target;
 	dest_insn.mask = insn->mask;
 	dest_insn.precision = insn->precision;
 	dest_insn.cc_swz[0] = insn->cc_swz[0]; dest_insn.cc_swz[1] = insn->cc_swz[1]; dest_insn.cc_swz[2] = insn->cc_swz[2]; dest_insn.cc_swz[3] = insn->cc_swz[3];
@@ -599,6 +615,7 @@ static INLINE struct nvfx_insn nvfx_insn_ctor(struct nvfx_insn *insn,struct nvfx
 	dest_insn.cc_cond = insn->cc_cond;
 	dest_insn.cc_test = insn->cc_test;
 	dest_insn.cc_test_reg = insn->cc_test_reg;
+	dest_insn.disable_pc = insn->disable_pc;
 	dest_insn.dst = dst;
 	dest_insn.src[0] = s0; dest_insn.src[1] = s1; dest_insn.src[2] = s2;
 

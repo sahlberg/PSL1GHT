@@ -139,12 +139,14 @@ EXPORT(sysSpuRawLoad, 0x893305fa);
 EXPORT(sysSpuRawImageLoad, 0xb995662e);
 EXPORT(sysSpuImageClose, 0xe0da8efd);
 EXPORT(sysSpuImageImport, 0xebe5f72f);
-EXPORT(sysSpuPrintfAttachGroup, 0xdd0c1e09); /* sysPrxForUser */
-EXPORT(sysSpuPrintfAttachThread, 0x1ae10b92); /* sysPrxForUser */
-EXPORT(sysSpuPrintfDetachGroup, 0x5fdfb2fe); /* sysPrxForUser */
-EXPORT(sysSpuPrintfDetachThread, 0xb3bbcf2a); /* sysPrxForUser */
-EXPORT(sysSpuPrintfFinalize, 0xdd3b27ac); /* sysPrxForUser */
-EXPORT(sysSpuPrintfInitialize, 0x45fe2fce); /* sysPrxForUser */
+
+/* the following exports are renamed due to our own _working_ implementation */
+EXPORT(sysSpuPrintfAttachGroupEx, 0xdd0c1e09); /* sysPrxForUser */
+EXPORT(sysSpuPrintfAttachThreadEx, 0x1ae10b92); /* sysPrxForUser */
+EXPORT(sysSpuPrintfDetachGroupEx, 0x5fdfb2fe); /* sysPrxForUser */
+EXPORT(sysSpuPrintfDetachThreadEx, 0xb3bbcf2a); /* sysPrxForUser */
+EXPORT(sysSpuPrintfFinalizeEx, 0xdd3b27ac); /* sysPrxForUser */
+EXPORT(sysSpuPrintfInitializeEx, 0x45fe2fce); /* sysPrxForUser */
 
 /* console */
 EXPORT(sysConsoleGetc, 0x8a2f159b); /* sysPrxForUser */

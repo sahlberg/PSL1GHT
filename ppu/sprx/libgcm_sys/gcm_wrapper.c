@@ -8,6 +8,34 @@ extern void gcmSetSecondVHandlerEx(opd32 *opd);
 extern void gcmSetUserHandlerEx(opd32 *opd);
 extern void gcmSetQueueHandlerEx(opd32 *opd);
 extern void gcmSetUserCommandEx(opd32 *opd);
+extern s32 gcmIoOffsetToAddressEx(u32 offset,void* ATTRIBUTE_PRXPTR *address);
+extern s32 gcmInitBodyEx(gcmContextData* ATTRIBUTE_PRXPTR *ctx,const u32 cmdSize,const u32 ioSize,const void *ioAddress);
+
+s32 gcmInitBody(gcmContextData **ctx,const u32 cmdSize,const u32 ioSize,const void *ioAddress)
+{
+	s32 ret;
+	gcmContextData *context ATTRIBUTE_PRXPTR;
+	
+	if(ctx == NULL) return -1;
+	
+	ret = gcmInitBodyEx(&context,cmdSize,ioSize,ioAddress);
+	*ctx = ret == 0 ? context : NULL;
+	
+	return ret;
+}
+
+s32 gcmIoOffsetToAddress(u32 offset,void **address)
+{
+	s32 ret;
+	void *addr ATTRIBUTE_PRXPTR;
+	
+	if(address == NULL) return -1;
+	
+	ret = gcmIoOffsetToAddressEx(offset,&addr);
+	*address = ret == 0 ? addr : NULL;
+	
+	return ret;
+}
 
 void gcmSetVBlankHandler(void (*handler)(const u32 head))
 {

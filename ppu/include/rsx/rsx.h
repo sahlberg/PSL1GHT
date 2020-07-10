@@ -94,27 +94,20 @@ size is a multiple of 1 megabyte.
 This function initializes a heap structure in RSX memory space, allowing
 dynamic memory allocation using \ref rsxMalloc, \ref rsxMemalign and
 \ref rsxFree.
+\param context Pointer to receive the address of the default command buffer
 \param cmdSize The command buffer size.
 \param ioSize The allocated IO buffer size.
 \param ioAddress Pointer to an allocated buffer of \p ioSize bytes.
-\return Pointer to the allocated context structure.
+\return zero if no error occured, nonzero otherwise.
 */
-gcmContextData* rsxInit(const u32 cmdSize,const u32 ioSize,const void *ioAddress);
+s32 rsxInit(gcmContextData **context,const u32 cmdSize,const u32 ioSize,const void *ioAddress);
 
-/*! \brief Flushes the RSX command buffer.
-
-This ensures all remaining commands in the command buffer are executed, and
-that the buffer is empty when that function returns.
-\param context Pointer to the context object.
-*/
-void rsxFlushBuffer(gcmContextData *context);
-
-/*! \brief Reset the RSX command buffer.
-\param context Pointer to the context object.
-*/
-void rsxResetCommandBuffer(gcmContextData *context);
-void rsxFinish(gcmContextData *context,u32 ref_value);
 void rsxSetupContextData(gcmContextData *context,const u32 *addr,const u32 size,gcmContextCallback cb);
+void rsxSetCurrentBuffer(gcmContextData **context,const u32 *addr,const u32 size);
+void rsxSetDefaultCommandBuffer(gcmContextData **context);
+void rsxSetUserCallback(gcmContextCallback cb);
+
+u32* rsxGetCurrentBuffer();
 
 /*! \brief Converts a pointer value in RSX memory to an offset.
 \param ptr The pointer whose value is to be converted.

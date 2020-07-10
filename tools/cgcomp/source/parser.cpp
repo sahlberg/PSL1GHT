@@ -8,17 +8,21 @@
 static paramtype paramtypes[] =
 {
 	{ "float", PARAM_FLOAT },
+	{ "float1", PARAM_FLOAT1 },
 	{ "float2", PARAM_FLOAT2 },
 	{ "float3", PARAM_FLOAT3 },
 	{ "float4", PARAM_FLOAT4 },
+	{ "float3x4", PARAM_FLOAT3x4 },
 	{ "float4x4", PARAM_FLOAT4x4 },
+	{ "float3x3", PARAM_FLOAT3x3 },
+	{ "float4x3", PARAM_FLOAT4x3 },
 	{ "sampler1D", PARAM_SAMPLER1D },
 	{ "sampler2D", PARAM_SAMPLER2D },
 	{ "sampler3D", PARAM_SAMPLER3D },
 	{ "samplerCUBE", PARAM_SAMPLERCUBE },
 	{ "samplerRECT", PARAM_SAMPLERRECT },
 };
-static const u32 PARAM_TYPE_CNT = sizeof(paramtypes)/sizeof(struct _paramtype);
+static const size_t PARAM_TYPE_CNT = sizeof(paramtypes)/sizeof(struct _paramtype);
 
 CParser::CParser()
 {
@@ -40,37 +44,42 @@ void CParser::ParseComment(const char *line)
 	line++;
 
 	if(strncasecmp(line,"var",3)==0) {
-		char *token = SkipSpaces(strtok((char*)(line+3)," :"));
+		const char *token = SkipSpaces(strtok((char*)(line+3)," :"));
 		p.type = GetParamType(token);
 		p.is_const = 0;
 		p.is_internal = 0;
 		p.count = 1;
 		p.name = SkipSpaces(strtok(NULL," :"));
 
+next:
 		token = SkipSpaces(strtok(NULL," :"));
-		if(strstr(token,"$vin")) {
-			token = SkipSpaces(strtok(NULL," :"));
-			if(strncasecmp(token,"ATTR",4)==0)
-				p.index = atoi(token+4);
-			else
-				p.index = ConvertInputReg(token);
-		} else if(strstr(token,"texunit")) {
-			token = SkipSpaces(strtok(NULL," :"));
-			p.index = atoi(token);
-		} else if(token[0]=='c') {
-			p.is_const = 1;
-			p.index = atoi(token+2);
+		if (token) {
+			if(strstr(token,"$vin")) {
+				token = SkipSpaces(strtok(NULL," :"));
+				if(strncasecmp(token,"ATTR",4)==0)
+					p.index = atoi(token+4);
+				else
+					p.index = ConvertInputReg(token);
+			} else if(strstr(token,"texunit")) {
+				token = SkipSpaces(strtok(NULL," :"));
+				p.index = atoi(token);
+			} else if(token[0]=='c') {
+				p.is_const = 1;
+				p.index = atoi(token+2);
 
-			token = strtok(NULL," ,");
-			if(isdigit(*token)) p.count = atoi(token);
+				token = strtok(NULL," ,");
+				if(isdigit(*token)) p.count = atoi(token);
+			} else
+				goto next;
 		} else
 			return;
 
-		InitParameter(&p);
-
-		m_lParameters.push_back(p);
+		if(p.index>-1) {
+			InitParameter(&p);
+			m_lParameters.push_back(p);
+		}
 	} else if(strncasecmp(line,"const",5)==0) {
-		char  *token = SkipSpaces(strtok((char*)(line+5)," "));
+		const char *token = SkipSpaces(strtok((char*)(line+5)," "));
 
 		p.is_const = 1;
 		p.is_internal = 1;
@@ -106,10 +115,13 @@ void CParser::InitParameter(param *p)
 	
 	switch(p->type) {
 		case PARAM_FLOAT4x4:
-			p->values[0][0] = 1.0f;
-			p->values[1][1] = 1.0f;
-			p->values[2][2] = 1.0f;
 			p->values[3][3] = 1.0f;
+		case PARAM_FLOAT4x3:
+		case PARAM_FLOAT3x3:
+		case PARAM_FLOAT3x4:
+			p->values[2][2] = 1.0f;
+			p->values[1][1] = 1.0f;
+			p->values[0][0] = 1.0f;
 			break;
 		default:
 			break;
@@ -150,7 +162,8 @@ void CParser::InitInstruction(struct nvfx_insn *insn,u8 op)
 {
 	insn->op = op;
 	insn->scale = 0;
-	insn->unit = -1;
+	insn->tex_unit = -1;
+	insn->tex_target = -1;
 	insn->precision = FLOAT32;
 	insn->mask = NVFX_VP_MASK_ALL;
 	insn->cc_swz[0] = 0; insn->cc_swz[1] = 1; insn->cc_swz[2] = 2; insn->cc_swz[3] = 3;
@@ -160,6 +173,7 @@ void CParser::InitInstruction(struct nvfx_insn *insn,u8 op)
 	insn->cc_cond = NVFX_COND_TR;
 	insn->cc_test = 0;
 	insn->cc_test_reg = 0;
+	insn->disable_pc = 0;
 	insn->dst = nvfx_reg(NVFXSR_NONE,0);
 	insn->src[0] = nvfx_src(nvfx_reg(NVFXSR_NONE,0)); insn->src[1] = nvfx_src(nvfx_reg(NVFXSR_NONE,0)); insn->src[2] = nvfx_src(nvfx_reg(NVFXSR_NONE,0));
 }
@@ -181,10 +195,8 @@ bool CParser::isWhitespace(int c)
 
 s32 CParser::GetParamType(const char *param_str)
 {
-	u32 i;
-
-	for(i=0;i<PARAM_TYPE_CNT;i++) {
-		if(strcasecmp(param_str,paramtypes[i].ident)==0)
+	for(size_t i=0;i<PARAM_TYPE_CNT;i++) {
+		if(strcasecmp(param_str,paramtypes[i].ident.c_str())==0)
 			return (s32)paramtypes[i].type;
 	}
 	return -1;
@@ -280,4 +292,45 @@ const char* CParser::ParseRegSwizzle(const char *token,struct nvfx_src *reg)
 		}
 	}
 	return token;
+}
+
+void CParser::ParseTextureUnit(const char *token,s32 *texUnit)
+{
+	char *p;
+
+	*texUnit = -1;
+
+	if(!token) return;
+
+	if(strncmp(token,"texture[",8)) return;
+
+	p = (char*)token + 8;
+	token = p;
+	while(isdigit(*p)) p++;
+
+	*texUnit = atoi(token);
+}
+
+void CParser::ParseTextureTarget(const char *token,s32 *texTarget)
+{
+	*texTarget = -1;
+
+	if(!token) return;
+
+	if(strncasecmp(token,"1D",2)==0)
+		*texTarget = PARAM_SAMPLER1D;
+	else if(strncasecmp(token,"2D",2)==0)
+		*texTarget = PARAM_SAMPLER2D;
+	else if(strncasecmp(token,"3D",2)==0)
+		*texTarget = PARAM_SAMPLER3D;
+	else if(strncasecmp(token,"CUBE",4)==0)
+		*texTarget = PARAM_SAMPLERCUBE;
+	else if(strncasecmp(token,"RECT",4)==0)
+		*texTarget = PARAM_SAMPLERRECT;
+	else if(strncasecmp(token,"SHADOW1D",8)==0)
+		*texTarget = PARAM_SAMPLERSHADOW1D;
+	else if(strncasecmp(token,"SHADOW2D",8)==0)
+		*texTarget = PARAM_SAMPLERSHADOW2D;
+	else if(strncasecmp(token,"SHADOWRECT",10)==0)
+		*texTarget = PARAM_SAMPLERSHADOWRECT;
 }

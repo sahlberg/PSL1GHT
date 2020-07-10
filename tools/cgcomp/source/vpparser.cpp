@@ -30,6 +30,7 @@ struct _opcode
 	{ "EXP", OPCODE_EXP,{ 2,-1,-1},1,false },
 	{ "FLR", OPCODE_FLR,{ 0,-1,-1},1,false },
 	{ "FRC", OPCODE_FRC,{ 0,-1,-1},1,false },
+	{ "LRP", OPCODE_LRP,{ 0, 1, 2},3,false },
 	{ "LG2", OPCODE_LG2,{ 2,-1,-1},1,false },
 	{ "LIT", OPCODE_LIT,{ 2,-1,-1},1,false },
 	{ "LOG", OPCODE_LOG,{ 2,-1,-1},1,false },
@@ -65,7 +66,7 @@ struct _opcode
 	// end
 	{ "END", OPCODE_END,{},0,false}
 };
-static const u32 VP_OPCODES_CNT = sizeof(vp_opcodes)/sizeof(struct _opcode);
+static const size_t VP_OPCODES_CNT = sizeof(vp_opcodes)/sizeof(struct _opcode);
 
 static ioset vp_inputs[] =
 {
@@ -94,7 +95,7 @@ static ioset vp_inputs[] =
 	{ "TEX6", 14 },
 	{ "TEX7", 15 }
 };
-static const u32 VP_INPUTS_CNT = sizeof(vp_inputs)/sizeof(ioset);
+static const size_t VP_INPUTS_CNT = sizeof(vp_inputs)/sizeof(ioset);
 
 static ioset vp_outputs[] =
 {
@@ -131,7 +132,7 @@ static ioset vp_outputs[] =
 	{ "TEX7", 14 },
 	{ "TEMP", 15 }
 };
-static const u32 VP_OUTPUTS_CNT = sizeof(vp_outputs)/sizeof(ioset);
+static const size_t VP_OUTPUTS_CNT = sizeof(vp_outputs)/sizeof(ioset);
 
 CVPParser::CVPParser() : CParser()
 {
@@ -147,7 +148,6 @@ int CVPParser::Parse(const char *str)
 	int i,iline = 0;
 	bool inProgram = false;
 	std::stringstream input(str);
-	struct nvfx_src none = nvfx_src(nvfx_reg(NVFXSR_NONE,0));
 
 	while(!input.eof()) {
 		char line[256];
@@ -209,13 +209,13 @@ int CVPParser::Parse(const char *str)
 		if(label) {
 			jmpdst d;
 
-			strcpy(d.ident,label);
+			d.ident = label;
 			d.location = m_nInstructions;
 			m_lIdent.push_back(d);
 		}
 
 		if(opcode) {
-			char *param_str = SkipSpaces(strtok(NULL,"\0"));
+			const char *param_str = SkipSpaces(strtok(NULL,"\0"));
 			if(strcasecmp(opcode,"OPTION")==0) {
 				if(strncasecmp(param_str,"NV_vertex_program3",18)==0)
 					m_nOption |= NV_OPTION_VP3;
@@ -223,6 +223,8 @@ int CVPParser::Parse(const char *str)
 			} else if(strcasecmp(opcode,"PARAM")==0)
 				continue;
 			else if(strcasecmp(opcode,"TEMP")==0)
+				continue;
+			else if(strcasecmp(opcode,"ADDRESS")==0)
 				continue;
 			else {
 				opc = FindOpcode(opcode);
@@ -268,7 +270,7 @@ int CVPParser::Parse(const char *str)
 		bool found = false;
 
 		for(std::list<jmpdst>::iterator i=m_lIdent.begin();i!=m_lIdent.end();i++) {
-			if(strcmp(r->ident,i->ident)==0) {
+			if(strcmp(r->ident.c_str(),i->ident.c_str())==0) {
 				found = true;
 				m_pInstructions[r->location].dst = nvfx_reg(NVFXSR_RELOCATED,i->location);
 				break;
@@ -276,7 +278,7 @@ int CVPParser::Parse(const char *str)
 		}
 
 		if(found==false) {
-			fprintf(stderr,"Identifier \'%s\' not found.\n",r->ident);
+			fprintf(stderr,"Identifier \'%s\' not found.\n",r->ident.c_str());
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -287,7 +289,7 @@ int CVPParser::Parse(const char *str)
 void CVPParser::ParseInstruction(struct nvfx_insn *insn,opcode *opc,const char *param_str)
 {
 	u32 i;
-	char *token = SkipSpaces(strtok((char*)param_str,","));
+	const char *token = SkipSpaces(strtok((char*)param_str,","));
 
 	if(opc->is_imm)
 		ParseMaskedDstAddr(token,insn);
@@ -296,7 +298,7 @@ void CVPParser::ParseInstruction(struct nvfx_insn *insn,opcode *opc,const char *
 
 	for(i=0;i<opc->nr_src;i++) {
 		token = SkipSpaces(strtok(NULL,","));
-		ParseSwizzledSrcReg(token,&insn->src[opc->src_slots[i]]);
+		ParseSwizzledSrcReg(token,insn,opc->src_slots[i]);
 	}
 }
 
@@ -306,12 +308,13 @@ void CVPParser::ParseMaskedDstReg(const char *token,struct nvfx_insn *insn)
 
 	if(!token) return;
 
-	if(token[0]=='R') {
-		if(token[1]=='C') return;
-
-		token = ParseTempReg(token,&idx);
-		insn->dst.type = NVFXSR_TEMP;
-		insn->dst.index = idx;
+	if(token[0]=='R' || token[0]=='H') {
+		if(token[1]=='C') token += 2;
+		else {
+			token = ParseTempReg(token,&idx);
+			insn->dst.type = NVFXSR_TEMP;
+			insn->dst.index = idx;
+		}
 	} else if(token[0]=='r' && token[1]=='e') {
 		token = ParseOutputReg(token,&idx);
 		insn->dst.type = NVFXSR_OUTPUT;
@@ -320,17 +323,19 @@ void CVPParser::ParseMaskedDstReg(const char *token,struct nvfx_insn *insn)
 		token = ParseOutputReg(&token[2],&idx);
 		insn->dst.type = NVFXSR_OUTPUT;
 		insn->dst.index = idx;
+	} else if(token[0]=='A' && (token[1]=='0' || token[1]=='1')) {
+		token = ParseOutputReg(&token[1],&idx);
+		insn->dst.type = NVFXSR_ADDRESS;
+		insn->dst.index = idx;
 	} else if(token[0]=='C' && token[1]=='C')
-		return;
+		token += 2;
 
 	ParseMaskedDstRegExt(token,insn);
 }
 
 opcode* CVPParser::FindOpcode(const char *mnemonic)
 {
-	u32 i;
-
-	for(i=0;i<VP_OPCODES_CNT;i++) {
+	for(size_t i=0;i<VP_OPCODES_CNT;i++) {
 		if(strncmp(mnemonic,vp_opcodes[i].mnemonic,strlen(vp_opcodes[i].mnemonic))==0) return &vp_opcodes[i];
 	}
 	return NULL;
@@ -339,25 +344,23 @@ opcode* CVPParser::FindOpcode(const char *mnemonic)
 void CVPParser::ParseMaskedDstAddr(const char *token,struct nvfx_insn *insn)
 {
 	jmpdst d;
-	u32 len;
 
 	if(!token) return;
 
-	char *cond = (char*)strchr(token,'(');
+	int len = 0;
+	while(!isWhitespace(token[len]) && !(token[len] == '(')) len++;
 
-	len = (u32)strlen(token);
-	if(cond) len = (cond - token);
-
-	strncpy(d.ident,token,len);
+	d.ident = std::string(token,len);
 	d.location = m_nInstructions;
 	m_lJmpDst.push_back(d);
 
-	ParseMaskedDstRegExt(cond,insn);
+	ParseMaskedDstRegExt(SkipSpaces(token + len),insn);
 }
 
-void CVPParser::ParseSwizzledSrcReg(const char *token,struct nvfx_src *reg)
+void CVPParser::ParseSwizzledSrcReg(const char *token,struct nvfx_insn *insn,s32 slot)
 {
-	s32 idx;
+	s32 idx = -1;
+	struct nvfx_src *reg = &insn->src[slot];
 
 	if(!token) return;
 
@@ -380,6 +383,13 @@ void CVPParser::ParseSwizzledSrcReg(const char *token,struct nvfx_src *reg)
 
 		reg->reg.type = NVFXSR_INPUT;
 		reg->reg.index = idx;
+	} else if(!strncmp(token,"texture[",8)) {
+		ParseTextureUnit(token,&insn->tex_unit);
+		token = SkipSpaces(strtok(NULL,","));
+		ParseTextureTarget(token,&insn->tex_target);
+
+		reg->reg.type = NVFXSR_SAMPLER;
+		reg->reg.index = insn->tex_unit;
 	} else if(token[0]=='R') {
 		token = ParseTempReg(token,&idx);
 		reg->reg.type = NVFXSR_TEMP;
@@ -396,7 +406,7 @@ const char* CVPParser::ParseParamReg(const char *token,struct nvfx_src *reg)
 {
 	if(!token) return NULL;
 
-	char *p = (char*)token;
+	const char *p = token;
 
 	if(isdigit(*p)) {
 		reg->reg.type = NVFXSR_CONST;
@@ -429,9 +439,12 @@ const char* CVPParser::ParseParamReg(const char *token,struct nvfx_src *reg)
 			}
 			p += k;
 		}
+
+		p = SkipSpaces(p);
 		if(*p=='-' || *p=='+') {
 			const char sign = *p++;
 
+			p = SkipSpaces(p);
 			if(isdigit(*p)) {
 				const s32 k = atoi(p);
 				if(sign=='-') {
@@ -484,8 +497,6 @@ s32 CVPParser::ConvertInputReg(const char *token)
 
 const char* CVPParser::ParseOutputReg(const char *token,s32 *reg)
 {
-	u32 i;
-
 	if(isdigit(*token)) {
 		char *p = (char*)token;
 		while(isdigit(*p)) p++;
@@ -495,12 +506,12 @@ const char* CVPParser::ParseOutputReg(const char *token,s32 *reg)
 		return (token + (p - token));
 	}
 
-	for(i=0;i<VP_OUTPUTS_CNT;i++) {
-		u32 tlen = (u32)strlen(vp_outputs[i].name);
-		if(strncmp(token,vp_outputs[i].name,tlen)==0) {
+	for(size_t i=0;i<VP_OUTPUTS_CNT;i++) {
+		size_t tlen = strlen(vp_outputs[i].name.c_str());
+		if(strncmp(token,vp_outputs[i].name.c_str(),tlen)==0) {
 			*reg = vp_outputs[i].index;
-			if(strcmp(vp_outputs[i].name,"result.texcoord")==0 ||
-				strcmp(vp_outputs[i].name,"result.clip")==0) 
+			if(strcmp(vp_outputs[i].name.c_str(),"result.texcoord")==0 ||
+				strcmp(vp_outputs[i].name.c_str(),"result.clip")==0) 
 			{
 				if(token[tlen]!='[' || !isdigit(token[tlen+1])) return NULL;
 
@@ -521,8 +532,6 @@ const char* CVPParser::ParseOutputReg(const char *token,s32 *reg)
 
 const char* CVPParser::ParseInputReg(const char *token,s32 *reg)
 {
-	u32 i;
-
 	if(isdigit(*token)) {
 		char *p = (char*)token;
 		while(isdigit(*p)) p++;
@@ -532,12 +541,12 @@ const char* CVPParser::ParseInputReg(const char *token,s32 *reg)
 		return (token + (p - token));
 	}
 
-	for(i=0;i<VP_INPUTS_CNT;i++) {
-		u32 tlen = (u32)strlen(vp_inputs[i].name);
-		if(strncmp(token,vp_inputs[i].name,tlen)==0) {
+	for(size_t i=0;i<VP_INPUTS_CNT;i++) {
+		size_t tlen = strlen(vp_inputs[i].name.c_str());
+		if(strncmp(token,vp_inputs[i].name.c_str(),tlen)==0) {
 			*reg = vp_inputs[i].index;
-			if(strcmp(vp_inputs[i].name,"vertex.texcoord")==0 ||
-				strcmp(vp_inputs[i].name,"vertex.attrib")==0)
+			if(strcmp(vp_inputs[i].name.c_str(),"vertex.texcoord")==0 ||
+				strcmp(vp_inputs[i].name.c_str(),"vertex.attrib")==0)
 			{
 				u32 off = 0;
 

@@ -36,20 +36,31 @@ public:
 private:
 	void Prepare(CParser *pParser);
 
-	void emit_insn(u8 op,struct nvfx_insn *insn);
-	void emit_dst(struct nvfx_reg *dst,bool *have_const);
-	void emit_src(s32 pos,struct nvfx_src *src,bool *have_const);
+	void emit_insn(struct nvfx_insn *insn,u8 op);
+	void emit_dst(struct nvfx_insn *insn,bool *have_const);
+	void emit_src(struct nvfx_insn *insn,s32 pos,bool *have_const);
 	void emit_brk(struct nvfx_insn *insn);
 	void emit_rep(struct nvfx_insn *insn);
 	void emit_if(struct nvfx_insn *insn);
+	void emit_loop(struct nvfx_insn *insn);
+	void emit_lrp(struct nvfx_insn *insn);
+	void emit_pow(struct nvfx_insn *insn);
+	void emit_lit(struct nvfx_insn *insn);
+	void emit_ddx(struct nvfx_insn *insn);
+	void emit_ddy(struct nvfx_insn *insn);
+	void emit_txl(struct nvfx_insn *insn);
+	void emit_tex(struct nvfx_insn *insn,u8 op);
 	void fixup_rep();
+	void fixup_loop();
 	void fixup_if();
 	void fixup_else();
 
-	void grow_insns(int count);
+	int grow_insns(int count);
 
 	struct nvfx_reg temp();
 	void release_temps();
+
+	struct nvfx_reg imm(f32 x, f32 y, f32 z, f32 w);
 
 	inline param GetImmData(int index)
 	{
@@ -94,12 +105,11 @@ private:
 	int m_rTemps;
 	int m_rTempsDiscard;
 
-	struct nvfx_reg *m_rTemp;
-
 	std::list<param> m_lParameters;
 	std::list<struct fragment_program_data> m_lConstData;
 	std::stack<int> m_repStack;
 	std::stack<int> m_ifStack;
+	std::stack<int> m_loopStack;
 };
 
 #endif

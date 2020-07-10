@@ -1,7 +1,7 @@
 #include "types.h"
 #include "fpparser.h"
 #include "vpparser.h"
-#include "compiler.h"
+#include "compilervp.h"
 #include "compilerfp.h"
 
 #ifdef __CYGWIN__
@@ -33,16 +33,21 @@ struct _options
 	const char *dst_file;
 	const char *entry;
 	int prog_type;
+	int profile;
 	bool gen_asm;
 	bool compile;
 	bool strip;
+	bool dump_asm;
+	std::vector<std::string> cg_args;
 } Options = {
 	NULL,
 	NULL,
 	"main",
 	PROG_TYPE_NONE,
+	-1,
 	false,
 	true,
+	false,
 	false
 };
  
@@ -52,6 +57,8 @@ struct _options
 #define CG_PROFILE_FP30			6149
 #define CG_PROFILE_FP40			6151
 #define CG_PROFILE_VP40			7001
+#define CG_PROFILE_GP4FP		7010
+#define CG_PROFILE_GP4VP		7011
 
 typedef void*(*_cgCreateContext)();
 typedef void(*_cgDestroyContext)(void *context);
@@ -64,6 +71,9 @@ _cgDestroyContext cgDestroyContext=NULL;
 _cgCreateProgramFromFile cgCreateProgramFromFile=NULL;
 _cgGetProgramString cgGetProgramString=NULL;
 _cgGetLastListing cgGetLastListing=NULL;
+
+static const char *cgDefArgs[] = { "-O3", "-bestprecision", "-unroll", "count=4", "-ifcvt", "all", NULL };
+static size_t numCgDefArgs = sizeof(cgDefArgs)/sizeof(char*);
 
 static bool InitCompiler()
 {
@@ -102,9 +112,13 @@ static u32 endian_fp(u32 v)
 
 void usage()
 {
-	printf("cgcomp [options] input output\n");
-	printf("\t-f Input is fragment program\n");
-	printf("\t-v Input is vertex program\n");
+	fprintf(stderr, "cgcomp [options] input output\n");
+	fprintf(stderr, "\t-f Input is fragment program\n");
+	fprintf(stderr, "\t-v Input is vertex program\n");
+	fprintf(stderr, "\t-d Dump assembly to file (<output>.asm)\n");
+	fprintf(stderr, "\t-e Specify entry point function\n");
+	fprintf(stderr, "\t-a Compile from assembly input file\n");
+	fprintf(stderr, "\t-Wcg, Additional arguments passed to the cg compiler frontend\n");
 }
 
 void readoptions(struct _options *options,int argc,char *argv[])
@@ -118,6 +132,15 @@ void readoptions(struct _options *options,int argc,char *argv[])
 				case 'v': options->prog_type = PROG_TYPE_VP; break;
 				case 'e': options->entry = argv[++i]; break;
 				case 'a': options->gen_asm = true; break;
+				case 'd': options->dump_asm = true; break;
+				case 'W':
+				{
+					char *cg_arg = &argv[i][2];
+
+					if(cg_arg[0] == 'c' && cg_arg[1] == 'g' && cg_arg[2] == ',')
+						options->cg_args.push_back(&cg_arg[3]);
+				}
+				break;
 			}
 		} else
 			break;
@@ -172,6 +195,28 @@ char* readfile(const char *filename)
 	return prg;
 }
 
+void* createProgram(void *context, int profile)
+{
+	int argc;
+	char **argv;
+	int numArgs;
+
+	numArgs = numCgDefArgs + Options.cg_args.size();
+	argv = new char*[numArgs];
+
+	memset(argv, 0, numArgs);
+
+	argc = 0;
+	for(u32 i=0;i < numCgDefArgs && cgDefArgs[i];i++) {
+		argv[argc++] = strdup(cgDefArgs[i]);
+	}
+	for(u32 i=0;i < Options.cg_args.size();i++) {
+		argv[argc++] = strdup(Options.cg_args[i].c_str());
+	}
+
+	return cgCreateProgramFromFile(context, CG_SOURCE, Options.src_file, profile, Options.entry, (const char**)argv);
+}
+
 int compileVP()
 {
 	char *prg;
@@ -182,7 +227,7 @@ int compileVP()
 		prg = readfile(Options.src_file);
 	} else {
 		context = cgCreateContext();
-		program = cgCreateProgramFromFile(context,CG_SOURCE,Options.src_file,CG_PROFILE_VP40,Options.entry,NULL);
+		program = createProgram(context, CG_PROFILE_VP40);
 		if(program==NULL) {
 			const char *error = cgGetLastListing(context);
 			fprintf(stderr,"%s\n",error);
@@ -193,7 +238,17 @@ int compileVP()
 
 	if(prg) {
 		CVPParser parser;
-		CCompiler compiler;
+		CCompilerVP compiler;
+
+		if(Options.dump_asm) {
+			FILE *fDump = NULL;
+			std::string fname = Options.dst_file;
+
+			fname.append(".dump");
+			fDump = fopen(fname.c_str(),"wb");
+			fwrite(prg,strlen(prg),1,fDump);
+			fclose(fDump);
+		}
 
 		parser.Parse(prg);
 		compiler.Compile(&parser);
@@ -225,8 +280,9 @@ int compileVP()
 		rsxVertexProgram *vp = (rsxVertexProgram*)vertexprogram;
 
 		vp->magic = SWAP16(magic);
-		vp->start_insn = SWAP16(0);
+		vp->insn_start = SWAP16(0);
 		vp->const_start = SWAP16(0);
+		vp->num_regs = SWAP16(compiler.GetNumRegs());
 		vp->input_mask = SWAP32(compiler.GetInputMask());
 		vp->output_mask = SWAP32(compiler.GetOutputMask());
 
@@ -235,7 +291,7 @@ int compileVP()
 
 		rsxProgramAttrib *attribs = (rsxProgramAttrib*)(vertexprogram + lastoff);
 
-		vp->attrib_off = SWAP32(lastoff);
+		vp->attr_off = SWAP32(lastoff);
 
 		n = 0;
 		std::list<param> params = parser.GetParameters();
@@ -248,7 +304,7 @@ int compileVP()
 				n++;
 			}
 		}
-		vp->num_attrib = SWAP16(n);
+		vp->num_attr = SWAP16(n);
 		lastoff += (n*sizeof(rsxProgramAttrib));
 
 		while(lastoff&3)
@@ -332,7 +388,7 @@ int compileFP()
 		prg = readfile(Options.src_file);
 	} else {
 		context = cgCreateContext();
-		program = cgCreateProgramFromFile(context,CG_SOURCE,Options.src_file,CG_PROFILE_FP40,Options.entry,NULL);
+		program = createProgram(context, CG_PROFILE_FP40);
 		if(program==NULL) {
 			const char *error = cgGetLastListing(context);
 			fprintf(stderr,"%s\n",error);
@@ -345,6 +401,16 @@ int compileFP()
 		CFPParser parser;
 		CCompilerFP compiler;
 		
+		if(Options.dump_asm) {
+			FILE *fDump = NULL;
+			std::string fname = Options.dst_file;
+
+			fname.append(".dump");
+			fDump = fopen(fname.c_str(),"wb");
+			fwrite(prg,strlen(prg),1,fDump);
+			fclose(fDump);
+		}
+
 		parser.Parse(prg);
 		compiler.Compile(&parser);
 
@@ -356,7 +422,7 @@ int compileFP()
 		rsxFragmentProgram *fp = (rsxFragmentProgram*)fragmentprogram;
 		
 		fp->magic = SWAP16(magic);
-		fp->num_regs = SWAP32(compiler.GetNumRegs());
+		fp->num_regs = SWAP16(compiler.GetNumRegs());
 		fp->fp_control = SWAP32(compiler.GetFPControl());
 		fp->texcoords = SWAP16(compiler.GetTexcoords());
 		fp->texcoord2D = SWAP16(compiler.GetTexcoord2D());
@@ -365,7 +431,7 @@ int compileFP()
 		while(lastoff&3)
 			fragmentprogram[lastoff++] = 0;
 
-		fp->attrib_off = SWAP32(lastoff);
+		fp->attr_off = SWAP32(lastoff);
 		rsxProgramAttrib *attribs = (rsxProgramAttrib*)(fragmentprogram + lastoff);
 
 		n = 0;
@@ -379,7 +445,7 @@ int compileFP()
 				n++;
 			}
 		}
-		fp->num_attrib = SWAP16(n);
+		fp->num_attr = SWAP16(n);
 		lastoff += (n*sizeof(rsxProgramAttrib));
 
 		while(lastoff&3)

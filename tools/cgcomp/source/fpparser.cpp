@@ -68,6 +68,7 @@ struct _opcode
    { "KIL", OPCODE_KIL_NV, INPUT_CC, OUTPUT_NONE, 0                },
    { "LG2", OPCODE_LG2, INPUT_1S, OUTPUT_S, _R | _H |      _C | _S },
    { "LIT", OPCODE_LIT, INPUT_1V, OUTPUT_V, _R | _H |      _C | _S },
+   { "LOOP", OPCODE_BGNLOOP, INPUT_1V, OUTPUT_NONE, 0			   },
    { "LRP", OPCODE_LRP, INPUT_3V, OUTPUT_V, _R | _H | _X | _C | _S },
    { "MAD", OPCODE_MAD, INPUT_3V, OUTPUT_V, _R | _H | _X | _C | _S },
    { "MAX", OPCODE_MAX, INPUT_2V, OUTPUT_V, _R | _H | _X | _C | _S },
@@ -194,7 +195,6 @@ int CFPParser::Parse(const char *str)
 			continue;
 		}
 
-		char *label = NULL;
 		char *col_ptr = NULL;
 		char *opcode = NULL;
 		char *ptr = line;
@@ -210,7 +210,7 @@ int CFPParser::Parse(const char *str)
 			}
 
 			if(valid) {
-				label = strtok(ptr,":\x20");
+				(void)strtok(ptr,":\x20");
 				ptr = col_ptr + 1;
 			}
 		}
@@ -218,7 +218,7 @@ int CFPParser::Parse(const char *str)
 		opcode = strtok(ptr," ");
 
 		if(opcode) {
-			char *param_str = SkipSpaces(strtok(NULL,"\0"));
+			const char *param_str = SkipSpaces(strtok(NULL,"\0"));
 			if(strcasecmp(opcode,"OPTION")==0) {
 				if(strncasecmp(param_str,"NV_fragment_program2",20)==0)
 					m_nOption |= NV_OPTION_FP2;
@@ -252,7 +252,7 @@ int CFPParser::Parse(const char *str)
 
 void CFPParser::ParseInstruction(struct nvfx_insn *insn,opcode *opc,const char *param_str)
 {
-	char *token = SkipSpaces(strtok((char*)param_str,","));
+	const char *token = SkipSpaces(strtok((char*)param_str,","));
 
 	insn->precision = opc->suffixes&(_R|_H|_X);
 	insn->sat = ((opc->suffixes&_S) ? TRUE : FALSE);
@@ -289,20 +289,14 @@ void CFPParser::ParseInstruction(struct nvfx_insn *insn,opcode *opc,const char *
 		token = SkipSpaces(strtok(NULL,","));
 		ParseScalarSrc(token,&insn->src[1]);
 	} else if(opc->inputs==INPUT_1V_T) {
-		u8 unit,target;
-
 		ParseVectorSrc(token,&insn->src[0]);
 
 		token = SkipSpaces(strtok(NULL,","));
-		ParseTextureUnit(token,&unit);
+		ParseTextureUnit(token,&insn->tex_unit);
 
 		token = SkipSpaces(strtok(NULL,","));
-		ParseTextureTarget(token,&target);
-
-		insn->unit = unit;
+		ParseTextureTarget(token,&insn->tex_target);
 	} else if(opc->inputs==INPUT_3V_T) {
-		u8 unit,target;
-
 		ParseVectorSrc(token,&insn->src[0]);
 
 		token = SkipSpaces(strtok(NULL,","));
@@ -312,12 +306,10 @@ void CFPParser::ParseInstruction(struct nvfx_insn *insn,opcode *opc,const char *
 		ParseVectorSrc(token,&insn->src[2]);
 
 		token = SkipSpaces(strtok(NULL,","));
-		ParseTextureUnit(token,&unit);
+		ParseTextureUnit(token,&insn->tex_unit);
 
 		token = SkipSpaces(strtok(NULL,","));
-		ParseTextureTarget(token,&target);
-
-		insn->unit = unit;
+		ParseTextureTarget(token,&insn->tex_target);
 	} else if(opc->inputs==INPUT_CC) {
 		ParseCond(token,insn);
 	}
@@ -402,8 +394,8 @@ void CFPParser::ParseOutput(const char *param_str)
 {
 	oparam p;
 	s32 reg = -1;
-	char *token = SkipSpaces(strtok((char*)param_str," ="));
-	char *name = SkipSpaces(strtok(NULL,"=\0"));
+	const char *token = SkipSpaces(strtok((char*)param_str," ="));
+	const char *name = SkipSpaces(strtok(NULL,"=\0"));
 
 	ParseOutputReg(name,&reg);
 
@@ -415,8 +407,6 @@ void CFPParser::ParseOutput(const char *param_str)
 
 const char* CFPParser::ParseOutputReg(const char *token, s32 *reg)
 {
-	u32 i;
-
 	if(isdigit(*token)) {
 		char *p = (char*)token;
 		while(isdigit(*p)) p++;
@@ -426,9 +416,9 @@ const char* CFPParser::ParseOutputReg(const char *token, s32 *reg)
 		return (token + (p - token));
 	}
 
-	for(i=0;i<FP_OUTPUTS_CNT;i++) {
-		u32 tlen = (u32)strlen(fp_outputs[i].name);
-		if(strncmp(token,fp_outputs[i].name,tlen)==0) {
+	for(size_t i=0;i<FP_OUTPUTS_CNT;i++) {
+		size_t tlen = strlen(fp_outputs[i].name.c_str());
+		if(strncmp(token,fp_outputs[i].name.c_str(),tlen)==0) {
 			*reg = fp_outputs[i].index;
 			return (token + tlen);
 		}
@@ -438,8 +428,6 @@ const char* CFPParser::ParseOutputReg(const char *token, s32 *reg)
 
 const char* CFPParser::ParseInputReg(const char *token, s32 *reg)
 {
-	u32 i;
-
 	if(isdigit(*token)) {
 		char *p = (char*)token;
 		while(isdigit(*p)) p++;
@@ -449,11 +437,11 @@ const char* CFPParser::ParseInputReg(const char *token, s32 *reg)
 		return (token + (p - token));
 	}
 
-	for(i=0;i<FP_INPUTS_CNT;i++) {
-		u32 tlen = (u32)strlen(fp_inputs[i].name);
-		if(strncmp(token,fp_inputs[i].name,tlen)==0) {
+	for(size_t i=0;i<FP_INPUTS_CNT;i++) {
+		size_t tlen = strlen(fp_inputs[i].name.c_str());
+		if(strncmp(token,fp_inputs[i].name.c_str(),tlen)==0) {
 			*reg = fp_inputs[i].index;
-			if(strcmp(fp_inputs[i].name,"fragment.texcoord")==0) {
+			if(strcmp(fp_inputs[i].name.c_str(),"fragment.texcoord")==0) {
 				if(token[tlen]!='[' || !isdigit(token[tlen+1])) return NULL;
 
 				char *p = (char*)(token + tlen + 1);
@@ -469,37 +457,6 @@ const char* CFPParser::ParseInputReg(const char *token, s32 *reg)
 		}
 	}
 	return NULL;
-}
-
-void CFPParser::ParseTextureUnit(const char *token,u8 *texUnit)
-{
-	char *p;
-
-	if(!token) return;
-
-	if(strncmp(token,"texture[",8)) return;
-
-	p = (char*)token + 8;
-	token = p;
-	while(isdigit(*p)) p++;
-
-	*texUnit = atoi(token);
-}
-
-void CFPParser::ParseTextureTarget(const char *token,u8 *texTarget)
-{
-	if(!token) return;
-
-	if(strncasecmp(token,"1D",2)==0)
-		*texTarget = TEXTURE_1D_BIT;
-	else if(strncasecmp(token,"2D",2)==0)
-		*texTarget = TEXTURE_2D_BIT;
-	else if(strncasecmp(token,"3D",2)==0)
-		*texTarget = TEXTURE_3D_BIT;
-	else if(strncasecmp(token,"CUBE",4)==0)
-		*texTarget = TEXTURE_CUBE_BIT;
-	else if(strncasecmp(token,"RECT",4)==0)
-		*texTarget = TEXTURE_RECT_BIT;
 }
 
 const char* CFPParser::ParseOutputRegAlias(const char *token,s32 *reg)

@@ -30,17 +30,19 @@
 #define MAX_NV_FRAGMENT_PROGRAM_WRITE_ONLYS    2
 /*@}*/
 
-enum eparams { PARAM_FLOAT = 0,PARAM_FLOAT2,PARAM_FLOAT3,PARAM_FLOAT4,PARAM_FLOAT4x4,PARAM_SAMPLER1D,PARAM_SAMPLER2D,PARAM_SAMPLER3D,PARAM_SAMPLERCUBE,PARAM_SAMPLERRECT, PARAM_NULL = 0xff };
+enum eparams { PARAM_FLOAT = 0,PARAM_FLOAT1,PARAM_FLOAT2,PARAM_FLOAT3,PARAM_FLOAT4,PARAM_FLOAT3x4,PARAM_FLOAT4x4,PARAM_FLOAT3x3,PARAM_FLOAT4x3,
+			   PARAM_SAMPLER1D,PARAM_SAMPLER2D,PARAM_SAMPLER3D,PARAM_SAMPLERCUBE,PARAM_SAMPLERRECT, PARAM_SAMPLERSHADOW1D, PARAM_SAMPLERSHADOW2D,
+			   PARAM_SAMPLERSHADOWRECT, PARAM_NULL = 0xff };
 
 typedef struct _jmpdst
 {
-	char ident[64];
+	std::string ident;
 	u32 location;
 } jmpdst;
 
 typedef struct _paramtype
 {
-	const char *ident;
+	std::string ident;
 	enum eparams type;
 } paramtype;
 
@@ -69,7 +71,7 @@ typedef struct _param
 
 typedef struct _ioset
 {
-	const char *name;
+	std::string name;
 	int index;
 } ioset;
 
@@ -88,6 +90,8 @@ public:
 
 	std::list<param> GetParameters() const {return m_lParameters;}
 
+	static void InitParameter(param *p);
+
 protected:
 	void ParseComment(const char *line);
 
@@ -96,19 +100,20 @@ protected:
 	const char* ParseMaskedDstRegExt(const char *token,struct nvfx_insn *insn);
 	const char* ParseCond(const char *token,struct nvfx_insn *insn);
 	const char* ParseRegSwizzle(const char *token,struct nvfx_src *reg);
+	void ParseTextureUnit(const char *token,s32 *texUnit);
+	void ParseTextureTarget(const char *token,s32 *texTarget);
 
 	s32 GetParamType(const char *param_str);
 	virtual s32 ConvertInputReg(const char *token) = 0;
 	virtual const char* ParseOutputMask(const char *token,u8 *mask) = 0;
 
 	void InitInstruction(struct nvfx_insn *insn,u8 op);
-	void InitParameter(param *p);
 
 	bool isLetter(int c);
 	bool isDigit(int c);
 	bool isWhitespace(int c);
 
-	inline char* SkipSpaces(char *ptr)
+	inline const char* SkipSpaces(const char *ptr)
 	{
 		while(ptr && *ptr==' ') {
 			ptr++;

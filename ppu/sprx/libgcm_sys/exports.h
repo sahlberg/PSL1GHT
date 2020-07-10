@@ -1,7 +1,7 @@
 #ifndef __EXPORTS_H__
 #define __EXPORTS_H__
 
-EXPORT(gcmInitBody, 0x15bae46b);
+EXPORT(gcmInitBodyEx, 0x15bae46b);
 EXPORT(gcmSetDisplayBuffer, 0xa53d12ae);
 EXPORT(gcmGetControlRegister, 0xa547adde);
 EXPORT(gcmAddressToOffset, 0x21ac3697);
@@ -44,7 +44,7 @@ EXPORT(gcmMapMainMemory, 0xa114ec67);
 EXPORT(gcmMapEaIoAddress, 0x63441cb4);
 EXPORT(gcmUnmapEaIoAddress, 0xefd00f54);
 EXPORT(gcmUnmapIoAddress, 0xdb23e867);
-EXPORT(gcmIoOffsetToAddress, 0x2a6fba9c);
+EXPORT(gcmIoOffsetToAddressEx, 0x2a6fba9c);
 EXPORT(gcmSetDefaultCommandBuffer, 0xbc982946);
 EXPORT(gcmSetTileInfo, 0xbd100dbc);
 EXPORT(gcmGetTiledPitchSize, 0x055bd74d);
@@ -57,16 +57,14 @@ EXPORT(gcmGetOffsetTable, 0x2922aed0);
 EXPORT(gcmGetLastSecondVTime, 0x23ae55a3);
 EXPORT(gcmSortRemapEaIoAddress, 0x25b40ab4);
 EXPORT(gcmGetDisplayBufferByFlipIndex, 0x371674cf);
-EXPORT(gcmGcmGetDefaultCommandWordSize, 0x5e2ee0f0);
-EXPORT(gcmGcmGetDefaultSegmentWordSize, 0x8cdf8c70);
+EXPORT(gcmGetDefaultCommandWordSize, 0x5e2ee0f0);
+EXPORT(gcmGetDefaultSegmentWordSize, 0x8cdf8c70);
 EXPORT(gcmSetDefaultCommandBufferAndSegmentWordSize, 0x172c3197);
 
 EXPORT(gcmGetDisplayInfo, 0x0e6b0dae);
 EXPORT(gcmDumpGraphicsError, 0x1f61b3ff);
 EXPORT(gcmFunc38, 0x688b8ac9);
 EXPORT(gcmGetCurrentDisplayBufferId, 0x93806525);
-EXPORT(gcmGetDefaultCommandWordSize, 0x5e2ee0f0);
-EXPORT(gcmGetDefaultSegmentWordSize, 0x8cdf8c70);
 EXPORT(gcmGetMaxIoMapSize, 0xfb81c03e);
 EXPORT(gcmGetNotifyDataAddress, 0x21cee035);
 EXPORT(gcmGetReportDataAddress, 0x9a0159af);

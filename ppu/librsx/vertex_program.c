@@ -7,9 +7,10 @@
 
 #include "rsx_internal.h"
 
-void* rsxVertexProgramGetUCode(rsxVertexProgram *vp)
+void rsxVertexProgramGetUCode(rsxVertexProgram *vp,void **ucode,u32 *size)
 {
-	return (void*)(((u8*)vp) + vp->ucode_off);
+	*size = vp->num_insn*sizeof(u32)*4;
+	*ucode = (void*)(((u8*)vp) + vp->ucode_off);
 }
 
 rsxProgramConst* rsxVertexProgramGetConsts(rsxVertexProgram *vp)
@@ -36,7 +37,7 @@ s32 rsxVertexProgramGetConst(rsxVertexProgram *vp,const char *name)
 
 rsxProgramAttrib* rsxVertexProgramGetAttribs(rsxVertexProgram *vp)
 {
-	return (rsxProgramAttrib*)(((u8*)vp) + vp->attrib_off);
+	return (rsxProgramAttrib*)(((u8*)vp) + vp->attr_off);
 }
 
 s32 rsxVertexProgramGetAttrib(rsxVertexProgram *vp,const char *name)
@@ -44,7 +45,7 @@ s32 rsxVertexProgramGetAttrib(rsxVertexProgram *vp,const char *name)
 	u32 i;
 	rsxProgramAttrib *attribs = rsxVertexProgramGetAttribs(vp);
 
-	for(i=0;i<vp->num_attrib;i++) {
+	for(i=0;i<vp->num_attr;i++) {
 		char *namePtr;
 
 		if(!attribs[i].name_off) continue;

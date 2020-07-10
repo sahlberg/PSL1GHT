@@ -41,8 +41,8 @@ int main(int argc, const char* argv[])
 {
 	sysSpuImage image;
 	u32 group_id;
-	sysSpuThreadAttribute attr = { ptr2ea("mythread"), 8+1, SPU_THREAD_ATTR_NONE };
-	sysSpuThreadGroupAttribute grpattr = { 7+1, ptr2ea("mygroup"), 0, 0 };
+	sysSpuThreadAttribute attr = { "mythread", 8+1, SPU_THREAD_ATTR_NONE };
+	sysSpuThreadGroupAttribute grpattr = { 7+1, "mygroup", 0, {0} };
 	sysSpuThreadArgument arg[6];
 	u32 cause, status;
 	int i;

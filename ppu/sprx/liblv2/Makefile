@@ -76,7 +76,8 @@ install: all
 	@cp -frv $(CURDIR)/lib/ppu/*.a $(PSL1GHT)/ppu/lib
 
 #---------------------------------------------------------------------------------
-$(LIBRARY).a: sprx.o thread_wrapper.o spu_printf_wrapper.o process_wrapper.o
+$(LIBRARY).a: sprx.o thread_wrapper.o spu_printf_wrapper.o process_wrapper.o \
+			  spu_thread_printf.o sys_spu_wrapper.o
 #---------------------------------------------------------------------------------
 
 .PHONY: lib ppu install

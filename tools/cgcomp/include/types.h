@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
 
 #ifdef WIN32
 #include <memory.h>
@@ -77,41 +78,44 @@ typedef double						f64;
 typedef struct rsx_vp
 {
 	u16 magic;
-	u16 num_attrib;
-	u32 attrib_off;
+	u16 _pad0;
+
+	u16 num_regs;
+	u16 num_attr;
+	u16 num_const;
+	u16 num_insn;
+
+	u32 attr_off;
+	u32 const_off;
+	u32 ucode_off;
 
 	u32 input_mask;
 	u32 output_mask;
 
 	u16 const_start;
-	u16 num_const;
-	u32 const_off;
-
-	u16 start_insn;
-	u16 num_insn;
-	u32 ucode_off;
+	u16 insn_start;
 } rsxVertexProgram;
 
 typedef struct rsx_fp
 {
 	u16 magic;
-	u16 num_attrib;
-	u32 attrib_off;
+	u16 _pad0;
 
-	u32 num_regs;
+	u16 num_regs;
+	u16 num_attr;
+	u16 num_const;
+	u16 num_insn;
+
+	u32 attr_off;
+	u32 const_off;
+	u32 ucode_off;
+
 	u32 fp_control;
 
 	u16 texcoords;
 	u16 texcoord2D;
 	u16 texcoord3D;
-
-	u16 _pad0;
-
-	u16 num_const;
-	u32 const_off;
-
-	u16 num_insn;
-	u32 ucode_off;
+	u16 _pad1;
 } rsxFragmentProgram;
 
 typedef struct rsx_const

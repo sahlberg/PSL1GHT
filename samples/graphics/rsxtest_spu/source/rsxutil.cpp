@@ -59,8 +59,8 @@ void setRenderTarget(u32 index)
 {
 	gcmSurface sf;
 
-	sf.colorFormat		= GCM_TF_COLOR_X8R8G8B8;
-	sf.colorTarget		= GCM_TF_TARGET_0;
+	sf.colorFormat		= GCM_SURFACE_X8R8G8B8;
+	sf.colorTarget		= GCM_SURFACE_TARGET_0;
 	sf.colorLocation[0]	= GCM_LOCATION_RSX;
 	sf.colorOffset[0]	= color_offset[index];
 	sf.colorPitch[0]	= color_pitch;
@@ -75,13 +75,13 @@ void setRenderTarget(u32 index)
 	sf.colorPitch[2]	= 64;
 	sf.colorPitch[3]	= 64;
 
-	sf.depthFormat		= GCM_TF_ZETA_Z16;
+	sf.depthFormat		= GCM_SURFACE_ZETA_Z16;
 	sf.depthLocation	= GCM_LOCATION_RSX;
 	sf.depthOffset		= depth_offset;
 	sf.depthPitch		= depth_pitch;
 
-	sf.type				= GCM_TF_TYPE_LINEAR;
-	sf.antiAlias		= GCM_TF_CENTER_1;
+	sf.type				= GCM_SURFACE_TYPE_LINEAR;
+	sf.antiAlias		= GCM_SURFACE_CENTER_1;
 
 	sf.width			= display_width;
 	sf.height			= display_height;
@@ -95,7 +95,7 @@ void init_screen(void *host_addr,u32 size)
 {
 	printf("initializing screen....\n");
 
-	context = rsxInit(CB_SIZE,size,host_addr);
+	rsxInit(&context,CB_SIZE,size,host_addr);
 
 	videoState state;
 	videoGetState(0,0,&state);

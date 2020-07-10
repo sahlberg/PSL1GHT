@@ -4,10 +4,10 @@
 
 #include "rsx_internal.h"
 
-void* rsxFragmentProgramGetUCode(rsxFragmentProgram *fp,u32 *size)
+void rsxFragmentProgramGetUCode(rsxFragmentProgram *fp,void **ucode,u32 *size)
 {
 	*size = fp->num_insn*sizeof(u32)*4;
-	return (void*)(((u8*)fp) + fp->ucode_off);
+	*ucode = (void*)(((u8*)fp) + fp->ucode_off);
 }
 
 rsxProgramConst* rsxFragmentProgramGetConsts(rsxFragmentProgram *fp)
@@ -34,7 +34,7 @@ s32 rsxFragmentProgramGetConst(rsxFragmentProgram *fp,const char *name)
 
 rsxProgramAttrib* rsxFragmentProgramGetAttribs(rsxFragmentProgram *fp)
 {
-	return (rsxProgramAttrib*)(((u8*)fp) + fp->attrib_off);
+	return (rsxProgramAttrib*)(((u8*)fp) + fp->attr_off);
 }
 
 s32 rsxFragmentProgramGetAttrib(rsxFragmentProgram *fp,const char *name)
@@ -42,7 +42,7 @@ s32 rsxFragmentProgramGetAttrib(rsxFragmentProgram *fp,const char *name)
 	u32 i;
 	rsxProgramAttrib *attribs = rsxFragmentProgramGetAttribs(fp);
 
-	for(i=0;i<fp->num_attrib;i++) {
+	for(i=0;i<fp->num_attr;i++) {
 		char *namePtr;
 
 		if(!attribs[i].name_off) continue;

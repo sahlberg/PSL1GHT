@@ -20,7 +20,7 @@ private:
 	void ParseMaskedDstReg(const char *token,struct nvfx_insn *insn);
 
 	void ParseMaskedDstAddr(const char *token,struct nvfx_insn *insn);
-	void ParseSwizzledSrcReg(const char *token,struct nvfx_src *reg);
+	void ParseSwizzledSrcReg(const char *token,struct nvfx_insn *insn,s32 slot);
 
 	const char* ParseOutputReg(const char *token,s32 *reg);
 	const char* ParseInputReg(const char *token,s32 *reg);

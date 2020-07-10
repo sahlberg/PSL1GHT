@@ -162,6 +162,19 @@ to the Cell Broadband Engine documentation.
 //! Configure signal notification register 2 to OR mode
 #define SPU_SIGNAL2_OR							0x02
 
+/* exception causes */
+#define SPU_EXCEPTION_DMA_ALIGNMENT							0x0001U
+#define SPU_EXCEPTION_DMA_COMMAND							0x0002U
+#define SPU_EXCEPTION_SPU_ERROR								0x0004U
+#define SPU_EXCEPTION_MFC_FIR								0x0008U
+#define SPU_EXCEPTION_MFC_SEGMENT							0x0010U
+#define SPU_EXCEPTION_MFC_STORAGE							0x0020U
+#define SPU_EXCEPTION_STOP_CALL								0x0100U
+#define SPU_EXCEPTION_STOP_BREAK							0x0200U
+#define SPU_EXCEPTION_HALT									0x0400U
+#define SPU_EXCEPTION_UNKNOWN_SIGNAL						0x0800U
+#define SPU_EXCEPTION_NO_VALUE								0x0U
+
 //! Base of memory-mapped SPU thread resources
 #define SPU_THREAD_BASE							0xF0000000ULL
 //! Offset between resources for consecutive SPU threads

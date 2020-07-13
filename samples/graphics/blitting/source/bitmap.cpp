@@ -1,19 +1,18 @@
-
-#include <sysutil/sysutil.h>
-#include <sysutil/video.h>
-#include <rsx/rsx.h>
-#include <rsx/gcm_sys.h>
-
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <malloc.h>
 #include <assert.h>
+#include <ppu-types.h>
+
+#include <rsx/rsx.h>
 
 #include "bitmap.h"
 
 void bitmapInit(Bitmap *bitmap, u32 width, u32 height) {
   s32 status;
-  bitmap->pixels = rsxMemalign(64, width * height * 4);
+  bitmap->pixels = (u32*)rsxMemalign(64, width * height * 4);
   status = rsxAddressToOffset(bitmap->pixels, &bitmap->offset);
   assert(status==0);
   bitmap->width = width;
@@ -25,11 +24,11 @@ void bitmapDestroy(Bitmap *bitmap) {
   bitmap->pixels = NULL;
 }
 
-void bitmapSetXpm(Bitmap *bitmap, char * xpm[]) {
+void bitmapSetXpm(Bitmap *bitmap, const char* xpm[]) {
   u32 palette[256];
   u32 width, height, ncolors, depth;
   char *p;
-  int ln;
+  u32 ln;
   u32 x, y, *pix;
 
   width = atoi(xpm[0]);

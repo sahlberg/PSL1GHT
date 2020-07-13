@@ -1,5 +1,7 @@
+#ifndef __BITMAP_H__
+#define __BITMAP_H__
 
-
+#include <ppu-types.h>
 
 typedef struct {
   u32 width;
@@ -12,4 +14,6 @@ void bitmapInit(Bitmap *bitmap, u32 width, u32 height);
 
 void bitmapDestroy(Bitmap *bitmap);
 
-void bitmapSetXpm(Bitmap *bitmap, char * xpm[]);
+void bitmapSetXpm(Bitmap *bitmap, const char* xpm[]);
+
+#endif // __BITMAP_H__

@@ -1,5 +1,5 @@
 /* XPM */
-static char * psl1ght_xpm[] = {
+static const char * psl1ght_xpm[] = {
 "224 40 16 1",
 " 	c #000000",
 ".	c #210000",

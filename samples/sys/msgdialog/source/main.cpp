@@ -13,12 +13,7 @@
 
 static vs32 dialog_action = 0;
 
-static void do_flip()
-{
-	sysUtilCheckCallback();
-	flip();
-}
-
+extern "C" {
 static void dialog_handler(msgButton button,void *usrData)
 {
 	switch(button) {
@@ -37,13 +32,13 @@ static void dialog_handler(msgButton button,void *usrData)
 	}
 }
 
-void program_exit_callback()
+static void program_exit_callback()
 {
 	gcmSetWaitFlip(context);
 	rsxFinish(context,1);
 }
 
-void sysutil_exit_callback(u64 status,u64 param,void *usrdata)
+static void sysutil_exit_callback(u64 status,u64 param,void *usrdata)
 {
 	switch(status) {
 		case SYSUTIL_EXIT_GAME:
@@ -55,20 +50,26 @@ void sysutil_exit_callback(u64 status,u64 param,void *usrdata)
 			break;
 	}
 }
+}
+
+static void do_flip()
+{
+	sysUtilCheckCallback();
+	flip();
+}
 
 int main(int argc,char *argv[])
 {
-	s32 ret;
-	msgType dialogType;
-	void *host_addr = memalign(1024*1024,HOST_SIZE);
+    msgType dialogType;
+ 	void *host_addr = memalign(1024*1024,HOST_SIZE);
 
-	printf("msgdialog test...\n");
+    printf("msgdialog test...\n");
 
 	init_screen(host_addr,HOST_SIZE);
 	ioPadInit(7);
 
-	ret = atexit(program_exit_callback);
-	ret = sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0,sysutil_exit_callback,NULL);
+	atexit(program_exit_callback);
+	sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0,sysutil_exit_callback,NULL);
 
 	msgDialogOpenErrorCode(0xBADC0FFE,dialog_handler,NULL,NULL);
 	msgDialogClose(3000.0f);
@@ -78,9 +79,9 @@ int main(int argc,char *argv[])
 		do_flip();
 
 	msgDialogAbort();
-	
+
 	// yes/no dialog type
-	dialogType = (MSG_DIALOG_NORMAL | MSG_DIALOG_BTN_TYPE_YESNO | MSG_DIALOG_DISABLE_CANCEL_ON | MSG_DIALOG_DEFAULT_CURSOR_NO);
+	dialogType = (msgType)(MSG_DIALOG_NORMAL | MSG_DIALOG_BTN_TYPE_YESNO | MSG_DIALOG_DISABLE_CANCEL_ON | MSG_DIALOG_DEFAULT_CURSOR_NO);
 	msgDialogOpen2(dialogType,"Do you want to continue?",dialog_handler,NULL,NULL);
 
 	dialog_action = 0;
@@ -90,7 +91,7 @@ int main(int argc,char *argv[])
 	msgDialogAbort();
 
 	// OK dialog type
-	dialogType = (MSG_DIALOG_NORMAL | MSG_DIALOG_BTN_OK);
+	dialogType = (msgType)(MSG_DIALOG_NORMAL | MSG_DIALOG_BTN_OK);
 	if(dialog_action==1)
 		msgDialogOpen2(dialogType,"Your answer was YES",dialog_handler,NULL,NULL);
 	else
@@ -102,5 +103,6 @@ int main(int argc,char *argv[])
 
 	msgDialogAbort();
 
-	return 0;
+    printf("msgdialog test done...\n");
+    return 0;
 }

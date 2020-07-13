@@ -79,12 +79,10 @@ static void empty_directory(const char *path)
 
 static void control_thread(void *arg)
 {
-	u32 btns;
-
 	printf("PS3Load Control thread\n");
 
 	while(running) {
-		btns = pad_read();
+		(void)pad_read();
 
 		flip();
 	}

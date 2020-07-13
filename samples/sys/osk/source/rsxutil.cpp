@@ -3,6 +3,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <malloc.h>
+#include <ppu-types.h>
+
+#include <rsx/rsx.h>
+#include <sysutil/video.h>
 
 #include "rsxutil.h"
 
@@ -27,7 +31,7 @@ u32 *color_buffer[2];
 
 static u32 sLabelVal = 1;
 
-static void wait_finish()
+static void waitFinish()
 {
 	rsxSetWriteBackendLabel(context,GCM_LABEL_INDEX,sLabelVal);
 
@@ -39,22 +43,22 @@ static void wait_finish()
 	++sLabelVal;
 }
 
-static void wait_rsx_idle()
+static void waitRSXIdle()
 {
 	rsxSetWriteBackendLabel(context,GCM_LABEL_INDEX,sLabelVal);
 	rsxSetWaitLabel(context,GCM_LABEL_INDEX,sLabelVal);
 
 	++sLabelVal;
 
-	wait_finish();
+	waitFinish();
 }
 
-void set_render_target(u32 index)
+void setRenderTarget(u32 index)
 {
 	gcmSurface sf;
 
-	sf.colorFormat		= GCM_TF_COLOR_X8R8G8B8;
-	sf.colorTarget		= GCM_TF_TARGET_0;
+	sf.colorFormat		= GCM_SURFACE_X8R8G8B8;
+	sf.colorTarget		= GCM_SURFACE_TARGET_0;
 	sf.colorLocation[0]	= GCM_LOCATION_RSX;
 	sf.colorOffset[0]	= color_offset[index];
 	sf.colorPitch[0]	= color_pitch;
@@ -69,13 +73,13 @@ void set_render_target(u32 index)
 	sf.colorPitch[2]	= 64;
 	sf.colorPitch[3]	= 64;
 
-	sf.depthFormat		= GCM_TF_ZETA_Z16;
+	sf.depthFormat		= GCM_SURFACE_ZETA_Z16;
 	sf.depthLocation	= GCM_LOCATION_RSX;
 	sf.depthOffset		= depth_offset;
 	sf.depthPitch		= depth_pitch;
 
-	sf.type				= GCM_TF_TYPE_LINEAR;
-	sf.antiAlias		= GCM_TF_CENTER_1;
+	sf.type				= GCM_SURFACE_TYPE_LINEAR;
+	sf.antiAlias		= GCM_SURFACE_CENTER_1;
 
 	sf.width			= display_width;
 	sf.height			= display_height;
@@ -87,7 +91,7 @@ void set_render_target(u32 index)
 
 void init_screen(void *host_addr,u32 size)
 {
-	context = rsxInit(CB_SIZE,size,host_addr);
+	rsxInit(&context,CB_SIZE,size,host_addr);
 
 	videoState state;
 	videoGetState(0,0,&state);
@@ -101,7 +105,7 @@ void init_screen(void *host_addr,u32 size)
 	vconfig.format = VIDEO_BUFFER_FORMAT_XRGB;
 	vconfig.pitch = res.width*sizeof(u32);
 
-	wait_rsx_idle();
+	waitRSXIdle();
 
 	videoConfigure(0,&vconfig,NULL,0);
 	videoGetState(0,0,&state);
@@ -144,7 +148,7 @@ void flip()
 	gcmSetWaitFlip(context);
 
 	curr_fb ^= 1;
-	set_render_target(curr_fb);
+	setRenderTarget(curr_fb);
 
 	first_fb = 0;
 }

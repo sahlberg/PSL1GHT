@@ -13,12 +13,63 @@
 
 #include "rsxutil.h"
 
+#define TEXT_BUFFER_LENGTH 256
+
 static vs32 dialog_action = 0;
 
 uint8_t isRunningOSK = 0;
 oskInputFieldInfo inputFieldInfo;
 oskParam parameters;
 oskCallbackReturnParam outputParam;
+
+extern "C" {
+static void program_exit_callback()
+{
+	gcmSetWaitFlip(context);
+	rsxFinish(context, 1);
+}
+
+static void sysutil_exit_callback(u64 status, u64 param, void *usrdata)
+{
+	switch(status) {
+		case SYSUTIL_EXIT_GAME:
+			break;
+		case SYSUTIL_DRAW_BEGIN:
+		case SYSUTIL_DRAW_END:
+			break;
+		case SYSUTIL_OSK_LOADED:
+			printf("OSK loaded\n");
+			break;
+		case SYSUTIL_OSK_INPUT_CANCELED:
+			printf("OSK input canceled\n");
+			oskAbort();
+			// fall-through
+		case SYSUTIL_OSK_DONE:
+			if (status == SYSUTIL_OSK_DONE)
+			{
+				printf("OSK done\n");
+			}
+			oskUnloadAsync(&outputParam);
+
+			if (outputParam.res == OSK_OK)
+			{
+				printf("OSK result OK\n");
+			}
+			else
+			{
+				printf("OKS result: %d\n", outputParam.res);
+			}
+
+			break;
+		case SYSUTIL_OSK_UNLOADED:
+			printf("OSK unloaded\n");
+			isRunningOSK = 0;
+			break;
+		default:
+			break;
+	}
+}
+}
 
 static void utf16_to_utf8(const uint16_t *src, uint8_t *dst)
 {
@@ -84,62 +135,14 @@ static void do_flip()
 	flip();
 }
 
-void program_exit_callback()
-{
-	gcmSetWaitFlip(context);
-	rsxFinish(context, 1);
-}
-
-void sysutil_exit_callback(u64 status, u64 param, void *usrdata)
-{
-	switch(status) {
-		case SYSUTIL_EXIT_GAME:
-			break;
-		case SYSUTIL_DRAW_BEGIN:
-		case SYSUTIL_DRAW_END:
-			break;
-		case SYSUTIL_OSK_LOADED:
-			printf("OSK loaded\n");
-			break;
-		case SYSUTIL_OSK_INPUT_CANCELED:
-			printf("OSK input canceled\n");
-			oskAbort();
-			// fall-through
-		case SYSUTIL_OSK_DONE:
-			if (status == SYSUTIL_OSK_DONE)
-			{
-				printf("OSK done\n");
-			}
-			oskUnloadAsync(&outputParam);
-
-			if (outputParam.res == OSK_OK)
-			{
-				printf("OSK result OK\n");
-			}
-			else
-			{
-				printf("OKS result: %d\n", outputParam.res);
-			}
-
-			break;
-		case SYSUTIL_OSK_UNLOADED:
-			printf("OSK unloaded\n");
-			isRunningOSK = 0;
-			break;
-		default:
-			break;
-	}
-}
-
-#define TEXT_BUFFER_LENGTH 256
-
 int main(int argc,char *argv[])
 {
-	void *host_addr = memalign(1024*1024, HOST_SIZE);
     static uint16_t title_utf16[TEXT_BUFFER_LENGTH];
     static uint16_t input_text_utf16[TEXT_BUFFER_LENGTH];
     static uint16_t initial_text_utf16[TEXT_BUFFER_LENGTH];
     static uint8_t input_text_utf8[TEXT_BUFFER_LENGTH];
+
+	void *host_addr = memalign(1024*1024, HOST_SIZE);
 
     // Convert UTF8 to UTF16
     memset(title_utf16, 0, sizeof(title_utf16));
@@ -169,22 +172,14 @@ int main(int argc,char *argv[])
 	outputParam.str = input_text_utf16;
 
 	atexit(program_exit_callback);
+    sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, sysutil_exit_callback, NULL);
 
 	s32 res = 0;
-	
 	sys_mem_container_t containerid;
 	res = sysMemContainerCreate(&containerid, 4 * 1024 * 1024);
 	if (res != 0)
 	{
         printf("Error sysMemContainerCreate: %08x\n", res);
-		return 0;
-	}
-
-	res = sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, sysutil_exit_callback, NULL);
-	if (res != 0)
-	{
-        printf("Error sysUtilRegisterCallback: %08x\n", res);
-		sysMemContainerDestroy(containerid);
 		return 0;
 	}
 

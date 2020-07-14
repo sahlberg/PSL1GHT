@@ -211,6 +211,30 @@ public:
     // 
     inline const Vector3 operator -( ) const;
 
+	// Perform equality comparsion of two 3-D vector
+	//
+	inline bool operator == (const Vector3& vec) const;
+	
+	// Perform equality comparsion of two 3-D vector
+	//
+	inline bool operator != (const Vector3& vec) const;
+	
+	// Perform lower than comparsion of two 3-D vector
+	//
+	inline bool operator < (const Vector3& vec) const;
+	
+	// Perform lower or equal comparsion of two 3-D vector
+	//
+	inline bool operator <= (const Vector3& vec) const;
+	
+	// Perform greater than comparsion of two 3-D vector
+	//
+	inline bool operator > (const Vector3& vec) const;
+	
+	// Perform greater or equal comparsion of two 3-D vector
+	//
+	inline bool operator >= (const Vector3& vec) const;
+	
     // Construct x axis
     // 
     static inline const Vector3 xAxis( );
@@ -222,7 +246,7 @@ public:
     // Construct z axis
     // 
     static inline const Vector3 zAxis( );
-
+    
 };
 
 // Multiply a 3-D vector by a scalar
@@ -371,10 +395,25 @@ inline const Vector3 select( Vector3 vec0, Vector3 vec1, bool select1 );
 // 
 inline const Vector3 select( Vector3 vec0, Vector3 vec1, boolInVec select1 );
 
+// Load x, y, and z elements from the first three words of a quadword.
+// 
+// 
+inline void loadXYZ( Vector3 & vec, const vec_float4 * quad );
+
+// Load x, y, and z elements from the first three words of a float array.
+// 
+// 
+inline void loadXYZ( Vector3 & vec, const float * fptr );
+
 // Store x, y, and z elements of a 3-D vector in the first three words of a quadword.
 // The value of the fourth word (the word with the highest address) remains unchanged
 // 
 inline void storeXYZ( Vector3 vec, vec_float4 * quad );
+
+// Store x, y, and z elements of a 3-D vector in the first three words of a float array.
+// Memory area of previous 16 bytes and next 32 bytes from fptr might be accessed
+// 
+inline void storeXYZ( Vector3 vec, float * fptr );
 
 // Load four three-float 3-D vectors, stored in three quadwords
 // 
@@ -593,6 +632,30 @@ public:
     // 
     inline const Vector4 operator -( ) const;
 
+	// Perform equality comparsion of two 4-D vector
+	//
+	inline bool operator == (const Vector4& vec) const;
+	
+	// Perform equality comparsion of two 4-D vector
+	//
+	inline bool operator != (const Vector4& vec) const;
+	
+	// Perform lower than comparsion of two 4-D vector
+	//
+	inline bool operator < (const Vector4& vec) const;
+	
+	// Perform lower or equal comparsion of two 4-D vector
+	//
+	inline bool operator <= (const Vector4& vec) const;
+	
+	// Perform greater than comparsion of two 4-D vector
+	//
+	inline bool operator > (const Vector4& vec) const;
+	
+	// Perform greater or equal comparsion of two 4-D vector
+	//
+	inline bool operator >= (const Vector4& vec) const;
+	
     // Construct x axis
     // 
     static inline const Vector4 xAxis( );
@@ -741,6 +804,16 @@ inline const Vector4 select( Vector4 vec0, Vector4 vec1, boolInVec select1 );
 // 
 inline void storeHalfFloats( Vector4 vec0, Vector4 vec1, Vector4 vec2, Vector4 vec3, vec_ushort8 * twoQuads );
 
+// Load x, y, z, and w elements from the first four words of a float array.
+// 
+// 
+inline void loadXYZW( Vector4 & vec, const float * fptr );
+
+// Store x, y, z, and w elements of a 4-D vector in the first four words of a float array.
+// Memory area of previous 16 bytes and next 32 bytes from fptr might be accessed
+// 
+inline void storeXYZW( Vector4 vec, float * fptr );
+
 #ifdef _VECTORMATH_DEBUG
 
 // Print a 4-D vector
@@ -876,6 +949,29 @@ public:
     // 
     inline Point3 & operator -=( Vector3 vec );
 
+	// Perform equality comparsion of two 3-D point
+	//
+	inline bool operator == (const Point3& vec) const;
+	
+	// Perform equality comparsion of two 3-D point
+	//
+	inline bool operator != (const Point3& vec) const;
+	
+	// Perform lower than comparsion of two 3-D point
+	//
+	inline bool operator < (const Point3& vec) const;
+	
+	// Perform lower or equal comparsion of two 3-D point
+	//
+	inline bool operator <= (const Point3& vec) const;
+	
+	// Perform greater than comparsion of two 3-D point
+	//
+	inline bool operator > (const Point3& vec) const;
+	
+	// Perform greater or equal comparsion of two 3-D point
+	//
+	inline bool operator >= (const Point3& vec) const;
 };
 
 // Multiply two 3-D points per element
@@ -992,10 +1088,25 @@ inline const Point3 select( Point3 pnt0, Point3 pnt1, bool select1 );
 // 
 inline const Point3 select( Point3 pnt0, Point3 pnt1, boolInVec select1 );
 
+// Load x, y, and z elements from the first three words of a quadword.
+// 
+// 
+inline void loadXYZ( Point3 & pnt, const vec_float4 * quad );
+
+// Load x, y, and z elements from the first three words of a float array.
+// 
+// 
+inline void loadXYZ( Point3 & pnt, const float * fptr );
+
 // Store x, y, and z elements of a 3-D point in the first three words of a quadword.
 // The value of the fourth word (the word with the highest address) remains unchanged
 // 
 inline void storeXYZ( Point3 pnt, vec_float4 * quad );
+
+// Store x, y, and z elements of a 3-D point in the first three words of a float array.
+// Memory area of previous 16 bytes and next 32 bytes from fptr might be accessed
+// 
+inline void storeXYZ( Point3 pnt, float * fptr );
 
 // Load four three-float 3-D points, stored in three quadwords
 // 
@@ -1329,6 +1440,16 @@ inline const Quat squad( float t, Quat unitQuat0, Quat unitQuat1, Quat unitQuat2
 // Spherical quadrangle interpolation (scalar data contained in vector data type)
 // 
 inline const Quat squad( floatInVec t, Quat unitQuat0, Quat unitQuat1, Quat unitQuat2, Quat unitQuat3 );
+
+// Load x, y, z, and w elements from the first four words of a float array.
+// 
+// 
+inline void loadXYZW( Quat & quat, const float * fptr );
+
+// Store x, y, z, and w elements of a quaternion in the first four words of a float array.
+// Memory area of previous 16 bytes and next 32 bytes from fptr might be accessed
+// 
+inline void storeXYZW( Quat quat, float * fptr );
 
 // Conditionally select between two quaternions
 // NOTE: 
@@ -1824,6 +1945,10 @@ public:
     // 
     inline Matrix4 & operator *=( const Transform3 & tfrm );
 
+	inline bool operator == (const Matrix4& mat) const;
+	
+	inline bool operator != (const Matrix4& mat) const;
+	
     // Construct an identity 4x4 matrix
     // 
     static inline const Matrix4 identity( );

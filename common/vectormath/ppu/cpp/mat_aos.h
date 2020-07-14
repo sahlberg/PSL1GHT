@@ -1147,6 +1147,19 @@ inline Matrix4 & Matrix4::operator *=( const Transform3 & tfrm )
     return *this;
 }
 
+inline bool Matrix4::operator == (const Matrix4& mat) const
+{
+	return (vec_all_gt(vec_cmpeq(mCol0.get128(), mat.mCol0.get128()),((vec_uint4){0,0,0,0})) &&
+			vec_all_gt(vec_cmpeq(mCol1.get128(), mat.mCol1.get128()),((vec_uint4){0,0,0,0})) &&
+			vec_all_gt(vec_cmpeq(mCol2.get128(), mat.mCol2.get128()),((vec_uint4){0,0,0,0})) &&
+			vec_all_gt(vec_cmpeq(mCol3.get128(), mat.mCol3.get128()),((vec_uint4){0,0,0,0})));	
+}
+
+inline bool Matrix4::operator != (const Matrix4& mat) const
+{
+	return !(*this == mat);
+}
+
 inline const Matrix4 mulPerElem( const Matrix4 & mat0, const Matrix4 & mat1 )
 {
     return Matrix4(

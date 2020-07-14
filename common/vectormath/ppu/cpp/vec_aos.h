@@ -272,13 +272,15 @@ inline Vector3::Vector3( float _x, float _y, float _z )
         pf[0] = _x;
         pf[1] = _y;
         pf[2] = _z;
+        pf[3] = 0.0f;
     }
 }
 
 inline Vector3::Vector3( floatInVec _x, floatInVec _y, floatInVec _z )
 {
     vec_float4 xz = vec_mergeh( _x.get128(), _z.get128() );
-    mVec128 = vec_mergeh( xz, _y.get128() );
+    vec_float4 yw = vec_mergeh( _y.get128(), ((vec_float4){0.0f, 0.0f, 0.0f, 0.0f}));
+    mVec128 = vec_mergeh( xz, yw );
 }
 
 inline Vector3::Vector3( Point3 pnt )
@@ -356,12 +358,35 @@ inline vec_float4 Vector3::get128( ) const
     return mVec128;
 }
 
+inline void loadXYZ( Vector3 & vec, const vec_float4 * quad )
+{
+    vec = Vector3( *quad );
+}
+
 inline void storeXYZ( Vector3 vec, vec_float4 * quad )
 {
     vec_float4 dstVec = *quad;
     vec_uint4 mask = _VECTORMATH_MASK_0x000F;
     dstVec = vec_sel(vec.get128(), dstVec, mask);
     *quad = dstVec;
+}
+
+inline void loadXYZ( Vector3 & vec, const float * fptr )
+{
+    vec_float4 vec0 = vec_ld(0, fptr);
+    vec_float4 vec1 = vec_ld(16, fptr);
+    vec = Vector3( vec_perm(vec0, vec1, vec_lvsl(0, fptr)) );
+}
+
+inline void storeXYZ( Vector3 vec, float * fptr )
+{
+    vec_float4 vsrc = vec.get128();
+    vec_float4 x = vec_splat(vsrc, 0);
+    vec_float4 y = vec_splat(vsrc, 1);
+    vec_float4 z = vec_splat(vsrc, 2);
+    vec_ste(x, 0, fptr);
+    vec_ste(y, 4, fptr);
+    vec_ste(z, 8, fptr);
 }
 
 inline void loadXYZArray( Vector3 & vec0, Vector3 & vec1, Vector3 & vec2, Vector3 & vec3, const vec_float4 * threeQuads )
@@ -554,6 +579,36 @@ inline Vector3 & Vector3::operator /=( floatInVec scalar )
 {
     *this = *this / scalar;
     return *this;
+}
+
+inline bool Vector3::operator == (const Vector3& vec) const
+{
+	return vec_all_gt(vec_cmpeq(vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F), vec_sel(vec.mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)),((vec_uint4){0,0,0,0}));
+}
+
+inline bool Vector3::operator != (const Vector3& vec) const
+{
+	return !(*this == vec);
+}
+
+inline bool Vector3::operator < (const Vector3& vec) const
+{
+	return vec_all_gt(vec_cmpgt(vec_sel(vec.mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F), vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
+}
+
+inline bool Vector3::operator <= (const Vector3& vec) const
+{
+	return !(*this > vec);
+}
+
+inline bool Vector3::operator > (const Vector3& vec) const
+{
+	return vec_all_gt(vec_cmpgt(vec_sel(mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F), vec_sel(vec.mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
+}
+
+inline bool Vector3::operator >= (const Vector3& vec) const
+{
+	return !(*this < vec);
 }
 
 inline const Vector3 Vector3::operator -( ) const
@@ -1009,6 +1064,36 @@ inline const Vector4 Vector4::operator -( ) const
     return Vector4( negatef4( mVec128 ) );
 }
 
+inline bool Vector4::operator == (const Vector4& vec) const
+{
+	return vec_all_gt(vec_cmpeq(mVec128, vec.mVec128),((vec_uint4){0,0,0,0}));
+}
+
+inline bool Vector4::operator != (const Vector4& vec) const
+{
+	return !(*this == vec);
+}
+
+inline bool Vector4::operator < (const Vector4& vec) const
+{
+	return vec_all_gt(vec_cmpgt(vec.mVec128, mVec128),((vec_uint4){0,0,0,0}));
+}
+
+inline bool Vector4::operator <= (const Vector4& vec) const
+{
+	return !(*this > vec);
+}
+
+inline bool Vector4::operator > (const Vector4& vec) const
+{
+	return vec_all_gt(vec_cmpgt(mVec128, vec.mVec128),((vec_uint4){0,0,0,0}));
+}
+
+inline bool Vector4::operator >= (const Vector4& vec) const
+{
+	return !(*this < vec);
+}
+
 inline const Vector4 operator *( float scalar, Vector4 vec )
 {
     return floatInVec(scalar) * vec;
@@ -1122,6 +1207,31 @@ inline const Vector4 select( Vector4 vec0, Vector4 vec1, boolInVec select1 )
     return Vector4( vec_sel( vec0.get128(), vec1.get128(), select1.get128() ) );
 }
 
+inline void loadXYZW( Vector4 & vec, const vec_float4 * quad )
+{
+    vec = Vector4( *quad );
+}
+
+inline void loadXYZW( Vector4 & vec, const float * fptr )
+{
+    vec_float4 vec0 = vec_ld(0, fptr);
+    vec_float4 vec1 = vec_ld(16, fptr);
+    vec = Vector4( vec_perm(vec0, vec1, vec_lvsl(0, fptr)) );
+}
+
+inline void storeXYZW( Vector4 vec, float * fptr )
+{
+    vec_float4 vsrc = vec.get128();
+    vec_float4 x = vec_splat(vsrc, 0);
+    vec_float4 y = vec_splat(vsrc, 1);
+    vec_float4 z = vec_splat(vsrc, 2);
+    vec_float4 w = vec_splat(vsrc, 3);
+    vec_ste(x, 0, fptr);
+    vec_ste(y, 4, fptr);
+    vec_ste(z, 8, fptr);
+    vec_ste(w, 12, fptr);
+}
+
 #ifdef _VECTORMATH_DEBUG
 
 inline void print( Vector4 vec )
@@ -1149,13 +1259,15 @@ inline Point3::Point3( float _x, float _y, float _z )
         pf[0] = _x;
         pf[1] = _y;
         pf[2] = _z;
+        pf[3] = 0.0f;
     }
 }
 
 inline Point3::Point3( floatInVec _x, floatInVec _y, floatInVec _z )
 {
     vec_float4 xz = vec_mergeh( _x.get128(), _z.get128() );
-    mVec128 = vec_mergeh( xz, _y.get128() );
+    vec_float4 yw = vec_mergeh( _y.get128(), ((vec_float4){0.0f, 0.0f, 0.0f, 0.0f}));
+    mVec128 = vec_mergeh( xz, yw );
 }
 
 inline Point3::Point3( Vector3 vec )
@@ -1193,12 +1305,30 @@ inline vec_float4 Point3::get128( ) const
     return mVec128;
 }
 
+inline void loadXYZ( Point3 & pnt, const float * fptr )
+{
+    vec_float4 vec0 = vec_ld(0, fptr);
+    vec_float4 vec1 = vec_ld(16, fptr);
+    pnt = Point3( vec_perm(vec0, vec1, vec_lvsl(0, fptr)) );
+}
+
 inline void storeXYZ( Point3 pnt, vec_float4 * quad )
 {
     vec_float4 dstVec = *quad;
     vec_uint4 mask = _VECTORMATH_MASK_0x000F;
     dstVec = vec_sel(pnt.get128(), dstVec, mask);
     *quad = dstVec;
+}
+
+inline void storeXYZ( Point3 pnt, float * fptr )
+{
+    vec_float4 vsrc = pnt.get128();
+    vec_float4 x = vec_splat(vsrc, 0);
+    vec_float4 y = vec_splat(vsrc, 1);
+    vec_float4 z = vec_splat(vsrc, 2);
+    vec_ste(x, 0, fptr);
+    vec_ste(y, 4, fptr);
+    vec_ste(z, 8, fptr);
 }
 
 inline void loadXYZArray( Point3 & pnt0, Point3 & pnt1, Point3 & pnt2, Point3 & pnt3, const vec_float4 * threeQuads )
@@ -1347,6 +1477,36 @@ inline Point3 & Point3::operator -=( Vector3 vec )
 {
     *this = *this - vec;
     return *this;
+}
+
+inline bool Point3::operator == (const Point3& pnt) const
+{
+	return vec_all_gt(vec_cmpeq(vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F), vec_sel(pnt.mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)),((vec_uint4){0,0,0,0}));
+}
+
+inline bool Point3::operator != (const Point3& pnt) const
+{
+	return !(*this == pnt);
+}
+
+inline bool Point3::operator < (const Point3& pnt) const
+{
+	return vec_all_gt(vec_cmpgt(vec_sel(pnt.mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F), vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
+}
+
+inline bool Point3::operator <= (const Point3& pnt) const
+{
+	return !(*this > pnt);
+}
+
+inline bool Point3::operator > (const Point3& pnt) const
+{
+	return vec_all_gt(vec_cmpgt(vec_sel(mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F), vec_sel(pnt.mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
+}
+
+inline bool Point3::operator >= (const Point3& pnt) const
+{
+	return !(*this < pnt);
 }
 
 inline const Point3 mulPerElem( Point3 pnt0, Point3 pnt1 )

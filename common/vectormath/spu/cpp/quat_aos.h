@@ -115,6 +115,38 @@ inline vec_float4 Quat::get128( ) const
     return mVec128;
 }
 
+inline void loadXYZW( Quat & quat, const vec_float4 * quad )
+{
+    quat = Quat( *quad );
+}
+
+inline void loadXYZW( Quat & quat, const float * fptr )
+{
+    const vec_float4 vfsrc0 = *((vec_float4*)((uintptr_t)fptr));
+    const vec_float4 vfsrc1 = *((vec_float4*)(((uintptr_t)fptr) + 16));
+    const vec_uchar16 vucpat = (vec_uchar16)spu_add((vec_ushort8)(spu_splats((unsigned char)(((int)fptr)&0xf))),((vec_ushort8){0x0001, 0x0203, 0x0405, 0x0607, 0x0809, 0x0A0B, 0x0C0D, 0x0E0F}));
+    const vec_float4 vfval = spu_shuffle(vfsrc0, vfsrc1, vucpat);
+    quat = Quat( vfval );
+}
+
+inline void storeXYZW( Quat quat, float * fptr )
+{
+    vec_float4 * vptr0 = (vec_float4*)((uintptr_t)fptr);
+    vec_float4 * vptr1 = (vec_float4*)(((uintptr_t)fptr) + 16);
+    vec_float4 dstVec0 = *vptr0;
+    vec_float4 dstVec1 = *vptr1;
+    uint32_t offset = (uint32_t)fptr & 0xf;
+    vec_uint4 mask = (vec_uint4)spu_splats(0xffffffff);
+    vec_uint4 mask0 = (vec_uint4)spu_rlmaskqwbyte(mask, -offset);
+    vec_uint4 mask1 = (vec_uint4)spu_slqwbyte(mask, 16 - offset);
+    vec_float4 vec0 = spu_rlmaskqwbyte(quat.get128(), -offset);
+    vec_float4 vec1 = spu_slqwbyte(quat.get128(), 16 - offset);
+    dstVec0 = spu_sel(dstVec0, vec0, mask0);
+    dstVec1 = spu_sel(dstVec1, vec1, mask1);
+    *vptr0 = dstVec0;
+    *vptr1 = dstVec1;
+}
+
 inline Quat & Quat::operator =( Quat quat )
 {
     mVec128 = quat.mVec128;

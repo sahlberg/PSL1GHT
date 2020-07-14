@@ -36,6 +36,8 @@ ppu/sprx/libsysmodule/ppu/
 ppu/sprx/libsysutil/ppu/
 ppu/sprx/libusb/ppu/
 ppu/sprx/libvdec/ppu/
+ppu/sprx/libfont/ppu/
+ppu/sprx/libfontFT/ppu/
 tools/generic/bin2s
 tools/cgcomp/cgcomp
 tools/geohot/make_self

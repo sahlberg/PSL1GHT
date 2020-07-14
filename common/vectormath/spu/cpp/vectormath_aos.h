@@ -306,10 +306,25 @@ inline const Vector3 slerp( float t, Vector3 unitVec0, Vector3 unitVec1 );
 // 
 inline const Vector3 select( Vector3 vec0, Vector3 vec1, bool select1 );
 
+// Load x, y, and z elements from the first three words of a quadword.
+// 
+// 
+inline void loadXYZ( Vector3 & vec, const vec_float4 * quad );
+
+// Load x, y, and z elements from the first three words of a float array.
+// 
+// 
+inline void loadXYZ( Vector3 & vec, const float * fptr );
+
 // Store x, y, and z elements of a 3-D vector in the first three words of a quadword.
 // The value of the fourth word (the word with the highest address) remains unchanged
 // 
 inline void storeXYZ( Vector3 vec, vec_float4 * quad );
+
+// Store x, y, and z elements of a 3-D vector in the first three words of a float array.
+// Memory area of previous 16 bytes and next 32 bytes from fptr might be accessed
+// 
+inline void storeXYZ( Vector3 vec, float * fptr );
 
 // Load four three-float 3-D vectors, stored in three quadwords
 // 
@@ -599,6 +614,16 @@ inline const Vector4 slerp( float t, Vector4 unitVec0, Vector4 unitVec1 );
 // 
 inline const Vector4 select( Vector4 vec0, Vector4 vec1, bool select1 );
 
+// Load x, y, z, and w elements from the first four words of a float array.
+// 
+// 
+inline void loadXYZW( Vector4 & vec, const float * fptr );
+
+// Store x, y, z, and w elements of a 4-D vector in the first four words of a float array.
+// Memory area of previous 16 bytes and next 32 bytes from fptr might be accessed
+// 
+inline void storeXYZW( Vector4 vec, float * fptr );
+
 // Store four 4-D vectors as half-floats
 // 
 inline void storeHalfFloats( Vector4 vec0, Vector4 vec1, Vector4 vec2, Vector4 vec3, vec_ushort8 * twoQuads );
@@ -812,10 +837,25 @@ inline const Point3 lerp( float t, Point3 pnt0, Point3 pnt1 );
 // 
 inline const Point3 select( Point3 pnt0, Point3 pnt1, bool select1 );
 
+// Load x, y, and z elements from the first three words of a quadword.
+// 
+// 
+inline void loadXYZ( Point3 & pnt, const vec_float4 * quad );
+
+// Load x, y, and z elements from the first three words of a float array.
+// 
+// 
+inline void loadXYZ( Point3 & pnt, const float * fptr );
+
 // Store x, y, and z elements of a 3-D point in the first three words of a quadword.
 // The value of the fourth word (the word with the highest address) remains unchanged
 // 
 inline void storeXYZ( Point3 pnt, vec_float4 * quad );
+
+// Store x, y, and z elements of a 3-D point in the first three words of a float array.
+// Memory area of previous 16 bytes and next 32 bytes from fptr might be accessed
+// 
+inline void storeXYZ( Point3 pnt, float * fptr );
 
 // Load four three-float 3-D points, stored in three quadwords
 // 
@@ -1070,6 +1110,16 @@ inline const Quat squad( float t, Quat unitQuat0, Quat unitQuat1, Quat unitQuat2
 // This function uses a conditional select instruction to avoid a branch.
 // 
 inline const Quat select( Quat quat0, Quat quat1, bool select1 );
+
+// Load x, y, z, and w elements from the first four words of a float array.
+// 
+// 
+inline void loadXYZW( Quat & quat, const float * fptr );
+
+// Store x, y, z, and w elements of a quaternion in the first four words of a float array.
+// Memory area of previous 16 bytes and next 32 bytes from fptr might be accessed
+// 
+inline void storeXYZW( Quat quat, float * fptr );
 
 #ifdef _VECTORMATH_DEBUG
 

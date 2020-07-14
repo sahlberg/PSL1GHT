@@ -344,7 +344,7 @@ static inline void vmathQRotate( VmathVector3 *result, const VmathQuat *quat, co
 
 static inline void vmathQConj( VmathQuat *result, const VmathQuat *quat )
 {
-    result->vec128 = vec_xor( quat->vec128, ((vec_float4)(vec_int4){0x80000000,0x80000000,0x80000000,0}) );
+    result->vec128 = vec_xor( quat->vec128, ((vec_float4)(vec_uint4){0x80000000,0x80000000,0x80000000,0}) );
 }
 
 static inline void vmathQSelect( VmathQuat *result, const VmathQuat *quat0, const VmathQuat *quat1, unsigned int select1 )

@@ -243,12 +243,44 @@ inline vec_float4 Vector3::get128( ) const
     return mVec128;
 }
 
+inline void loadXYZ( Vector3 & vec, const vec_float4 * quad )
+{
+    vec = Vector3( *quad );
+}
+
+inline void loadXYZ( Vector3 & vec, const float * fptr )
+{
+    const vec_float4 vfsrc0 = *((vec_float4*)((uintptr_t)fptr));
+    const vec_float4 vfsrc1 = *((vec_float4*)(((uintptr_t)fptr) + 16));
+    const vec_uchar16 vucpat = (vec_uchar16)spu_add((vec_ushort8)(spu_splats((unsigned char)(((int)fptr) & 0xf))),((vec_ushort8){0x0001, 0x0203, 0x0405, 0x0607, 0x0809, 0x0A0B, 0x0C0D, 0x0E0F}));
+    const vec_float4 vfval = spu_shuffle(vfsrc0, vfsrc1, vucpat);
+    vec = Vector3( vfval );
+}
+
 inline void storeXYZ( Vector3 vec, vec_float4 * quad )
 {
     vec_float4 dstVec = *quad;
     vec_uint4 mask = (vec_uint4)spu_maskb(0x000f);
     dstVec = spu_sel(vec.get128(), dstVec, mask);
     *quad = dstVec;
+}
+
+inline void storeXYZ( Vector3 vec, float * fptr )
+{
+    vec_float4 * vptr0 = (vec_float4*)((uintptr_t)fptr);
+    vec_float4 * vptr1 = (vec_float4*)(((uintptr_t)fptr) + 16);
+    vec_float4 dstVec0 = *vptr0;
+    vec_float4 dstVec1 = *vptr1;
+    uint32_t offset = (uint32_t)fptr & 0xf;
+    vec_uint4 mask = (vec_uint4)spu_maskb(0xfff0);
+    vec_uint4 mask0 = (vec_uint4)spu_rlmaskqwbyte(mask, -offset);
+    vec_uint4 mask1 = (vec_uint4)spu_slqwbyte(mask, 16 - offset);
+    vec_float4 vec0 = spu_rlmaskqwbyte(vec.get128(), -offset);
+    vec_float4 vec1 = spu_slqwbyte(vec.get128(), 16 - offset);
+    dstVec0 = spu_sel(dstVec0, vec0, mask0);
+    dstVec1 = spu_sel(dstVec1, vec1, mask1);
+    *vptr0 = dstVec0;
+    *vptr1 = dstVec1;
 }
 
 inline void loadXYZArray( Vector3 & vec0, Vector3 & vec1, Vector3 & vec2, Vector3 & vec3, const vec_float4 * threeQuads )
@@ -614,6 +646,38 @@ inline vec_float4 Vector4::get128( ) const
     return mVec128;
 }
 
+inline void loadXYZW( Vector4 & vec, const vec_float4 * quad )
+{
+    vec = Vector4( *quad );
+}
+
+inline void loadXYZW( Vector4 & vec, const float * fptr )
+{
+    const vec_float4 vfsrc0 = *((vec_float4*)((uintptr_t)fptr));
+    const vec_float4 vfsrc1 = *((vec_float4*)(((uintptr_t)fptr) + 16));
+    const vec_uchar16 vucpat = (vec_uchar16)spu_add((vec_ushort8)(spu_splats((unsigned char)(((int)fptr) & 0xf))), ((vec_ushort8){0x0001, 0x0203, 0x0405, 0x0607, 0x0809, 0x0A0B, 0x0C0D, 0x0E0F}));
+    const vec_float4 vfval = spu_shuffle(vfsrc0, vfsrc1, vucpat);
+    vec = Vector4( vfval );
+}
+
+inline void storeXYZW( Vector4 vec, float * fptr )
+{
+    vec_float4 * vptr0 = (vec_float4*)((uintptr_t)fptr);
+    vec_float4 * vptr1 = (vec_float4*)(((uintptr_t)fptr) + 16);
+    vec_float4 dstVec0 = *vptr0;
+    vec_float4 dstVec1 = *vptr1;
+    uint32_t offset = (uint32_t)fptr & 0xf;
+    vec_uint4 mask = (vec_uint4)spu_splats(0xffffffff);
+    vec_uint4 mask0 = (vec_uint4)spu_rlmaskqwbyte(mask, -offset);
+    vec_uint4 mask1 = (vec_uint4)spu_slqwbyte(mask, 16 - offset);
+    vec_float4 vec0 = spu_rlmaskqwbyte(vec.get128(), -offset);
+    vec_float4 vec1 = spu_slqwbyte(vec.get128(), 16 - offset);
+    dstVec0 = spu_sel(dstVec0, vec0, mask0);
+    dstVec1 = spu_sel(dstVec1, vec1, mask1);
+    *vptr0 = dstVec0;
+    *vptr1 = dstVec1;
+}
+
 inline void storeHalfFloats( Vector4 vec0, Vector4 vec1, Vector4 vec2, Vector4 vec3, vec_ushort8 * twoQuads )
 {
     twoQuads[0] = _vmath2VfToHalfFloats(vec0.get128(), vec1.get128());
@@ -902,12 +966,44 @@ inline vec_float4 Point3::get128( ) const
     return mVec128;
 }
 
+inline void loadXYZ( Point3 & pnt, const vec_float4 * quad )
+{
+    pnt = Point3( *quad );
+}
+
+inline void loadXYZ( Point3 & pnt, const float * fptr )
+{
+    const vec_float4 vfsrc0 = *((vec_float4*)((uintptr_t)fptr));
+    const vec_float4 vfsrc1 = *((vec_float4*)(((uintptr_t)fptr) + 16));
+    const vec_uchar16 vucpat = (vec_uchar16)spu_add((vec_ushort8)(spu_splats((unsigned char)(((int)fptr) & 0xf))),((vec_ushort8){0x0001, 0x0203, 0x0405, 0x0607, 0x0809, 0x0A0B, 0x0C0D, 0x0E0F}));
+    const vec_float4 vfval = spu_shuffle(vfsrc0, vfsrc1, vucpat);
+    pnt = Point3( vfval );
+}
+
 inline void storeXYZ( Point3 pnt, vec_float4 * quad )
 {
     vec_float4 dstVec = *quad;
     vec_uint4 mask = (vec_uint4)spu_maskb(0x000f);
     dstVec = spu_sel(pnt.get128(), dstVec, mask);
     *quad = dstVec;
+}
+
+inline void storeXYZ( Point3 pnt, float * fptr )
+{
+    vec_float4 * vptr0 = (vec_float4*)((uintptr_t)fptr);
+    vec_float4 * vptr1 = (vec_float4*)(((uintptr_t)fptr) + 16);
+    vec_float4 dstVec0 = *vptr0;
+    vec_float4 dstVec1 = *vptr1;
+    uint32_t offset = (uint32_t)fptr & 0xf;
+    vec_uint4 mask = (vec_uint4)spu_maskb(0xfff0);
+    vec_uint4 mask0 = (vec_uint4)spu_rlmaskqwbyte(mask, -offset);
+    vec_uint4 mask1 = (vec_uint4)spu_slqwbyte(mask, 16 - offset);
+    vec_float4 vec0 = spu_rlmaskqwbyte(pnt.get128(), -offset);
+    vec_float4 vec1 = spu_slqwbyte(pnt.get128(), 16 - offset);
+    dstVec0 = spu_sel(dstVec0, vec0, mask0);
+    dstVec1 = spu_sel(dstVec1, vec1, mask1);
+    *vptr0 = dstVec0;
+    *vptr1 = dstVec1;
 }
 
 inline void loadXYZArray( Point3 & pnt0, Point3 & pnt1, Point3 & pnt2, Point3 & pnt3, const vec_float4 * threeQuads )

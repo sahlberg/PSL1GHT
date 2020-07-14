@@ -512,6 +512,26 @@ inline const Quat select( Quat quat0, Quat quat1, boolInVec select1 )
     return Quat( vec_sel( quat0.get128(), quat1.get128(), select1.get128() ) );
 }
 
+inline void loadXYZW( Quat & quat, const float * fptr )
+{
+    vec_float4 vec0 = vec_ld(0, fptr);
+    vec_float4 vec1 = vec_ld(16, fptr);
+    quat = Quat( vec_perm(vec0, vec1, vec_lvsl(0, fptr)) );
+}
+
+inline void storeXYZW( Quat quat, float * fptr )
+{
+    vec_float4 vsrc = quat.get128();
+    vec_float4 x = vec_splat(vsrc, 0);
+    vec_float4 y = vec_splat(vsrc, 1);
+    vec_float4 z = vec_splat(vsrc, 2);
+    vec_float4 w = vec_splat(vsrc, 3);
+    vec_ste(x, 0, fptr);
+    vec_ste(y, 4, fptr);
+    vec_ste(z, 8, fptr);
+    vec_ste(w, 12, fptr);
+}
+
 #ifdef _VECTORMATH_DEBUG
 
 inline void print( Quat quat )

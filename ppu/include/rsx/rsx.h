@@ -100,12 +100,13 @@ dynamic memory allocation using \ref rsxMalloc, \ref rsxMemalign and
 \param ioAddress Pointer to an allocated buffer of \p ioSize bytes.
 \return zero if no error occured, nonzero otherwise.
 */
-s32 rsxInit(gcmContextData **context,const u32 cmdSize,const u32 ioSize,const void *ioAddress);
+s32 rsxInit(gcmContextData **context,u32 cmdSize,u32 ioSize,const void *ioAddress);
 
-void rsxSetupContextData(gcmContextData *context,const u32 *addr,const u32 size,gcmContextCallback cb);
-void rsxSetCurrentBuffer(gcmContextData **context,const u32 *addr,const u32 size);
+void rsxSetupContextData(gcmContextData *context,const u32 *addr,u32 size,gcmContextCallback cb);
+void rsxSetCurrentBuffer(gcmContextData **context,const u32 *addr,u32 size);
 void rsxSetDefaultCommandBuffer(gcmContextData **context);
 void rsxSetUserCallback(gcmContextCallback cb);
+void rsxSetupContextData(gcmContextData *context,const u32 *addr,u32 size,gcmContextCallback cb);
 
 u32* rsxGetCurrentBuffer();
 
@@ -114,21 +115,26 @@ u32* rsxGetCurrentBuffer();
 \param offset A pointer to the returned offset value.
 \return zero if no error occured, nonzero otherwise.
 */
-static inline s32 rsxAddressToOffset(void *ptr,u32 *offset)
+static inline s32 rsxAddressToOffset(const void *ptr,u32 *offset)
 {
 	return gcmAddressToOffset(ptr,offset);
 }
 
 /*! \brief Convert a floating point coordinate into 32-bit signed fixed point format. */
-static inline s32 rsxGetFixedSint32(const f32 f)
+static inline s32 rsxGetFixedSint32(f32 f)
 {
 	return (s32)(f*1048576.0f);
 }
 
 /*! \brief Convert a floating point coordinate into 16-bit unsigned fixed point format. */
-static inline u16 rsxGetFixedUint16(const f32 f)
+static inline u16 rsxGetFixedUint16(f32 f)
 {
 	return (u16)(f*16.0f);
+}
+
+static inline u32 rsxAlign(u32 alignment, u32 value)
+{
+	return (alignment==0 ? value : (value==0 ? 0 : (((u32)((value - 1)/alignment) + 1)*alignment)));
 }
 
 #ifdef __cplusplus

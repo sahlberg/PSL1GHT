@@ -119,73 +119,125 @@ typedef struct rsx_attrib
 \param ucode Pointer-pointer to receive the vertex program ucode.
 \param size Pointer to receive the vertex program ucode size.
 */
-void rsxVertexProgramGetUCode(rsxVertexProgram *vp,void **ucode,u32 *size);
+void rsxVertexProgramGetUCode(const rsxVertexProgram *vp,void **ucode,u32 *size);
+
+/*! \brief Get the count of vertex program consts.
+\param vp Pointer the to vertex program structure.
+\return Count of constants in the vertex program.
+*/
+u16 rsxVertexProgramGetNumConst(const rsxVertexProgram *vp);
 
 /*! \brief Get the list of vertex program consts.
 \param vp Pointer the to vertex program structure.
 \return Pointer to the list of program const structures.
 */
-rsxProgramConst* rsxVertexProgramGetConsts(rsxVertexProgram *vp);
+rsxProgramConst* rsxVertexProgramGetConsts(const rsxVertexProgram *vp);
 
-/*! \brief Get id of vertex program const from its name.
+/*! \brief Get index of vertex program const from its name.
 \param vp Pointer the to vertex program structure.
 \param name Name of the vertex program const.
 \return The requested vertex program const id.
 */
-s32 rsxVertexProgramGetConst(rsxVertexProgram *vp,const char *name);
+s32 rsxVertexProgramGetConstIndex(const rsxVertexProgram *vp,const char *name);
+
+/*! \brief Get const value of vertex program const from its name.
+\param vp Pointer the to vertex program structure.
+\param name Name of the vertex program const.
+\return The requested vertex program const value.
+*/
+rsxProgramConst* rsxVertexProgramGetConst(const rsxVertexProgram *vp,const char *name);
+
+/*! \brief Get the count of vertex program attributes.
+\param vp Pointer the to vertex program structure.
+\return Count of attributes in the vertex program.
+*/
+u16 rsxVertexProgramGetNumAttrib(const rsxVertexProgram *vp);
 
 /*! \brief Get the list of vertex program attributes.
 \param vp Pointer the to vertex program structure.
 \return Pointer to the list of program attribute structures.
 */
-rsxProgramAttrib* rsxVertexProgramGetAttribs(rsxVertexProgram *vp);
+rsxProgramAttrib* rsxVertexProgramGetAttribs(const rsxVertexProgram *vp);
 
-/*! \brief Get id of vertex program attribute from its name.
+/*! \brief Get attribute value of vertex program attribute from its name.
 \param vp Pointer the to vertex program structure.
 \param name Name of the vertex program attribute.
-\return The requested vertex program attribute id.
+\return The requested vertex program attribute value.
 */
-s32 rsxVertexProgramGetAttrib(rsxVertexProgram *vp,const char *name);
+rsxProgramAttrib* rsxVertexProgramGetAttrib(const rsxVertexProgram *vp,const char *name);
+
+/*! \brief Get index of vertex program attribute from its name.
+\param vp Pointer the to vertex program structure.
+\param name Name of the vertex program attribute.
+\return The requested vertex program attribute index.
+*/
+s32 rsxVertexProgramGetAttribIndex(const rsxVertexProgram *vp,const char *name);
 
 /*! \brief Get Ucode from RSX fragment program.
 \param fp Pointer the to fragment program structure.
 \param ucode Pointer-pointer to receive the fragment program ucode.
 \param size Pointer to receive the fragment program ucode size.
 */
-void rsxFragmentProgramGetUCode(rsxFragmentProgram *fp,void **ucode,u32 *size);
+void rsxFragmentProgramGetUCode(const rsxFragmentProgram *fp,void **ucode,u32 *size);
+
+/*! \brief Get the count of fragment program consts.
+\param fp Pointer the to fragment program structure.
+\return Count of constants in the fragment program.
+*/
+u16 rsxFragmentProgramGetNumConst(const rsxFragmentProgram *fp);
 
 /*! \brief Get the list of fragment program consts.
 \param fp Pointer the to fragment program structure.
 \return Pointer to the list of program const structures.
 */
-rsxProgramConst* rsxFragmentProgramGetConsts(rsxFragmentProgram *fp);
+rsxProgramConst* rsxFragmentProgramGetConsts(const rsxFragmentProgram *fp);
 
-/*! \brief Get id of fragment program const from its name.
+/*! \brief Get index of fragment program const from its name.
 \param fp Pointer the to fragment program structure.
 \param name Name of the fragment program const.
-\return The requested fragment program const id.
+\return The requested fragment program const index.
 */
-s32 rsxFragmentProgramGetConst(rsxFragmentProgram *fp,const char *name);
+s32 rsxFragmentProgramGetConstIndex(const rsxFragmentProgram *fp,const char *name);
+
+/*! \brief Get const value of fragment program const from its name.
+\param fp Pointer the to fragment program structure.
+\param name Name of the fragment program const.
+\return The requested fragment program const value.
+*/
+rsxProgramConst* rsxFragmentProgramGetConst(const rsxFragmentProgram *fp,const char *name);
+
+/*! \brief Get the count of fragment program attributes.
+\param fp Pointer the to fragment program structure.
+\return Count of attributes in the fragment program.
+*/
+u16 rsxFragmentProgramGetNumAttrib(const rsxFragmentProgram *fp);
 
 /*! \brief Get the list of fragment program attributes.
 \param fp Pointer the to fragment program structure.
 \return Pointer to the list of program attribute structures.
 */
-rsxProgramAttrib* rsxFragmentProgramGetAttribs(rsxFragmentProgram *fp);
+rsxProgramAttrib* rsxFragmentProgramGetAttribs(const rsxFragmentProgram *fp);
 
-/*! \brief Get id of fragment program attribute from its name.
+/*! \brief Get index of fragment program attribute from its name.
 \param fp Pointer the to fragment program structure.
 \param name Name of the fragment program attribute.
-\return The requested fragment program attribute id.
+\return The requested fragment program attribute index.
 */
-s32 rsxFragmentProgramGetAttrib(rsxFragmentProgram *fp,const char *name);
+s32 rsxFragmentProgramGetAttribIndex(const rsxFragmentProgram *fp,const char *name);
+
+/*! \brief Get attribute value of fragment program attribute from its name.
+\param fp Pointer the to fragment program structure.
+\param name Name of the fragment program attribute.
+\return The requested fragment program attribute value.
+*/
+rsxProgramAttrib* rsxFragmentProgramGetAttrib(const rsxFragmentProgram *fp,const char *name);
 
 /*! \brief Get const offset table from a fragment program.
 \param fp Pointer the to fragment program structure.
 \param table_off Offset of the const offset table.
 \return Pointer to the requested const offset table.
 */
-rsxConstOffsetTable* rsxFragmentProgramGetConstOffsetTable(rsxFragmentProgram *fp,u32 table_off);
+rsxConstOffsetTable* rsxFragmentProgramGetConstOffsetTable(const rsxFragmentProgram *fp,u32 table_off);
 
 #ifdef __cplusplus
 	}

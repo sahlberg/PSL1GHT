@@ -30,7 +30,7 @@ void RSX_FUNC(SetCullFaceEnable)(gcmContextData *context,u32 enable);
  - \ref GCM_POLYGON_MODE_LINE
  - \ref GCM_POLYGON_MODE_FILL
  */
-void RSX_FUNC(SetFrontPolygonMode)(gcmContextData *context,const u32 mode);
+void RSX_FUNC(SetFrontPolygonMode)(gcmContextData *context,u32 mode);
 
 /*! \brief Control back-facing polygon rendering.
 \param context Pointer to the context object.
@@ -39,10 +39,10 @@ void RSX_FUNC(SetFrontPolygonMode)(gcmContextData *context,const u32 mode);
  - \ref GCM_POLYGON_MODE_LINE
  - \ref GCM_POLYGON_MODE_FILL
  */
-void RSX_FUNC(SetBackPolygonMode)(gcmContextData *context,const u32 mode);
+void RSX_FUNC(SetBackPolygonMode)(gcmContextData *context,u32 mode);
 
-void RSX_FUNC(SetPolygonOffsetFillEnable)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(SetPolygonOffset)(gcmContextData *context,const f32 factor,const f32 units);
+void RSX_FUNC(SetPolygonOffsetFillEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetPolygonOffset)(gcmContextData *context,f32 factor,f32 units);
 
 /*! \brief Enable/Disable write to depth buffer.
 \param context Pointer to the context object.
@@ -84,14 +84,14 @@ Starts the rendering for a primitive.
 - \ref GCM_TYPE_POLYGON
 */
 void RSX_FUNC(DrawVertexBegin)(gcmContextData *context,u32 type);
-void RSX_FUNC(DrawVertex1f)(gcmContextData *context,const u8 idx,const f32 v);
-void RSX_FUNC(DrawVertex2f)(gcmContextData *context,const u8 idx,const f32 v[2]);
-void RSX_FUNC(DrawVertex3f)(gcmContextData *context,const u8 idx,const f32 v[3]);
-void RSX_FUNC(DrawVertex4f)(gcmContextData *context,const u8 idx,const f32 v[4]);
-void RSX_FUNC(DrawVertex4s)(gcmContextData *context,const u8 idx,const s16 v[4]);
-void RSX_FUNC(DrawVertexScaled4s)(gcmContextData *context,const u8 idx,const s16 v[4]);
-void RSX_FUNC(DrawVertex2s)(gcmContextData *context,const u8 idx,const s16 v[2]);
-void RSX_FUNC(DrawVertex4ub)(gcmContextData *context,const u8 idx,const u8 v[4]);
+void RSX_FUNC(DrawVertex1f)(gcmContextData *context,u8 idx,f32 v);
+void RSX_FUNC(DrawVertex2f)(gcmContextData *context,u8 idx,const f32 v[2]);
+void RSX_FUNC(DrawVertex3f)(gcmContextData *context,u8 idx,const f32 v[3]);
+void RSX_FUNC(DrawVertex4f)(gcmContextData *context,u8 idx,const f32 v[4]);
+void RSX_FUNC(DrawVertex4s)(gcmContextData *context,u8 idx,const s16 v[4]);
+void RSX_FUNC(DrawVertexScaled4s)(gcmContextData *context,u8 idx,const s16 v[4]);
+void RSX_FUNC(DrawVertex2s)(gcmContextData *context,u8 idx,const s16 v[2]);
+void RSX_FUNC(DrawVertex4ub)(gcmContextData *context,u8 idx,const u8 v[4]);
 void RSX_FUNC(SetScissor)(gcmContextData *context,u16 x,u16 y,u16 w,u16 h);
 
 /*! \brief Specify the value used for depth buffer comparisons.
@@ -148,12 +148,12 @@ This value is used by the \ref rsxClearSurface function.
 \param context Pointer to the context object.
 \param value Color value 
 */
-void RSX_FUNC(SetClearDepthStencil)(gcmContextData *context,const u32 value);
+void RSX_FUNC(SetClearDepthStencil)(gcmContextData *context,u32 value);
 void RSX_FUNC(SetReturnCommand)(gcmContextData *context);
 void RSX_FUNC(SetCallCommand)(gcmContextData *context,u32 offset);
 void RSX_FUNC(SetJumpCommand)(gcmContextData *context,u32 offset);
 void RSX_FUNC(SetNopCommand)(gcmContextData *context,u32 count);
-void RSX_FUNC(SetSkipNop)(gcmContextData *context,const u32 count);
+void RSX_FUNC(SetSkipNop)(gcmContextData *context,u32 count);
 
 /*! \brief Set the clear color.
 
@@ -186,29 +186,29 @@ combination of the following values:
 */
 void RSX_FUNC(SetColorMaskMRT)(gcmContextData *context,u32 mask);
 
-void RSX_FUNC(SetPointSpriteControl)(gcmContextData *context,const u32 enable,const u32 rmode,const u32 texcoordMask);
-void RSX_FUNC(SetPointSize)(gcmContextData *context,const f32 size);
-void RSX_FUNC(SetAntialiasingControl)(gcmContextData *context,const u32 enable,const u32 alphaToCoverage,const u32 alphaToOne,const u32 sampleMask);
-void RSX_FUNC(SetCylindricalWrap)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(SetStencilFunc)(gcmContextData *context,const u32 func,const u32 ref,const u32 mask);
-void RSX_FUNC(SetStencilMask)(gcmContextData *context,const u32 mask);
-void RSX_FUNC(SetStencilOp)(gcmContextData *context,const u32 fail,const u32 depthFail,const u32 depthPass);
-void RSX_FUNC(SetStencilTestEnable)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(SetBackStencilFunc)(gcmContextData *context,const u32 func,const u32 ref,const u32 mask);
-void RSX_FUNC(SetBackStencilMask)(gcmContextData *context,const u32 mask);
-void RSX_FUNC(SetBackStencilOp)(gcmContextData *context,const u32 fail,const u32 depthFail,const u32 depthPass);
-void RSX_FUNC(SetTwoSidedStencilTestEnable)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(SetTwoSideLightEnable)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(SetRenderEnable)(gcmContextData *context,const u8 mode,const u32 index);
-void RSX_FUNC(SetReport)(gcmContextData *context,const u32 type,const u32 index);
-void RSX_FUNC(SetClearReport)(gcmContextData *context,const u32 type);
-void RSX_FUNC(SetSCullControl)(gcmContextData *context,const u8 sFunc,const u8 sRef,const u8 sMask);
-void RSX_FUNC(SetZCullEnable)(gcmContextData *context, const u32 depth, const u32 stencil);
-void RSX_FUNC(SetClearZCullSurface)(gcmContextData *context, const u32 depth, const u32 stencil);
-void RSX_FUNC(SetZCullLimit)(gcmContextData *context,const u16 moveforwardlimit,const u16 pushbacklimit);
-void RSX_FUNC(SetZCullControl)(gcmContextData *context,const u8 zculldir,const u8 zcullformat);
-void RSX_FUNC(SetZCullStatsEnable)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(SetPolygonSmoothEnable)(gcmContextData *context,const u32 enable);
+void RSX_FUNC(SetPointSpriteControl)(gcmContextData *context,u32 enable,u32 rmode,u32 texcoordMask);
+void RSX_FUNC(SetPointSize)(gcmContextData *context,f32 size);
+void RSX_FUNC(SetAntialiasingControl)(gcmContextData *context,u32 enable,u32 alphaToCoverage,u32 alphaToOne,u32 sampleMask);
+void RSX_FUNC(SetCylindricalWrap)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetStencilFunc)(gcmContextData *context,u32 func,u32 ref,u32 mask);
+void RSX_FUNC(SetStencilMask)(gcmContextData *context,u32 mask);
+void RSX_FUNC(SetStencilOp)(gcmContextData *context,u32 fail,u32 depthFail,u32 depthPass);
+void RSX_FUNC(SetStencilTestEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetBackStencilFunc)(gcmContextData *context,u32 func,u32 ref,u32 mask);
+void RSX_FUNC(SetBackStencilMask)(gcmContextData *context,u32 mask);
+void RSX_FUNC(SetBackStencilOp)(gcmContextData *context,u32 fail,u32 depthFail,u32 depthPass);
+void RSX_FUNC(SetTwoSidedStencilTestEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetTwoSideLightEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetRenderEnable)(gcmContextData *context,u8 mode,u32 index);
+void RSX_FUNC(SetReport)(gcmContextData *context,u32 type,u32 index);
+void RSX_FUNC(SetClearReport)(gcmContextData *context,u32 type);
+void RSX_FUNC(SetSCullControl)(gcmContextData *context,u8 sFunc,u8 sRef,u8 sMask);
+void RSX_FUNC(SetZCullEnable)(gcmContextData *context, u32 depth, u32 stencil);
+void RSX_FUNC(SetClearZCullSurface)(gcmContextData *context, u32 depth, u32 stencil);
+void RSX_FUNC(SetZCullLimit)(gcmContextData *context,u16 moveforwardlimit,u16 pushbacklimit);
+void RSX_FUNC(SetZCullControl)(gcmContextData *context,u8 zculldir,u8 zcullformat);
+void RSX_FUNC(SetZCullStatsEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetPolygonSmoothEnable)(gcmContextData *context,u32 enable);
 
 /*! \brief Setup the render surface.
 
@@ -216,7 +216,7 @@ This function is used to setup the render target where RSX should render the fra
 \param context Pointer to the context object.
 \param surface Pointer to the surface object.
 */
-void RSX_FUNC(SetSurface)(gcmContextData *context,gcmSurface *surface);
+void RSX_FUNC(SetSurface)(gcmContextData *context,const gcmSurface *surface);
 void RSX_FUNC(SetReferenceCommand)(gcmContextData *context,u32 ref_value);
 
 /*! \brief Enqueues a Wait for label command.
@@ -240,7 +240,7 @@ void RSX_FUNC(SetWriteCommandLabel)(gcmContextData *context,u8 index,u32 value);
 */
 void RSX_FUNC(SetWriteBackendLabel)(gcmContextData *context,u8 index,u32 value);
 
-void RSX_FUNC(SetWriteTextureLabel)(gcmContextData *context,const u8 index,const u32 value);
+void RSX_FUNC(SetWriteTextureLabel)(gcmContextData *context,u8 index,u32 value);
 
 void RSX_FUNC(SetViewportClip)(gcmContextData *context,u8 sel,u16 width,u16 height);
 
@@ -328,25 +328,25 @@ void RSX_FUNC(LoadTexture)(gcmContextData *context,u8 index,const gcmTexture *te
 \todo finish args documentation.
 */
 void RSX_FUNC(TextureControl)(gcmContextData *context,u8 index,u32 enable,u16 minlod,u16 maxlod,u8 maxaniso);
-void RSX_FUNC(TextureFilter)(gcmContextData *context,u8 index,u8 min,u8 mag,u8 conv);
+void RSX_FUNC(TextureFilter)(gcmContextData *context,u8 index,u16 bias,u8 min,u8 mag,u8 conv);
 void RSX_FUNC(TextureWrapMode)(gcmContextData *context,u8 index,u8 wraps,u8 wrapt,u8 wrapr,u8 unsignedRemap,u8 zfunc,u8 gamma);
-void RSX_FUNC(TextureBorderColor)(gcmContextData *context,const u8 index,const u32 color);
-void RSX_FUNC(TextureOptimization)(gcmContextData *context,const u8 index,const u8 slope,const u8 iso,const u8 aniso);
-void RSX_FUNC(TextureAnisoSpread)(gcmContextData *context,const u8 index,const u8 reduceSamplesEnable,const u8 hReduceSamplesEnable,const u8 vReduceSamplesEnable,const u8 spacingSelect,const u8 hSpacingSelect,const u8 vSpacingSelect);
+void RSX_FUNC(TextureBorderColor)(gcmContextData *context,u8 index,u32 color);
+void RSX_FUNC(TextureOptimization)(gcmContextData *context,u8 index,u8 slope,u8 iso,u8 aniso);
+void RSX_FUNC(TextureAnisoSpread)(gcmContextData *context,u8 index,u8 reduceSamplesEnable,u8 hReduceSamplesEnable,u8 vReduceSamplesEnable,u8 spacingSelect,u8 hSpacingSelect,u8 vSpacingSelect);
 
 
-void RSX_FUNC(LoadVertexTexture)(gcmContextData *context,const u8 index,const gcmTexture *texture);
-void RSX_FUNC(VertexTextureControl)(gcmContextData *context,const u8 index,const u32 enable,const u16 minlod,const u16 maxlod);
-void RSX_FUNC(VertexTextureFilter)(gcmContextData *context,const u8 index,const u16 bias);
-void RSX_FUNC(VertexTextureWrapMode)(gcmContextData *context,const u8 index,const u8 wraps,const u8 wrapt);
-void RSX_FUNC(VertexTextureBorderColor)(gcmContextData *context,const u8 index,const u32 color);
+void RSX_FUNC(LoadVertexTexture)(gcmContextData *context,u8 index,const gcmTexture *texture);
+void RSX_FUNC(VertexTextureControl)(gcmContextData *context,u8 index,u32 enable,u16 minlod,u16 maxlod);
+void RSX_FUNC(VertexTextureFilter)(gcmContextData *context,u8 index,u16 bias);
+void RSX_FUNC(VertexTextureWrapMode)(gcmContextData *context,u8 index,u8 wraps,u8 wrapt);
+void RSX_FUNC(VertexTextureBorderColor)(gcmContextData *context,u8 index,u32 color);
 
 /*! \brief Load a compiled vertex shader program.
 \param context Pointer to the context object
 \param program Pointer to the vertex program configuration
 \param ucode Pointer to the shader micro code
 */
-void RSX_FUNC(LoadVertexProgram)(gcmContextData *context,rsxVertexProgram *program,const void *ucode);
+void RSX_FUNC(LoadVertexProgram)(gcmContextData *context,const rsxVertexProgram *program,const void *ucode);
 
 /*! \brief Load a compiled fragment shader program.
 \param context Pointer to the context object
@@ -356,30 +356,32 @@ void RSX_FUNC(LoadVertexProgram)(gcmContextData *context,rsxVertexProgram *progr
 - \ref GCM_LOCATION_RSX
 - \ref GCM_LOCATION_CELL
 */
-void RSX_FUNC(LoadFragmentProgramLocation)(gcmContextData *context,rsxFragmentProgram *program,u32 offset,u32 location);
-void RSX_FUNC(UpdateFragmentProgramLocation)(gcmContextData *context,const u32 offset,const u32 location);
+void RSX_FUNC(LoadFragmentProgramLocation)(gcmContextData *context,const rsxFragmentProgram *program,u32 offset,u32 location);
+void RSX_FUNC(UpdateFragmentProgramLocation)(gcmContextData *context,u32 offset,u32 location);
 void RSX_FUNC(SetZControl)(gcmContextData *context,u8 cullNearFar,u8 zClampEnable,u8 cullIgnoreW);
-void RSX_FUNC(SetZPixelCountEnable)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(LoadVertexProgramBlock)(gcmContextData *context,rsxVertexProgram *program,const void *ucode);
+void RSX_FUNC(SetZPixelCountEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(LoadVertexProgramBlock)(gcmContextData *context,const rsxVertexProgram *program,const void *ucode);
 void RSX_FUNC(LoadVertexProgramParameterBlock)(gcmContextData *context,u32 base_const,u32 const_cnt,const f32 *value); 
-void RSX_FUNC(SetVertexProgramParameter)(gcmContextData *context,rsxVertexProgram *program,s32 index,const f32 *value);
-void RSX_FUNC(SetFragmentProgramParameter)(gcmContextData *context,rsxFragmentProgram *program,s32 index,const f32 *value,u32 offset,u32 location);
+void RSX_FUNC(SetVertexProgramParameter)(gcmContextData *context,const rsxVertexProgram *program,const rsxProgramConst *param,const f32 *value);
+void RSX_FUNC(SetVertexProgramParameterByIndex)(gcmContextData *context,const rsxVertexProgram *program,s32 index,const f32 *value);
+void RSX_FUNC(SetFragmentProgramParameter)(gcmContextData *context,const rsxFragmentProgram *program,const rsxProgramConst *param,const f32 *value,u32 offset,u32 location);
+void RSX_FUNC(SetFragmentProgramParameterByIndex)(gcmContextData *context,const rsxFragmentProgram *program,s32 index,const f32 *value,u32 offset,u32 location);
 void RSX_FUNC(DrawVertexArray)(gcmContextData *context,u32 type,u32 start,u32 count);
-void RSX_FUNC(BindVertexArrayAttrib)(gcmContextData *context,u8 attr,u32 offset,u8 stride,u8 elems,u8 dtype,u8 location);
+void RSX_FUNC(BindVertexArrayAttrib)(gcmContextData *context,u8 attr,u16 frequency,u32 offset,u8 stride,u8 elems,u8 dtype,u8 location);
 void RSX_FUNC(DrawIndexArray)(gcmContextData *context,u8 type,u32 offset,u32 count,u8 data_type,u8 location);
-void RSX_FUNC(DrawInlineIndexArray16)(gcmContextData *context,u8 type,u32 start,u32 count,u16 *data);
-void RSX_FUNC(DrawInlineIndexArray32)(gcmContextData *context,u8 type,u32 start,u32 count,u32 *data);
-void RSX_FUNC(InlineTransfer)(gcmContextData *context,const u32 dstOffset,const void *srcAddress,const u32 sizeInWords,const u8 location);
+void RSX_FUNC(DrawInlineIndexArray16)(gcmContextData *context,u8 type,u32 start,u32 count,const u16 *data);
+void RSX_FUNC(DrawInlineIndexArray32)(gcmContextData *context,u8 type,u32 start,u32 count,const u32 *data);
+void RSX_FUNC(InlineTransfer)(gcmContextData *context,u32 dstOffset,const void *srcAddress,u32 sizeInWords,u8 location);
 void RSX_FUNC(SetUserClipPlaneControl)(gcmContextData *context,u32 plane0,u32 plane1,u32 plane2,u32 plane3,u32 plane4,u32 plane5);
-void RSX_FUNC(SetAlphaFunc)(gcmContextData *context,const u32 alphaFunc,const u32 ref);
-void RSX_FUNC(SetAlphaTestEnable)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(SetBlendEnableMrt)(gcmContextData *context, const u32 mrt1, const u32 mrt2, const u32 mrt3);
-void RSX_FUNC(SetBlendOptimization)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(SetLogicOp)(gcmContextData *context,const u32 op);
-void RSX_FUNC(SetLogicOpEnable)(gcmContextData *context,const u32 enable);
-void RSX_FUNC(SetFogMode)(gcmContextData *context,const u32 mode);
-void RSX_FUNC(SetFogParams)(gcmContextData *context,const f32 p0,const f32 p1);
-void RSX_FUNC(SetVertexAttribOutputMask)(gcmContextData *context,const u32 mask);
+void RSX_FUNC(SetAlphaFunc)(gcmContextData *context,u32 alphaFunc,u32 ref);
+void RSX_FUNC(SetAlphaTestEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetBlendEnableMrt)(gcmContextData *context, u32 mrt1, u32 mrt2, u32 mrt3);
+void RSX_FUNC(SetBlendOptimization)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetLogicOp)(gcmContextData *context,u32 op);
+void RSX_FUNC(SetLogicOpEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetFogMode)(gcmContextData *context,u32 mode);
+void RSX_FUNC(SetFogParams)(gcmContextData *context,f32 p0,f32 p1);
+void RSX_FUNC(SetVertexAttribOutputMask)(gcmContextData *context,u32 mask);
 
 /*! \brief Specify pixel arithmetic.
 
@@ -623,7 +625,7 @@ void RSX_FUNC(SetTransferData)(gcmContextData *context,u8 mode,u32 dst,u32 outpi
 - \ref GCM_TRANSFER_SURFACE
 - \ref GCM_TRANSFER_SWIZZLE
 */
-void RSX_FUNC(SetTransferScaleMode)(gcmContextData *context,const u8 mode,const u8 surface);
+void RSX_FUNC(SetTransferScaleMode)(gcmContextData *context,u8 mode,u8 surface);
 
 /*! \brief Initiate an asynchronous RSX blit.
 \param context Pointer to the context object
@@ -651,10 +653,10 @@ void RSX_FUNC(SetTransferScaleSurface)(gcmContextData *context,const gcmTransfer
 \param height Height of the transfer rectangle.
 \param bytesPerPixel Number of bytes per pixel to transfer: 2 or 4.
 */
-void RSX_FUNC(SetTransferImage)(gcmContextData *context,const u8 mode,const u32 dstOffset,const u32 dstPitch,const u32 dstX,const u32 dstY,const u32 srcOffset,const u32 srcPitch,const u32 srcX,const u32 srcY,const u32 width,const u32 height,const u32 bytesPerPixel);
+void RSX_FUNC(SetTransferImage)(gcmContextData *context,u8 mode,u32 dstOffset,u32 dstPitch,u32 dstX,u32 dstY,u32 srcOffset,u32 srcPitch,u32 srcX,u32 srcY,u32 width,u32 height,u32 bytesPerPixel);
 void RSX_FUNC(SetTimeStamp)(gcmContextData *context,u32 index);
 
-void RSX_FUNC(SetConvertSwizzleFormat)(gcmContextData *context,const u32 dstOffset,const u32 dstWidth,const u32 dstHeight,const u32 dstX,const u32 dstY,const u32 srcOffset,const u32 srcPitch,const u32 srcX,const u32 srcY,const u32 width,const u32 height,const u32 bytesPerPixel,const u32 mode);
+void RSX_FUNC(SetConvertSwizzleFormat)(gcmContextData *context,u32 dstOffset,u32 dstWidth,u32 dstHeight,u32 dstX,u32 dstY,u32 srcOffset,u32 srcPitch,u32 srcX,u32 srcY,u32 width,u32 height,u32 bytesPerPixel,u32 mode);
 
 void RSX_FUNC(SetTransferScaleSwizzle)(gcmContextData *context,const gcmTransferScale *scale,const gcmTransferSwizzle *swizzle);
 

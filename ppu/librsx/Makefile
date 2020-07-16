@@ -44,7 +44,8 @@ VPATH :=	$(BASEDIR)
 
 #---------------------------------------------------------------------------------
 OBJS		:= \
-			init.o buffer.o commands.o mm.o vertex_program.o fragment_program.o
+			init.o buffer.o commands.o mm.o vertex_program.o fragment_program.o \
+			rsx_internal.o
 
 all: ppu
 

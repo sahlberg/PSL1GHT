@@ -21,4 +21,25 @@
 #define RSX_SUBCHANNEL_SHIFT							(13)
 #define RSX_SUBCHANNEL_METHOD(channel,method,count)		(((count)<<RSX_METHOD_COUNT_SHIFT)|((channel)<<RSX_SUBCHANNEL_SHIFT)|(method))
 
+typedef struct rsx_prg
+{
+	u16 magic;
+	u16 _pad0;
+
+	u16 num_regs;
+	u16 num_attr;
+	u16 num_const;
+	u16 num_insn;
+
+	u32 attr_off;
+	u32 const_off;
+	u32 ucode_off;
+} rsxProgram;
+
+rsxProgramAttrib* __rsxGetAttrs(const rsxProgram *prg);
+rsxProgramAttrib* __rsxGetAttr(const rsxProgram *prg, const char *name);
+
+rsxProgramConst* __rsxGetConsts(const rsxProgram *prg);
+s32 __rsxGetConstIndex(const rsxProgram *prg, const char *name);
+
 #endif

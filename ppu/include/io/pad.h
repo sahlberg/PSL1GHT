@@ -17,6 +17,16 @@
 #define PAD_TYPE_REMOTE           (4)       /*!< BD Remote Controller */
 #define PAD_TYPE_LDD              (5)       /*!< Custom Controller */
 
+#define PAD_PRESS_MODE_ON						(1)
+#define PAD_PRESS_MODE_OFF						(0)
+
+#define PAD_INFO_SUPPORTED_PRESS_MODE			(1)
+
+#define PAD_SENSOR_MODE_ON						(1)
+#define PAD_SENSOR_MODE_OFF						(0)
+
+#define PAD_INFO_SUPPORTED_SENSOR_MODE			(1)
+
 #ifdef __cplusplus
 extern "C" {
 #endif

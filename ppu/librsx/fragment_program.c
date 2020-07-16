@@ -4,57 +4,63 @@
 
 #include "rsx_internal.h"
 
-void rsxFragmentProgramGetUCode(rsxFragmentProgram *fp,void **ucode,u32 *size)
+void rsxFragmentProgramGetUCode(const rsxFragmentProgram *fp,void **ucode,u32 *size)
 {
 	*size = fp->num_insn*sizeof(u32)*4;
 	*ucode = (void*)(((u8*)fp) + fp->ucode_off);
 }
 
-rsxProgramConst* rsxFragmentProgramGetConsts(rsxFragmentProgram *fp)
+u16 rsxFragmentProgramGetNumConst(const rsxFragmentProgram *fp)
 {
-	return (rsxProgramConst*)(((u8*)fp) + fp->const_off);
+	return fp->num_const;
 }
 
-s32 rsxFragmentProgramGetConst(rsxFragmentProgram *fp,const char *name)
+rsxProgramConst* rsxFragmentProgramGetConsts(const rsxFragmentProgram *fp)
 {
-	u32 i;
-	rsxProgramConst *fpc = rsxFragmentProgramGetConsts(fp);
+	return __rsxGetConsts((rsxProgram*) fp);
+}
 
-	for(i=0;i<fp->num_const;i++) {
-		char *namePtr;
+s32 rsxFragmentProgramGetConstIndex(const rsxFragmentProgram *fp,const char *name)
+{
+	return __rsxGetConstIndex((rsxProgram*) fp, name);
+}
 
-		if(!fpc[i].name_off) continue;
+rsxProgramConst* rsxFragmentProgramGetConst(const rsxFragmentProgram *fp,const char *name)
+{
+	rsxProgramConst *fpc = __rsxGetConsts((rsxProgram*) fp);
+	s32 index = __rsxGetConstIndex((rsxProgram*) fp, name);
 
-		namePtr = ((char*)fp) + fpc[i].name_off;
-		if(strcasecmp(name,namePtr)==0)
-			return i;
-	}
+	if (index == -1) return NULL;
+
+	return &fpc[index];
+}
+
+u16 rsxFragmentProgramGetNumAttrib(const rsxFragmentProgram *fp)
+{
+	return fp->num_attr;
+}
+
+rsxProgramAttrib* rsxFragmentProgramGetAttribs(const rsxFragmentProgram *fp)
+{
+	return __rsxGetAttrs((rsxProgram*) fp);
+}
+
+s32 rsxFragmentProgramGetAttribIndex(const rsxFragmentProgram *fp,const char *name)
+{
+	rsxProgramAttrib *attr = __rsxGetAttr((rsxProgram*) fp, name);
+	
+	if (attr != NULL)
+		return attr->index;
+
 	return -1;
 }
 
-rsxProgramAttrib* rsxFragmentProgramGetAttribs(rsxFragmentProgram *fp)
+rsxProgramAttrib* rsxFragmentProgramGetAttrib(const rsxFragmentProgram *fp,const char *name)
 {
-	return (rsxProgramAttrib*)(((u8*)fp) + fp->attr_off);
+	return __rsxGetAttr((rsxProgram*) fp, name);
 }
 
-s32 rsxFragmentProgramGetAttrib(rsxFragmentProgram *fp,const char *name)
-{
-	u32 i;
-	rsxProgramAttrib *attribs = rsxFragmentProgramGetAttribs(fp);
-
-	for(i=0;i<fp->num_attr;i++) {
-		char *namePtr;
-
-		if(!attribs[i].name_off) continue;
-
-		namePtr = ((char*)fp) + attribs[i].name_off;
-		if(strcasecmp(name,namePtr)==0)
-			return attribs[i].index;
-	}
-	return -1;
-}
-
-rsxConstOffsetTable* rsxFragmentProgramGetConstOffsetTable(rsxFragmentProgram *fp,u32 table_off)
+rsxConstOffsetTable* rsxFragmentProgramGetConstOffsetTable(const rsxFragmentProgram *fp,u32 table_off)
 {
 	return (rsxConstOffsetTable*)(((u8*)fp) + table_off);
 }

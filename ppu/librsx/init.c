@@ -13,7 +13,7 @@ static gcmContextData sUserContext =
 
 extern s32 gcmInitBodyEx(gcmContextData* ATTRIBUTE_PRXPTR *ctx,const u32 cmdSize,const u32 ioSize,const void *ioAddress);
 
-s32 rsxInit(gcmContextData **context,const u32 cmdSize,const u32 ioSize,const void *ioAddress)
+s32 rsxInit(gcmContextData **context,u32 cmdSize,u32 ioSize,const void *ioAddress)
 {
 	s32 ret = -1;
 
@@ -27,7 +27,7 @@ s32 rsxInit(gcmContextData **context,const u32 cmdSize,const u32 ioSize,const vo
 	return ret;
 }
 
-void rsxSetupContextData(gcmContextData *context,const u32 *addr,const u32 size,gcmContextCallback cb)
+void rsxSetupContextData(gcmContextData *context,const u32 *addr,u32 size,gcmContextCallback cb)
 {
 	u32 alignedSize = size&~0x3;
 
@@ -37,7 +37,7 @@ void rsxSetupContextData(gcmContextData *context,const u32 *addr,const u32 size,
 	context->callback = (gcmContextCallback)__get_opd32(cb);
 }
 
-void rsxSetCurrentBuffer(gcmContextData **context,const u32 *addr,const u32 size)
+void rsxSetCurrentBuffer(gcmContextData **context,const u32 *addr,u32 size)
 {
 	u32 alignedSize = size&~0x3;
 	

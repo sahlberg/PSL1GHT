@@ -29,7 +29,7 @@ void RSX_FUNC(SetNopCommand)(gcmContextData *context,u32 count)
 	RSX_CONTEXT_CURRENT_END(count);
 }
  
-void RSX_FUNC(SetSkipNop)(gcmContextData *context,const u32 count)
+void RSX_FUNC(SetSkipNop)(gcmContextData *context,u32 count)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(1 + count);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD_NI(NV40TCL_NOP, count);
@@ -44,7 +44,7 @@ void RSX_FUNC(SetClearColor)(gcmContextData *context,u32 color)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetClearDepthStencil)(gcmContextData *context,const u32 value)
+void RSX_FUNC(SetClearDepthStencil)(gcmContextData *context,u32 value)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_CLEAR_VALUE_DEPTH,1);
@@ -73,7 +73,7 @@ void RSX_FUNC(SetWriteBackendLabel)(gcmContextData *context,u8 index,u32 value)
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
-void RSX_FUNC(SetWriteTextureLabel)(gcmContextData *context,const u8 index,const u32 value)
+void RSX_FUNC(SetWriteTextureLabel)(gcmContextData *context,u8 index,u32 value)
 {
 	u32 offset = 0x10*index;
 
@@ -109,7 +109,7 @@ void RSX_FUNC(SetWriteCommandLabel)(gcmContextData *context,u8 index,u32 value)
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
-void RSX_FUNC(SetSurface)(gcmContextData *context,gcmSurface *surface)
+void RSX_FUNC(SetSurface)(gcmContextData *context,const gcmSurface *surface)
 {
 	u32 log2Width = 31 - __cntlzw(surface->width);
 	u32 log2Height = 31 - __cntlzw(surface->height);
@@ -329,7 +329,7 @@ void RSX_FUNC(SetFrontFace)(gcmContextData *context,u32 dir)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetFrontPolygonMode)(gcmContextData *context,const u32 mode)
+void RSX_FUNC(SetFrontPolygonMode)(gcmContextData *context,u32 mode)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_POLYGON_MODE_FRONT,1);
@@ -337,7 +337,7 @@ void RSX_FUNC(SetFrontPolygonMode)(gcmContextData *context,const u32 mode)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetBackPolygonMode)(gcmContextData *context,const u32 mode)
+void RSX_FUNC(SetBackPolygonMode)(gcmContextData *context,u32 mode)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_POLYGON_MODE_BACK,1);
@@ -345,7 +345,7 @@ void RSX_FUNC(SetBackPolygonMode)(gcmContextData *context,const u32 mode)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetPolygonOffsetFillEnable)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetPolygonOffsetFillEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_POLYGON_OFFSET_FILL_ENABLE,1);
@@ -353,7 +353,7 @@ void RSX_FUNC(SetPolygonOffsetFillEnable)(gcmContextData *context,const u32 enab
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetPolygonOffset)(gcmContextData *context,const f32 factor,const f32 units)
+void RSX_FUNC(SetPolygonOffset)(gcmContextData *context,f32 factor,f32 units)
 {
 	ieee32 d0,d1;
 
@@ -379,7 +379,7 @@ void RSX_FUNC(ClearSurface)(gcmContextData *context,u32 clear_mask)
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
-void RSX_FUNC(SetCylindricalWrap)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetCylindricalWrap)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_CYLINDRICAL_WRAP,1);
@@ -387,7 +387,7 @@ void RSX_FUNC(SetCylindricalWrap)(gcmContextData *context,const u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetTwoSideLightEnable)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetTwoSideLightEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_TWO_SIDE_LIGHT_EN,1);
@@ -395,7 +395,7 @@ void RSX_FUNC(SetTwoSideLightEnable)(gcmContextData *context,const u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetStencilFunc)(gcmContextData *context,const u32 func,const u32 ref,const u32 mask)
+void RSX_FUNC(SetStencilFunc)(gcmContextData *context,u32 func,u32 ref,u32 mask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(4);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_STENCIL_BACK_FUNC_FUNC,3);
@@ -405,7 +405,7 @@ void RSX_FUNC(SetStencilFunc)(gcmContextData *context,const u32 func,const u32 r
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
-void RSX_FUNC(SetStencilMask)(gcmContextData *context,const u32 mask)
+void RSX_FUNC(SetStencilMask)(gcmContextData *context,u32 mask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_STENCIL_BACK_MASK,1);
@@ -413,7 +413,7 @@ void RSX_FUNC(SetStencilMask)(gcmContextData *context,const u32 mask)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetStencilOp)(gcmContextData *context,const u32 fail,const u32 depthFail,const u32 depthPass)
+void RSX_FUNC(SetStencilOp)(gcmContextData *context,u32 fail,u32 depthFail,u32 depthPass)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(4);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_STENCIL_BACK_OP_FAIL,3);
@@ -423,7 +423,7 @@ void RSX_FUNC(SetStencilOp)(gcmContextData *context,const u32 fail,const u32 dep
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
-void RSX_FUNC(SetStencilTestEnable)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetStencilTestEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_STENCIL_BACK_ENABLE,1);
@@ -431,7 +431,7 @@ void RSX_FUNC(SetStencilTestEnable)(gcmContextData *context,const u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetBackStencilFunc)(gcmContextData *context,const u32 func,const u32 ref,const u32 mask)
+void RSX_FUNC(SetBackStencilFunc)(gcmContextData *context,u32 func,u32 ref,u32 mask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(4);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_STENCIL_FRONT_FUNC_FUNC,3);
@@ -441,7 +441,7 @@ void RSX_FUNC(SetBackStencilFunc)(gcmContextData *context,const u32 func,const u
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
-void RSX_FUNC(SetBackStencilMask)(gcmContextData *context,const u32 mask)
+void RSX_FUNC(SetBackStencilMask)(gcmContextData *context,u32 mask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_STENCIL_FRONT_MASK,1);
@@ -449,7 +449,7 @@ void RSX_FUNC(SetBackStencilMask)(gcmContextData *context,const u32 mask)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetBackStencilOp)(gcmContextData *context,const u32 fail,const u32 depthFail,const u32 depthPass)
+void RSX_FUNC(SetBackStencilOp)(gcmContextData *context,u32 fail,u32 depthFail,u32 depthPass)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(4);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_STENCIL_FRONT_OP_FAIL,3);
@@ -459,7 +459,7 @@ void RSX_FUNC(SetBackStencilOp)(gcmContextData *context,const u32 fail,const u32
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
-void RSX_FUNC(SetTwoSidedStencilTestEnable)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetTwoSidedStencilTestEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_STENCIL_FRONT_ENABLE,1);
@@ -467,7 +467,7 @@ void RSX_FUNC(SetTwoSidedStencilTestEnable)(gcmContextData *context,const u32 en
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetRenderEnable)(gcmContextData *context,const u8 mode,const u32 index)
+void RSX_FUNC(SetRenderEnable)(gcmContextData *context,u8 mode,u32 index)
 {
 	u32 offset = 0x10*index;
 	
@@ -486,7 +486,7 @@ void RSX_FUNC(SetRenderEnable)(gcmContextData *context,const u8 mode,const u32 i
 	}
 }
 
-void RSX_FUNC(SetReport)(gcmContextData *context,const u32 type,const u32 index)
+void RSX_FUNC(SetReport)(gcmContextData *context,u32 type,u32 index)
 {
 	u32 offset = 0x10*index;
 
@@ -496,7 +496,7 @@ void RSX_FUNC(SetReport)(gcmContextData *context,const u32 type,const u32 index)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetClearReport)(gcmContextData *context,const u32 type)
+void RSX_FUNC(SetClearReport)(gcmContextData *context,u32 type)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_QUERY_RESET,1);
@@ -504,7 +504,7 @@ void RSX_FUNC(SetClearReport)(gcmContextData *context,const u32 type)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetZPixelCountEnable)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetZPixelCountEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_QUERY_ENABLE,1);
@@ -512,7 +512,7 @@ void RSX_FUNC(SetZPixelCountEnable)(gcmContextData *context,const u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetSCullControl)(gcmContextData *context,const u8 sFunc,const u8 sRef,const u8 sMask)
+void RSX_FUNC(SetSCullControl)(gcmContextData *context,u8 sFunc,u8 sRef,u8 sMask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_SCULL_CONTROL,1);
@@ -520,7 +520,7 @@ void RSX_FUNC(SetSCullControl)(gcmContextData *context,const u8 sFunc,const u8 s
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetZCullLimit)(gcmContextData *context,const u16 moveforwardlimit,const u16 pushbacklimit)
+void RSX_FUNC(SetZCullLimit)(gcmContextData *context,u16 moveforwardlimit,u16 pushbacklimit)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_ZCULL_CONTROL1,1);
@@ -528,7 +528,7 @@ void RSX_FUNC(SetZCullLimit)(gcmContextData *context,const u16 moveforwardlimit,
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetZCullStatsEnable)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetZCullStatsEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_ZCULL_STATS_ENABLE,1);
@@ -536,7 +536,7 @@ void RSX_FUNC(SetZCullStatsEnable)(gcmContextData *context,const u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetZCullControl)(gcmContextData *context,const u8 zculldir,const u8 zcullformat)
+void RSX_FUNC(SetZCullControl)(gcmContextData *context,u8 zculldir,u8 zcullformat)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_ZCULL_CONTROL0,1);
@@ -544,7 +544,7 @@ void RSX_FUNC(SetZCullControl)(gcmContextData *context,const u8 zculldir,const u
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetClearZCullSurface)(gcmContextData *context,const u32 depth,const u32 stencil)
+void RSX_FUNC(SetClearZCullSurface)(gcmContextData *context,u32 depth,u32 stencil)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_CLEAR_ZCULL_SURFACE,1);
@@ -552,7 +552,7 @@ void RSX_FUNC(SetClearZCullSurface)(gcmContextData *context,const u32 depth,cons
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetZCullEnable)(gcmContextData *context,const u32 depth,const u32 stencil)
+void RSX_FUNC(SetZCullEnable)(gcmContextData *context,u32 depth,u32 stencil)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_ZCULL_ENABLE,1);
@@ -560,7 +560,7 @@ void RSX_FUNC(SetZCullEnable)(gcmContextData *context,const u32 depth,const u32 
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetPolygonSmoothEnable)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetPolygonSmoothEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_POLYGON_SMOOTH_ENABLE,1);
@@ -568,7 +568,7 @@ void RSX_FUNC(SetPolygonSmoothEnable)(gcmContextData *context,const u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(LoadVertexProgramBlock)(gcmContextData *context,rsxVertexProgram *program,const void *ucode)
+void RSX_FUNC(LoadVertexProgramBlock)(gcmContextData *context,const rsxVertexProgram *program,const void *ucode)
 {
 	u32 pos = 0;
 	u32 loop, rest;
@@ -614,7 +614,7 @@ void RSX_FUNC(LoadVertexProgramBlock)(gcmContextData *context,rsxVertexProgram *
 	RSX_CONTEXT_CURRENT_END(9 + loop*33 + (rest!=0 ? rest + 1 : 0));
 }
 
-void RSX_FUNC(LoadFragmentProgramLocation)(gcmContextData *context,rsxFragmentProgram *program,u32 offset,u32 location)
+void RSX_FUNC(LoadFragmentProgramLocation)(gcmContextData *context,const rsxFragmentProgram *program,u32 offset,u32 location)
 {
 	u32 i;
 	u32 texcoords,texcoord2D,texcoord3D;
@@ -650,7 +650,7 @@ void RSX_FUNC(LoadFragmentProgramLocation)(gcmContextData *context,rsxFragmentPr
 	}
 }
 
-void RSX_FUNC(UpdateFragmentProgramLocation)(gcmContextData *context,const u32 offset,const u32 location)
+void RSX_FUNC(UpdateFragmentProgramLocation)(gcmContextData *context,u32 offset,u32 location)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_FP_ADDRESS,1);
@@ -676,7 +676,7 @@ void RSX_FUNC(LoadVertexProgramParameterBlock)(gcmContextData *context,u32 base_
 	RSX_CONTEXT_CURRENT_END(const_cnt*6);
 }
 
-void RSX_FUNC(LoadVertexProgram)(gcmContextData *context,rsxVertexProgram *program,const void *ucode)
+void RSX_FUNC(LoadVertexProgram)(gcmContextData *context,const rsxVertexProgram *program,const void *ucode)
 {
 	u32 i;
 	u32 base_const = program->const_start;
@@ -690,33 +690,32 @@ void RSX_FUNC(LoadVertexProgram)(gcmContextData *context,rsxVertexProgram *progr
 	}
 }
 
-void RSX_FUNC(SetVertexProgramParameter)(gcmContextData *context,rsxVertexProgram *program,s32 index,const f32 *value)
+static inline __attribute__((always_inline)) void RSX_FUNC_INTERNAL(SetVertexProgramParameter)(gcmContextData *context,const rsxVertexProgram *program,const rsxProgramConst *param,const f32 *value)
 {
 	u32 base_const = program->const_start;
 	f32 params[4] = {0.0f,0.0f,0.0f,0.0f};
-	rsxProgramConst *consts = rsxVertexProgramGetConsts(program);
 
-	switch(consts[index].type) {
+	switch(param->type) {
 		case PARAM_FLOAT3x4:
 		case PARAM_FLOAT4x4:
-			RSX_FUNC(LoadVertexProgramParameterBlock)(context,consts[index].index + base_const,consts[index].count,value);
+			RSX_FUNC(LoadVertexProgramParameterBlock)(context,param->index + base_const,param->count,value);
 			return;
 		case PARAM_FLOAT3x3:
 		case PARAM_FLOAT4x3:
 		{
 			u32 i;
 			
-			for(i=0;i<consts[index].count;i++,value+=3) {
+			for(i=0;i<param->count;i++,value+=3) {
 				params[0] = value[0];
 				params[1] = value[1];
 				params[2] = value[2];
-				RSX_FUNC(LoadVertexProgramParameterBlock)(context,consts[index].index + base_const + i,1,params);
+				RSX_FUNC(LoadVertexProgramParameterBlock)(context,param->index + base_const + i,1,params);
 			}
 			return;
 		}
 		
 		case PARAM_FLOAT4:
-			RSX_FUNC(LoadVertexProgramParameterBlock)(context,consts[index].index + base_const,1,value);
+			RSX_FUNC(LoadVertexProgramParameterBlock)(context,param->index + base_const,1,value);
 			return;
 		case PARAM_FLOAT3:
 			params[2] = value[2];
@@ -726,10 +725,21 @@ void RSX_FUNC(SetVertexProgramParameter)(gcmContextData *context,rsxVertexProgra
 		case PARAM_FLOAT1:
 			params[0] = value[0];
 	}
-	RSX_FUNC(LoadVertexProgramParameterBlock)(context,consts[index].index + base_const,1,params);
+	RSX_FUNC(LoadVertexProgramParameterBlock)(context,param->index + base_const,1,params);
 }
 
-void RSX_FUNC(SetVertexAttribOutputMask)(gcmContextData *context,const u32 mask)
+void RSX_FUNC(SetVertexProgramParameter)(gcmContextData *context,const rsxVertexProgram *program,const rsxProgramConst *param,const f32 *value)
+{
+	RSX_FUNC_INTERNAL(SetVertexProgramParameter)(context, program, param, value);
+}
+
+void RSX_FUNC(SetVertexProgramParameterByIndex)(gcmContextData *context,const rsxVertexProgram *program,s32 index,const f32 *value)
+{
+	rsxProgramConst *consts = rsxVertexProgramGetConsts(program);
+	RSX_FUNC_INTERNAL(SetVertexProgramParameter)(context, program, &consts[index], value);
+}
+
+void RSX_FUNC(SetVertexAttribOutputMask)(gcmContextData *context,u32 mask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VP_RESULT_EN,1);
@@ -737,20 +747,19 @@ void RSX_FUNC(SetVertexAttribOutputMask)(gcmContextData *context,const u32 mask)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetFragmentProgramParameter)(gcmContextData *context,rsxFragmentProgram *program,s32 index,const f32 *value,u32 offset,u32 location)
+static inline __attribute__((always_inline)) void RSX_FUNC_INTERNAL(SetFragmentProgramParameter)(gcmContextData *context,const rsxFragmentProgram *program,const rsxProgramConst *param,const f32 *value,u32 offset,u32 location)
 {
 	s32 i;
 	f32 params[4] = {0.0f,0.0f,0.0f,0.0f};
-	rsxProgramConst *consts = rsxFragmentProgramGetConsts(program);
 
-	switch(consts[index].type) {
+	switch(param->type) {
 		case PARAM_FLOAT3x4:
 		case PARAM_FLOAT4x4:
 		{
-			s32 j,cnt = consts[index].count;
+			s32 j,cnt = param->count;
 			for(j=0;j<cnt;j++,value+=4) {
-				if(consts[index + j].index!=0xffffffff) {
-					rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,consts[index + j].index);
+				if(param[j].index!=0xffffffff) {
+					rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param[j].index);
 
 					params[0] = swapF32_16(value[0]);
 					params[1] = swapF32_16(value[1]);
@@ -767,10 +776,10 @@ void RSX_FUNC(SetFragmentProgramParameter)(gcmContextData *context,rsxFragmentPr
 		case PARAM_FLOAT3x3:
 		case PARAM_FLOAT4x3:
 		{
-			s32 j,cnt = consts[index].count;
+			s32 j,cnt = param->count;
 			for(j=0;j<cnt;j++,value+=3) {
-				if(consts[index + j].index!=0xffffffff) {
-					rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,consts[index + j].index);
+				if(param[j].index!=0xffffffff) {
+					rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param[j].index);
 
 					params[0] = swapF32_16(value[0]);
 					params[1] = swapF32_16(value[1]);
@@ -794,12 +803,23 @@ void RSX_FUNC(SetFragmentProgramParameter)(gcmContextData *context,rsxFragmentPr
 			break;
 	}
 
-	if(consts[index].index!=0xffffffff) {
-		rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,consts[index].index);
+	if(param->index!=0xffffffff) {
+		rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param->index);
 
 		for(i=0;i<co_table->num;i++)
 			RSX_FUNC(InlineTransfer)(context,offset + co_table->offset[i],params,4,location);
 	}
+}
+
+void RSX_FUNC(SetFragmentProgramParameter)(gcmContextData *context,const rsxFragmentProgram *program,const rsxProgramConst *param,const f32 *value,u32 offset,u32 location)
+{
+	RSX_FUNC_INTERNAL(SetFragmentProgramParameter)(context, program, param, value, offset, location);
+}
+
+void RSX_FUNC(SetFragmentProgramParameterByIndex)(gcmContextData *context,const rsxFragmentProgram *program,s32 index,const f32 *value,u32 offset,u32 location)
+{
+	rsxProgramConst *consts = rsxFragmentProgramGetConsts(program);
+	RSX_FUNC_INTERNAL(SetFragmentProgramParameter)(context, program, &consts[index], value, offset, location);
 }
 
 void RSX_FUNC(DrawVertexBegin)(gcmContextData *context,u32 type)
@@ -818,7 +838,7 @@ void RSX_FUNC(DrawVertexEnd)(gcmContextData *context)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(DrawVertex1f)(gcmContextData *context,const u8 idx,const f32 v)
+void RSX_FUNC(DrawVertex1f)(gcmContextData *context,u8 idx,f32 v)
 {
 	ieee32 d;
 	d.f = v;
@@ -837,7 +857,7 @@ void RSX_FUNC(DrawVertex2f)(gcmContextData *context,u8 idx,const f32 v[2])
 	RSX_CONTEXT_CURRENT_END(3);
 }
 
-void RSX_FUNC(DrawVertex3f)(gcmContextData *context,const u8 idx,const f32 v[3])
+void RSX_FUNC(DrawVertex3f)(gcmContextData *context,u8 idx,const f32 v[3])
 {
 	RSX_CONTEXT_CURRENT_BEGIN(4);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VTX_ATTR_3F_X(idx),3);
@@ -845,7 +865,7 @@ void RSX_FUNC(DrawVertex3f)(gcmContextData *context,const u8 idx,const f32 v[3])
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
-void RSX_FUNC(DrawVertex4f)(gcmContextData *context,const u8 idx,const f32 v[4])
+void RSX_FUNC(DrawVertex4f)(gcmContextData *context,u8 idx,const f32 v[4])
 {
 	RSX_CONTEXT_CURRENT_BEGIN(5);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VTX_ATTR_4F_X(idx),4);
@@ -853,7 +873,7 @@ void RSX_FUNC(DrawVertex4f)(gcmContextData *context,const u8 idx,const f32 v[4])
 	RSX_CONTEXT_CURRENT_END(5);
 }
 
-void RSX_FUNC(DrawVertex4s)(gcmContextData *context,const u8 idx,const s16 v[4])
+void RSX_FUNC(DrawVertex4s)(gcmContextData *context,u8 idx,const s16 v[4])
 {
 	RSX_CONTEXT_CURRENT_BEGIN(3);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VTX_ATTR_4I_0(idx),2);
@@ -862,7 +882,7 @@ void RSX_FUNC(DrawVertex4s)(gcmContextData *context,const u8 idx,const s16 v[4])
 	RSX_CONTEXT_CURRENT_END(3);
 }
 
-void RSX_FUNC(DrawVertexScaled4s)(gcmContextData *context,const u8 idx,const s16 v[4])
+void RSX_FUNC(DrawVertexScaled4s)(gcmContextData *context,u8 idx,const s16 v[4])
 {
 	RSX_CONTEXT_CURRENT_BEGIN(3);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VTX_ATTR_4I_SCALED_0(idx),2);
@@ -871,7 +891,7 @@ void RSX_FUNC(DrawVertexScaled4s)(gcmContextData *context,const u8 idx,const s16
 	RSX_CONTEXT_CURRENT_END(3);
 }
 
-void RSX_FUNC(DrawVertex2s)(gcmContextData *context,const u8 idx,const s16 v[2])
+void RSX_FUNC(DrawVertex2s)(gcmContextData *context,u8 idx,const s16 v[2])
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VTX_ATTR_2I(idx),1);
@@ -879,7 +899,7 @@ void RSX_FUNC(DrawVertex2s)(gcmContextData *context,const u8 idx,const s16 v[2])
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(DrawVertex4ub)(gcmContextData *context,const u8 idx,const u8 v[4])
+void RSX_FUNC(DrawVertex4ub)(gcmContextData *context,u8 idx,const u8 v[4])
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VTX_ATTR_4UB(idx),1);
@@ -941,7 +961,7 @@ void RSX_FUNC(LoadTexture)(gcmContextData *context,u8 index,const gcmTexture *te
 	RSX_CONTEXT_CURRENT_END(9);
 }
 
-void RSX_FUNC(LoadVertexTexture)(gcmContextData *context,const u8 index,const gcmTexture *texture)
+void RSX_FUNC(LoadVertexTexture)(gcmContextData *context,u8 index,const gcmTexture *texture)
 {
 	u32 format,offset,control,imagerect;
 		
@@ -974,7 +994,7 @@ void RSX_FUNC(TextureControl)(gcmContextData *context,u8 index,u32 enable,u16 mi
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(VertexTextureControl)(gcmContextData *context,const u8 index,const u32 enable,const u16 minlod,const u16 maxlod)
+void RSX_FUNC(VertexTextureControl)(gcmContextData *context,u8 index,u32 enable,u16 minlod,u16 maxlod)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VP_TEXTURE_CONTROL0(index),1);
@@ -982,15 +1002,15 @@ void RSX_FUNC(VertexTextureControl)(gcmContextData *context,const u8 index,const
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(TextureFilter)(gcmContextData *context,u8 index,u8 min,u8 mag,u8 conv)
+void RSX_FUNC(TextureFilter)(gcmContextData *context,u8 index,u16 bias,u8 min,u8 mag,u8 conv)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_TEX_FILTER(index),1);
-	RSX_CONTEXT_CURRENTP[1] = ((mag << NV40TCL_TEX_FILTER_MAG_SHIFT) | (min << NV40TCL_TEX_FILTER_MIN_SHIFT) | (conv << NV40TCL_TEX_FILTER_CONV_SHIFT));
+	RSX_CONTEXT_CURRENTP[1] = ((mag << NV40TCL_TEX_FILTER_MAG_SHIFT) | (min << NV40TCL_TEX_FILTER_MIN_SHIFT) | (conv << NV40TCL_TEX_FILTER_CONV_SHIFT) | (bias&0x1fff));
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(VertexTextureFilter)(gcmContextData *context,const u8 index,const u16 bias)
+void RSX_FUNC(VertexTextureFilter)(gcmContextData *context,u8 index,u16 bias)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VP_TEXTURE_FILTER(index),1);
@@ -1011,7 +1031,7 @@ void RSX_FUNC(TextureWrapMode)(gcmContextData *context,u8 index,u8 wraps,u8 wrap
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(VertexTextureWrapMode)(gcmContextData *context,const u8 index,const u8 wraps,const u8 wrapt)
+void RSX_FUNC(VertexTextureWrapMode)(gcmContextData *context,u8 index,u8 wraps,u8 wrapt)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VP_TEXTURE_ADDRESS(index),1);
@@ -1019,7 +1039,7 @@ void RSX_FUNC(VertexTextureWrapMode)(gcmContextData *context,const u8 index,cons
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(TextureBorderColor)(gcmContextData *context,const u8 index,const u32 color)
+void RSX_FUNC(TextureBorderColor)(gcmContextData *context,u8 index,u32 color)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_TEX_BORDER_COLOR(index),1);
@@ -1027,7 +1047,7 @@ void RSX_FUNC(TextureBorderColor)(gcmContextData *context,const u8 index,const u
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(VertexTextureBorderColor)(gcmContextData *context,const u8 index,const u32 color)
+void RSX_FUNC(VertexTextureBorderColor)(gcmContextData *context,u8 index,u32 color)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VP_TEXTURE_BORDER_COLOR(index),1);
@@ -1035,7 +1055,7 @@ void RSX_FUNC(VertexTextureBorderColor)(gcmContextData *context,const u8 index,c
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(TextureOptimization)(gcmContextData *context,const u8 index,const u8 slope,const u8 iso,const u8 aniso)
+void RSX_FUNC(TextureOptimization)(gcmContextData *context,u8 index,u8 slope,u8 iso,u8 aniso)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_TEX_CONTROL2(index),1);
@@ -1043,7 +1063,7 @@ void RSX_FUNC(TextureOptimization)(gcmContextData *context,const u8 index,const 
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(TextureAnisoSpread)(gcmContextData *context,const u8 index,const u8 reduceSamplesEnable,const u8 hReduceSamplesEnable,const u8 vReduceSamplesEnable,const u8 spacingSelect,const u8 hSpacingSelect,const u8 vSpacingSelect)
+void RSX_FUNC(TextureAnisoSpread)(gcmContextData *context,u8 index,u8 reduceSamplesEnable,u8 hReduceSamplesEnable,u8 vReduceSamplesEnable,u8 spacingSelect,u8 hSpacingSelect,u8 vSpacingSelect)
 {
 	u32 val = ((spacingSelect&0x7)<<0) | (( reduceSamplesEnable&0x1)<<4) |
 			  ((hSpacingSelect&0x7)<<8) | ((hReduceSamplesEnable&0x1)<<12) |
@@ -1063,16 +1083,13 @@ void RSX_FUNC(SetZControl)(gcmContextData *context,u8 cullNearFar,u8 zClampEnabl
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(BindVertexArrayAttrib)(gcmContextData *context,u8 attr,u32 offset,u8 stride,u8 elems,u8 dtype,u8 location)
+void RSX_FUNC(BindVertexArrayAttrib)(gcmContextData *context,u8 attr,u16 frequency,u32 offset,u8 stride,u8 elems,u8 dtype,u8 location)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(4);
-
-	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VTXBUF_ADDRESS(attr),1);
-	RSX_CONTEXT_CURRENTP[1] = ((location << 31) | offset);
-
-	RSX_CONTEXT_CURRENTP[2] = RSX_METHOD(NV40TCL_VTXFMT(attr),1);
-	RSX_CONTEXT_CURRENTP[3] = ((stride << NV40TCL_VTXFMT_STRIDE_SHIFT) | (elems << NV40TCL_VTXFMT_SIZE_SHIFT) | dtype);
-
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VTXFMT(attr),1);
+	RSX_CONTEXT_CURRENTP[1] = ((frequency << 16) | (stride << NV40TCL_VTXFMT_STRIDE_SHIFT) | (elems << NV40TCL_VTXFMT_SIZE_SHIFT) | dtype);
+	RSX_CONTEXT_CURRENTP[2] = RSX_METHOD(NV40TCL_VTXBUF_ADDRESS(attr),1);
+	RSX_CONTEXT_CURRENTP[3] = ((location << 31) | offset);
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
@@ -1143,7 +1160,7 @@ void RSX_FUNC(DrawVertexArray)(gcmContextData *context,u32 type,u32 start,u32 co
 	RSX_FUNC_INTERNAL(DrawVertexArray)(context,type,start,count);
 }
 
-void RSX_FUNC(DrawInlineVertexArray)(gcmContextData *context,const u8 type,const u32 count,const void *data)
+void RSX_FUNC(DrawInlineVertexArray)(gcmContextData *context,u8 type,u32 count,const void *data)
 {
 	u32 i,j,loop,rest;
 	u32 *value = (u32*)data;
@@ -1282,7 +1299,7 @@ void RSX_FUNC(DrawIndexArray)(gcmContextData *context,u8 type,u32 offset,u32 cou
 	RSX_FUNC_INTERNAL(DrawIndexArray)(context,type,offset,count,data_type,location);
 }
 
-void RSX_FUNC(DrawInlineIndexArray16)(gcmContextData *context,u8 type,u32 start,u32 count,u16 *data)
+void RSX_FUNC(DrawInlineIndexArray16)(gcmContextData *context,u8 type,u32 start,u32 count,const u16 *data)
 {
 	u32 odd,lcount;
 	u32 loop,rest,i,j;
@@ -1351,7 +1368,7 @@ void RSX_FUNC(DrawInlineIndexArray16)(gcmContextData *context,u8 type,u32 start,
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(DrawInlineIndexArray32)(gcmContextData *context,u8 type,u32 start,u32 count,u32 *data)
+void RSX_FUNC(DrawInlineIndexArray32)(gcmContextData *context,u8 type,u32 start,u32 count,const u32 *data)
 {
 	u32 i,j;
 	u32 loop,rest;
@@ -1417,7 +1434,7 @@ void RSX_FUNC(SetScissor)(gcmContextData *context,u16 x,u16 y,u16 w,u16 h)
 	RSX_CONTEXT_CURRENT_END(3);
 }
 
-void RSX_FUNC(SetAntialiasingControl)(gcmContextData *context,const u32 enable,const u32 alphaToCoverage,const u32 alphaToOne,const u32 sampleMask)
+void RSX_FUNC(SetAntialiasingControl)(gcmContextData *context,u32 enable,u32 alphaToCoverage,u32 alphaToOne,u32 sampleMask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_ANTI_ALIASING_CONTROL,1);
@@ -1425,7 +1442,7 @@ void RSX_FUNC(SetAntialiasingControl)(gcmContextData *context,const u32 enable,c
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(InlineTransfer)(gcmContextData *context,const u32 dstOffset,const void *srcAddress,const u32 sizeInWords,const u8 location)
+void RSX_FUNC(InlineTransfer)(gcmContextData *context,u32 dstOffset,const void *srcAddress,u32 sizeInWords,u8 location)
 {
 	u32 *src;
 	u32 pixelShift;
@@ -1469,7 +1486,7 @@ void RSX_FUNC(InlineTransfer)(gcmContextData *context,const u32 dstOffset,const 
 	RSX_CONTEXT_CURRENT_END(12 + padSizeInWords);
 }
 
-void RSX_FUNC(SetAlphaFunc)(gcmContextData *context,const u32 alphaFunc,const u32 ref)
+void RSX_FUNC(SetAlphaFunc)(gcmContextData *context,u32 alphaFunc,u32 ref)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(3);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_ALPHA_TEST_FUNC,2);
@@ -1478,7 +1495,7 @@ void RSX_FUNC(SetAlphaFunc)(gcmContextData *context,const u32 alphaFunc,const u3
 	RSX_CONTEXT_CURRENT_END(3);
 }
 
-void RSX_FUNC(SetAlphaTestEnable)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetAlphaTestEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_ALPHA_TEST_ENABLE,1);
@@ -1530,7 +1547,7 @@ void RSX_FUNC(SetBlendEnable)(gcmContextData *context,u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetBlendOptimization)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetBlendOptimization)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_DST_COL_REDUCE,1);
@@ -1538,7 +1555,7 @@ void RSX_FUNC(SetBlendOptimization)(gcmContextData *context,const u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetBlendEnableMrt)(gcmContextData *context, const u32 mrt1, const u32 mrt2, const u32 mrt3)
+void RSX_FUNC(SetBlendEnableMrt)(gcmContextData *context, u32 mrt1, u32 mrt2, u32 mrt3)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_BLEND_ENABLE_MRT,1);
@@ -1546,7 +1563,7 @@ void RSX_FUNC(SetBlendEnableMrt)(gcmContextData *context, const u32 mrt1, const 
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetLogicOp)(gcmContextData *context,const u32 op)
+void RSX_FUNC(SetLogicOp)(gcmContextData *context,u32 op)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_COLOR_LOGIC_OP,1);
@@ -1554,7 +1571,7 @@ void RSX_FUNC(SetLogicOp)(gcmContextData *context,const u32 op)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetLogicOpEnable)(gcmContextData *context,const u32 enable)
+void RSX_FUNC(SetLogicOpEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_COLOR_LOGIC_OP_ENABLE,1);
@@ -1562,7 +1579,7 @@ void RSX_FUNC(SetLogicOpEnable)(gcmContextData *context,const u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetFogMode)(gcmContextData *context,const u32 mode)
+void RSX_FUNC(SetFogMode)(gcmContextData *context,u32 mode)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_FOG_MODE,1);
@@ -1570,7 +1587,7 @@ void RSX_FUNC(SetFogMode)(gcmContextData *context,const u32 mode)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetFogParams)(gcmContextData *context,const f32 p0,const f32 p1)
+void RSX_FUNC(SetFogParams)(gcmContextData *context,f32 p0,f32 p1)
 {
 	ieee32 d0,d1;
 	d0.f = p0;
@@ -1593,7 +1610,7 @@ void RSX_FUNC(SetTransformBranchBits)(gcmContextData *context,u32 branchBits)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetPointSpriteControl)(gcmContextData *context,const u32 enable,const u32 rmode,const u32 texcoordMask)
+void RSX_FUNC(SetPointSpriteControl)(gcmContextData *context,u32 enable,u32 rmode,u32 texcoordMask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(4);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_POINT_PARAMS_ENABLE,1);
@@ -1603,7 +1620,7 @@ void RSX_FUNC(SetPointSpriteControl)(gcmContextData *context,const u32 enable,co
 	RSX_CONTEXT_CURRENT_END(4);
 }
 
-void RSX_FUNC(SetPointSize)(gcmContextData *context,const f32 size)
+void RSX_FUNC(SetPointSize)(gcmContextData *context,f32 size)
 {
 	ieee32 d;
 	
@@ -1675,7 +1692,7 @@ void RSX_FUNC(SetTransferDataFormat)(gcmContextData *context,s32 inpitch,s32 out
 	RSX_CONTEXT_CURRENT_END(6);
 }
 
-void RSX_FUNC(SetTransferImage)(gcmContextData *context,const u8 mode,const u32 dstOffset,const u32 dstPitch,const u32 dstX,const u32 dstY,const u32 srcOffset,const u32 srcPitch,const u32 srcX,const u32 srcY,const u32 width,const u32 height,const u32 bytesPerPixel)
+void RSX_FUNC(SetTransferImage)(gcmContextData *context,u8 mode,u32 dstOffset,u32 dstPitch,u32 dstX,u32 dstY,u32 srcOffset,u32 srcPitch,u32 srcX,u32 srcY,u32 width,u32 height,u32 bytesPerPixel)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(26);
 
@@ -1715,7 +1732,7 @@ void RSX_FUNC(SetTransferImage)(gcmContextData *context,const u8 mode,const u32 
 	RSX_CONTEXT_CURRENT_END(26);
 }
 
-void RSX_FUNC(SetTransferScaleMode)(gcmContextData *context,const u8 mode,const u8 surface)
+void RSX_FUNC(SetTransferScaleMode)(gcmContextData *context,u8 mode,u8 surface)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(6);
 
@@ -1969,7 +1986,7 @@ static inline __attribute__((always_inline)) void RSX_FUNC_INTERNAL(SetConvertSw
 	}
 }
 
-void RSX_FUNC(SetConvertSwizzleFormat)(gcmContextData *context,const u32 dstOffset,const u32 dstWidth,const u32 dstHeight,const u32 dstX,const u32 dstY,const u32 srcOffset,const u32 srcPitch,const u32 srcX,const u32 srcY,const u32 width,const u32 height,const u32 bytesPerPixel,const u32 mode)
+void RSX_FUNC(SetConvertSwizzleFormat)(gcmContextData *context,u32 dstOffset,u32 dstWidth,u32 dstHeight,u32 dstX,u32 dstY,u32 srcOffset,u32 srcPitch,u32 srcX,u32 srcY,u32 width,u32 height,u32 bytesPerPixel,u32 mode)
 {
 	RSX_FUNC_INTERNAL(SetConvertSwizzleFormat)(context,dstOffset,dstWidth,dstHeight,dstX,dstY,srcOffset,srcPitch,srcX,srcY,width,height,bytesPerPixel,mode);
 }

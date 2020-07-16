@@ -7,52 +7,58 @@
 
 #include "rsx_internal.h"
 
-void rsxVertexProgramGetUCode(rsxVertexProgram *vp,void **ucode,u32 *size)
+void rsxVertexProgramGetUCode(const rsxVertexProgram *vp,void **ucode,u32 *size)
 {
 	*size = vp->num_insn*sizeof(u32)*4;
 	*ucode = (void*)(((u8*)vp) + vp->ucode_off);
 }
 
-rsxProgramConst* rsxVertexProgramGetConsts(rsxVertexProgram *vp)
+u16 rsxVertexProgramGetNumConst(const rsxVertexProgram *vp)
 {
-	return (rsxProgramConst*)(((u8*)vp) + vp->const_off);
+	return vp->num_const;
 }
 
-s32 rsxVertexProgramGetConst(rsxVertexProgram *vp,const char *name)
+u16 rsxVertexProgramGetNumAttrib(const rsxVertexProgram *vp)
 {
-	u32 i;
-	rsxProgramConst *vpc = rsxVertexProgramGetConsts(vp);
-
-	for(i=0;i<vp->num_const;i++) {
-		char *namePtr;
-
-		if(!vpc[i].name_off) continue;
-
-		namePtr = ((char*)vp) + vpc[i].name_off;
-		if(strcasecmp(name,namePtr)==0)
-			return i;
-	}
-	return -1;
+	return vp->num_attr;
 }
 
-rsxProgramAttrib* rsxVertexProgramGetAttribs(rsxVertexProgram *vp)
+rsxProgramConst* rsxVertexProgramGetConsts(const rsxVertexProgram *vp)
 {
-	return (rsxProgramAttrib*)(((u8*)vp) + vp->attr_off);
+	return __rsxGetConsts((rsxProgram*) vp);
 }
 
-s32 rsxVertexProgramGetAttrib(rsxVertexProgram *vp,const char *name)
+rsxProgramConst* rsxVertexProgramGetConst(const rsxVertexProgram *vp,const char *name)
 {
-	u32 i;
-	rsxProgramAttrib *attribs = rsxVertexProgramGetAttribs(vp);
+	rsxProgramConst *vpc = __rsxGetConsts((rsxProgram*) vp);
+	s32 index = __rsxGetConstIndex((rsxProgram*) vp, name);
 
-	for(i=0;i<vp->num_attr;i++) {
-		char *namePtr;
+	if (index == -1) return NULL;
 
-		if(!attribs[i].name_off) continue;
+	return &vpc[index];
+}
 
-		namePtr = ((char*)vp) + attribs[i].name_off;
-		if(strcasecmp(name,namePtr)==0)
-			return attribs[i].index;
-	}
+s32 rsxVertexProgramGetConstIndex(const rsxVertexProgram *vp,const char *name)
+{
+	return __rsxGetConstIndex((rsxProgram*) vp, name);
+}
+
+rsxProgramAttrib* rsxVertexProgramGetAttribs(const rsxVertexProgram *vp)
+{
+	return __rsxGetAttrs((rsxProgram*) vp);
+}
+
+rsxProgramAttrib* rsxVertexProgramGetAttrib(const rsxVertexProgram *vp,const char *name)
+{
+	return __rsxGetAttr((rsxProgram*) vp, name);
+}
+
+s32 rsxVertexProgramGetAttribIndex(const rsxVertexProgram *vp,const char *name)
+{
+	rsxProgramAttrib *attr = __rsxGetAttr((rsxProgram*) vp, name);
+	
+	if (attr != NULL)
+		return attr->index;
+
 	return -1;
 }

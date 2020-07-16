@@ -11,6 +11,7 @@ typedef struct _oparam
 {
 	std::string alias;
 	s32 index;
+	u8 is_fp16;
 } oparam;
 
 class CFPParser : public CParser
@@ -29,9 +30,13 @@ private:
 
 	void ParseOutput(const char *param_str);
 
-	const char* ParseOutputReg(const char *token,s32 *reg);
+	const char* ParseOutputReg(const char *token,s32 *reg,u8 *is_fp16);
 	const char* ParseInputReg(const char *token,s32 *reg);
-	const char* ParseOutputRegAlias(const char *token,s32 *reg);
+	const char* ParseOutputRegAlias(const char *token,s32 *reg,u8 *is_fp16);
+
+	void SetNoneDestReg(struct nvfx_insn *insn);
+	
+	u8 IsPCDisablingInstruction(struct nvfx_insn *insn);
 
 	opcode FindOpcode(const char *mnemonic);
 

@@ -28,6 +28,9 @@
 /*! \brief Used to auto create a event queue key. */
 #define SYS_EVENT_QUEUE_KEY_LOCAL				0x00
 
+/*! \brief Force destruction of event queue. */
+#define SYS_EVENT_QUEUE_FORCE_DESTROY			0x01
+
 #ifdef __cplusplus
 	extern "C" {
 #endif

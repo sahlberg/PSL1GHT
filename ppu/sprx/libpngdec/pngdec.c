@@ -45,37 +45,37 @@ static void png_free(void *ptr,void *usrdata)
 static s32 decodePNG(pngDecSource *src,pngData *out)
 {
 	s32 mHandle,sHandle,ret;
-	u32 space_allocated;
-	u64 bytes_per_line;
 	pngDecInfo DecInfo;
+	pngDecOpnInfo openInfo;
 	pngDecInParam inParam;
 	pngDecOutParam outParam;
 	pngDecDataInfo DecDataInfo;
 	pngDecThreadInParam InThdParam;
 	pngDecThreadOutParam OutThdParam;
+	pngDecDataCtrlParam dataCtrlParam;
 
-	InThdParam.enable = 0;
+	InThdParam.spu_enable = PNGDEC_SPU_THREAD_DISABLE;
 	InThdParam.ppu_prio = 512;
 	InThdParam.spu_prio = 200;
-	InThdParam.malloc_func = __get_addr32(__get_opd32(png_malloc));
-	InThdParam.malloc_arg = 0; // no args
-	InThdParam.free_func = __get_addr32(__get_opd32(png_free));
-	InThdParam.free_arg = 0; // no args
+	InThdParam.malloc_func = (pngCbCtrlMalloc)__get_opd32(png_malloc);
+	InThdParam.malloc_arg = NULL;
+	InThdParam.free_func = (pngCbCtrlFree)__get_opd32(png_free);
+	InThdParam.free_arg = NULL;
 
 	ret= pngDecCreate(&mHandle, &InThdParam, &OutThdParam);
 
 	out->bmp_out = NULL;
 	if(ret==0) {
-		ret = pngDecOpen(mHandle,&sHandle,src,&space_allocated);
+		ret = pngDecOpen(mHandle,&sHandle,src,&openInfo);
 		if(ret==0) {
 			ret = pngDecReadHeader(mHandle,sHandle,&DecInfo);
 			if(ret==0) {
 				inParam.cmd_ptr = 0;
-				inParam.mode = PNGDEC_TOP_TO_BOTTOM;
-				inParam.space = PNGDEC_ARGB;
+				inParam.output_mode = PNGDEC_TOP_TO_BOTTOM;
+				inParam.color_space = PNGDEC_ARGB;
 				inParam.bit_depth = 8;
-				inParam.pack_flag = 1;
-				if(DecInfo.space==PNGDEC_GRAYSCALE_ALPHA || DecInfo.space==PNGDEC_RGBA || DecInfo.chunk_info&0x10)
+				inParam.pack_flag = PNGDEC_1BYTE_PER_1PIXEL;
+				if(DecInfo.color_space==PNGDEC_GRAYSCALE_ALPHA || DecInfo.color_space==PNGDEC_RGBA || DecInfo.chunk_info&0x10)
 					inParam.alpha_select = 0;
 				else
 					inParam.alpha_select = 1;
@@ -86,15 +86,16 @@ static s32 decodePNG(pngDecSource *src,pngData *out)
 			}
 
 			if(ret==0) {
-				out->pitch = bytes_per_line = outParam.width*4;
+				out->pitch = outParam.width*4;
 				out->bmp_out = malloc(out->pitch*outParam.height);
 				if(!out->bmp_out)
 					ret = -1;
 				else {
-					memset(out->bmp_out,0,(bytes_per_line*outParam.height));
+					memset(out->bmp_out,0,(out->pitch*outParam.height));
 					
-					ret = pngDecDecodeData(mHandle,sHandle,out->bmp_out,&bytes_per_line,&DecDataInfo);
-					if(ret==0 && DecDataInfo.status==0) {
+					dataCtrlParam.output_bytes_per_line = out->pitch;
+					ret = pngDecDecodeData(mHandle,sHandle,out->bmp_out,&dataCtrlParam,&DecDataInfo);
+					if(ret==0 && DecDataInfo.decode_status==0) {
 						out->width = outParam.width;
 						out->height = outParam.height;
 
@@ -120,9 +121,9 @@ s32 pngLoadFromFile(const char *filename,pngData *out)
 
 	memset(&source,0,sizeof(pngDecSource));
 
-	source.stream = PNGDEC_FILE;
-	source.file_name = __get_addr32(filename);
-	source.enable = PNGDEC_DISABLE;
+	source.stream_sel = PNGDEC_FILE;
+	source.file_name = filename;
+	source.spu_enable = PNGDEC_SPU_THREAD_DISABLE;
 
 	return decodePNG(&source,out);
 }
@@ -133,10 +134,10 @@ s32 pngLoadFromBuffer(const void *buffer,u32 size,pngData *out)
 
 	memset(&source,0,sizeof(pngDecSource));
 
-	source.stream = PNGDEC_BUFFER;
-	source.stream_ptr = __get_addr32(buffer);
+	source.stream_sel = PNGDEC_BUFFER;
+	source.stream_ptr = (void*)buffer;
 	source.stream_size = size;
-	source.enable = PNGDEC_DISABLE;
+	source.spu_enable = PNGDEC_SPU_THREAD_DISABLE;
 
 	return decodePNG(&source,out);
 }

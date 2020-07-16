@@ -335,7 +335,7 @@ static void setTexture()
 	texture.offset		= texture_offset;
 	rsxLoadTexture(context,textureUnit_id,&texture);
 	rsxTextureControl(context,textureUnit_id,GCM_TRUE,0<<8,12<<8,GCM_TEXTURE_MAX_ANISO_1);
-	rsxTextureFilter(context,textureUnit_id,GCM_TEXTURE_LINEAR,GCM_TEXTURE_LINEAR,GCM_TEXTURE_CONVOLUTION_QUINCUNX);
+	rsxTextureFilter(context,textureUnit_id,0,GCM_TEXTURE_LINEAR,GCM_TEXTURE_LINEAR,GCM_TEXTURE_CONVOLUTION_QUINCUNX);
 	rsxTextureWrapMode(context,textureUnit_id,GCM_TEXTURE_CLAMP_TO_EDGE,GCM_TEXTURE_CLAMP_TO_EDGE,GCM_TEXTURE_CLAMP_TO_EDGE,0,GCM_TEXTURE_ZFUNC_LESS,0);
 }
 
@@ -385,11 +385,11 @@ void init_shader()
 	rsxVertexProgramGetUCode(vpo, &vp_ucode, &vpsize);
 	printf("vpsize: %d\n", vpsize);
 
-	projMatrix_id = rsxVertexProgramGetConst(vpo,"projMatrix");
-	modelViewMatrix_id = rsxVertexProgramGetConst(vpo,"modelViewMatrix");
-	vertexPosition_id = rsxVertexProgramGetAttrib(vpo,"vertexPosition");
-	vertexNormal_id = rsxVertexProgramGetAttrib(vpo,"vertexNormal");
-	vertexTexcoord_id = rsxVertexProgramGetAttrib(vpo,"vertexTexcoord");
+	projMatrix_id = rsxVertexProgramGetConstIndex(vpo,"projMatrix");
+	modelViewMatrix_id = rsxVertexProgramGetConstIndex(vpo,"modelViewMatrix");
+	vertexPosition_id = rsxVertexProgramGetAttribIndex(vpo,"vertexPosition");
+	vertexNormal_id = rsxVertexProgramGetAttribIndex(vpo,"vertexNormal");
+	vertexTexcoord_id = rsxVertexProgramGetAttribIndex(vpo,"vertexTexcoord");
 
 	rsxFragmentProgramGetUCode(fpo, &fp_ucode, &fpsize);
 	printf("fpsize: %d\n", fpsize);
@@ -398,14 +398,14 @@ void init_shader()
 	memcpy(fp_buffer,fp_ucode,fpsize);
 	rsxAddressToOffset(fp_buffer,&fp_offset);
 
-	textureUnit_id = rsxFragmentProgramGetAttrib(fpo,"texture");
-	eyePosition_id = rsxFragmentProgramGetConst(fpo,"eyePosition");
-	globalAmbient_id = rsxFragmentProgramGetConst(fpo,"globalAmbient");
-	lightPosition_id = rsxFragmentProgramGetConst(fpo,"lightPosition");
-	lightColor_id = rsxFragmentProgramGetConst(fpo,"lightColor");
-	shininess_id = rsxFragmentProgramGetConst(fpo,"shininess");
-	Ks_id = rsxFragmentProgramGetConst(fpo,"Ks");
-	Kd_id = rsxFragmentProgramGetConst(fpo,"Kd");
+	textureUnit_id = rsxFragmentProgramGetAttribIndex(fpo,"texture");
+	eyePosition_id = rsxFragmentProgramGetConstIndex(fpo,"eyePosition");
+	globalAmbient_id = rsxFragmentProgramGetConstIndex(fpo,"globalAmbient");
+	lightPosition_id = rsxFragmentProgramGetConstIndex(fpo,"lightPosition");
+	lightColor_id = rsxFragmentProgramGetConstIndex(fpo,"lightColor");
+	shininess_id = rsxFragmentProgramGetConstIndex(fpo,"shininess");
+	Ks_id = rsxFragmentProgramGetConstIndex(fpo,"Ks");
+	Kd_id = rsxFragmentProgramGetConstIndex(fpo,"Kd");
 }
 
 void program_exit_callback()
@@ -473,26 +473,26 @@ void drawFrame()
 	objLightPos = modelMatrixIT*lightPos;
 
 	rsxAddressToOffset(&mesh->vertices[0].pos,&offset);
-	rsxBindVertexArrayAttrib(context,vertexPosition_id,offset,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,vertexPosition_id,0,offset,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
 
 	rsxAddressToOffset(&mesh->vertices[0].nrm,&offset);
-	rsxBindVertexArrayAttrib(context,vertexNormal_id,offset,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,vertexNormal_id,0,offset,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
 
 	rsxAddressToOffset(&mesh->vertices[0].u,&offset);
-	rsxBindVertexArrayAttrib(context,vertexTexcoord_id,offset,sizeof(S3DVertex),2,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,vertexTexcoord_id,0,offset,sizeof(S3DVertex),2,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
 
 	rsxLoadVertexProgram(context,vpo,vp_ucode);
-	rsxSetVertexProgramParameter(context,vpo,projMatrix_id,(float*)&P);
-	rsxSetVertexProgramParameter(context,vpo,modelViewMatrix_id,(float*)&modelViewMatrix);
+	rsxSetVertexProgramParameterByIndex(context,vpo,projMatrix_id,(float*)&P);
+	rsxSetVertexProgramParameterByIndex(context,vpo,modelViewMatrix_id,(float*)&modelViewMatrix);
 
-	rsxSetFragmentProgramParameter(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,lightColor_id,lightColor,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,shininess_id,&shininess,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,lightColor_id,lightColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,shininess_id,&shininess,fp_offset,GCM_LOCATION_RSX);
 
-	rsxSetFragmentProgramParameter(context,fpo,Kd_id,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,Ks_id,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,Kd_id,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,Ks_id,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
 
 	rsxLoadFragmentProgramLocation(context,fpo,fp_offset,GCM_LOCATION_RSX);
 
@@ -519,26 +519,26 @@ void drawFrame()
 	objLightPos = modelMatrixIT*lightPos;
 
 	rsxAddressToOffset(&mesh->vertices[0].pos,&offset);
-	rsxBindVertexArrayAttrib(context,vertexPosition_id,offset,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,vertexPosition_id,0,offset,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
 
 	rsxAddressToOffset(&mesh->vertices[0].nrm,&offset);
-	rsxBindVertexArrayAttrib(context,vertexNormal_id,offset,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,vertexNormal_id,0,offset,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
 
 	rsxAddressToOffset(&mesh->vertices[0].u,&offset);
-	rsxBindVertexArrayAttrib(context,vertexTexcoord_id,offset,sizeof(S3DVertex),2,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,vertexTexcoord_id,0,offset,sizeof(S3DVertex),2,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
 
 	rsxLoadVertexProgram(context,vpo,vp_ucode);
-	rsxSetVertexProgramParameter(context,vpo,projMatrix_id,(float*)&P);
-	rsxSetVertexProgramParameter(context,vpo,modelViewMatrix_id,(float*)&modelViewMatrix);
+	rsxSetVertexProgramParameterByIndex(context,vpo,projMatrix_id,(float*)&P);
+	rsxSetVertexProgramParameterByIndex(context,vpo,modelViewMatrix_id,(float*)&modelViewMatrix);
 
-	rsxSetFragmentProgramParameter(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,lightColor_id,lightColor,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,shininess_id,&shininess,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,lightColor_id,lightColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,shininess_id,&shininess,fp_offset,GCM_LOCATION_RSX);
 
-	rsxSetFragmentProgramParameter(context,fpo,Kd_id,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameter(context,fpo,Ks_id,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,Kd_id,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameterByIndex(context,fpo,Ks_id,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
 
 	rsxLoadFragmentProgramLocation(context,fpo,fp_offset,GCM_LOCATION_RSX);
 

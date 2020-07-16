@@ -5,7 +5,7 @@
 
 #define PPU_ALIGNMENT			8
 
-#define __get_opd32(opd64)		((unsigned long long)((opd64) + 16))
+#define __get_opd32(opd64)		((unsigned long long)(((intptr_t)(opd64)) + 16))
 
 #define __get_addr32(addr)		(unsigned int)((unsigned long long)(addr))
 
@@ -51,5 +51,31 @@
 	({register unsigned long long tb; \
 	asm volatile("1: mftb %[current_tb]; cmpwi 7,%[current_tb],0; beq- 7,1b" : [current_tb] "=r"(tb) : : "cr7"); \
 	tb;})
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+static inline unsigned short bswap16(unsigned short val)
+{
+	unsigned short tmp = val;
+	return __lhbrx(&tmp);
+}
+
+static inline unsigned int bswap32(unsigned int val)
+{
+	unsigned int tmp = val;
+	return __lwbrx(&tmp);
+}
+
+static inline unsigned long long bswap64(unsigned long long val)
+{
+	unsigned long long tmp = val;
+	return __ldbrx(&tmp);
+}
+
+#ifdef __cplusplus
+	}
+#endif /* __cplusplus */
 
 #endif

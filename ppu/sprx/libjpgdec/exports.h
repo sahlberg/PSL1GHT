@@ -9,4 +9,9 @@ EXPORT(jpgDecReadHeader, 0x6d9ebccf);
 EXPORT(jpgDecDecodeData, 0xaf8bb012);
 EXPORT(jpgDecSetParameter, 0xe08f3910);
 
+EXPORT(jpgDecExtSetParameter, 0x65cbbb16);
+EXPORT(jpgDecExtDecodeData, 0x716f8792);
+EXPORT(jpgDecExtOpen, 0xa9f703e3);
+EXPORT(jpgDecExtReadHeader, 0xb91eb3d2);
+
 #endif

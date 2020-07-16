@@ -111,8 +111,8 @@ struct _opcode
    { "XPD", OPCODE_X2D, INPUT_2V, OUTPUT_V, _R | _H |      _C | _S },
    //
    { "END", OPCODE_END,0,0,0 },
-   { NULL, (enum nvfx_opcode) -1, 0, 0, 0 }
 };
+static const size_t FP_OPCODES_CNT = sizeof(fp_opcodes)/sizeof(struct _opcode);
 
 static ioset fp_inputs[] =
 {
@@ -135,7 +135,7 @@ static ioset fp_inputs[] =
 	{ "TEX6", 10 },
 	{ "TEX7", 11 }
 };
-static const u32 FP_INPUTS_CNT = sizeof(fp_inputs)/sizeof(ioset);
+static const size_t FP_INPUTS_CNT = sizeof(fp_inputs)/sizeof(ioset);
 
 static ioset fp_outputs[] =
 {
@@ -145,7 +145,7 @@ static ioset fp_outputs[] =
 	{ "COLH", 0},
 	{ "DEPR", 1}
 };
-static const u32 FP_OUTPUTS_CNT = sizeof(fp_outputs)/sizeof(ioset);
+static const size_t FP_OUTPUTS_CNT = sizeof(fp_outputs)/sizeof(ioset);
 
 CFPParser::CFPParser() : CParser()
 {
@@ -195,9 +195,9 @@ int CFPParser::Parse(const char *str)
 			continue;
 		}
 
-		char *col_ptr = NULL;
-		char *opcode = NULL;
-		char *ptr = line;
+		const char *col_ptr = NULL;
+		const char *ptr = line;
+		const char *param_str = NULL;
 		
 		if((col_ptr = strstr((char*)ptr,":"))!=NULL) {
 			int j = 0;
@@ -210,41 +210,43 @@ int CFPParser::Parse(const char *str)
 			}
 
 			if(valid) {
-				(void)strtok(ptr,":\x20");
+				(void)strtok((char*)ptr,":\x20");
 				ptr = col_ptr + 1;
 			}
 		}
 
-		opcode = strtok(ptr," ");
+		ptr = SkipSpaces(ptr);
+		if ((param_str = strstr(ptr, "OPTION"))!=NULL) {
+			param_str = SkipSpaces(param_str + 6);
+			if(strncasecmp(param_str,"NV_fragment_program2",20)==0)
+				m_nOption |= NV_OPTION_FP2;
+			continue;
+		} 
+		else if ((param_str = strstr(ptr, "PARAM"))!=NULL)
+			continue;
+		else if ((param_str = strstr(ptr, "TEMP"))!=NULL)
+			continue;
+		else if ((param_str = strstr(ptr, "OUTPUT"))!=NULL) {
+			ParseOutput(ptr);
+			continue;
+		} else {
+			const char *opcode = strtok((char*)ptr," ");
+			struct _opcode opc = FindOpcode(opcode);
 
-		if(opcode) {
-			const char *param_str = SkipSpaces(strtok(NULL,"\0"));
-			if(strcasecmp(opcode,"OPTION")==0) {
-				if(strncasecmp(param_str,"NV_fragment_program2",20)==0)
-					m_nOption |= NV_OPTION_FP2;
+			if(opc.opcode>=MAX_OPCODE)
 				continue;
-			} else if(strcasecmp(opcode,"PARAM")==0)
-				continue;
-			else if(strcasecmp(opcode,"TEMP")==0)
-				continue;
-			else if(strcasecmp(opcode,"OUTPUT")==0) {
-				ParseOutput(param_str);
-				continue;
-			} else {
-				struct _opcode opc = FindOpcode(opcode);
-				insn = &m_pInstructions[m_nInstructions];
+			
+			insn = &m_pInstructions[m_nInstructions];
+			param_str = SkipSpaces(strtok(NULL,"\0"));
 
-				if(opc.opcode>=MAX_OPCODE) continue;
-
-				InitInstruction(insn,opc.opcode);
-				if(opc.opcode==OPCODE_END) {
-					m_nInstructions++;
-					break;
-				}
-
-				ParseInstruction(insn,&opc,param_str);
+			InitInstruction(insn,opc.opcode);
+			if(opc.opcode==OPCODE_END) {
 				m_nInstructions++;
+				break;
 			}
+
+			ParseInstruction(insn,&opc,param_str);
+			m_nInstructions++;
 		}
 	}
 	return 0;
@@ -257,9 +259,12 @@ void CFPParser::ParseInstruction(struct nvfx_insn *insn,opcode *opc,const char *
 	insn->precision = opc->suffixes&(_R|_H|_X);
 	insn->sat = ((opc->suffixes&_S) ? TRUE : FALSE);
 	insn->cc_update = ((opc->suffixes&_C) ? TRUE : FALSE);
+	insn->disable_pc = IsPCDisablingInstruction(insn);
 
 	if(opc->outputs==OUTPUT_S || opc->outputs==OUTPUT_V) {
 		ParseMaskedDstReg(token,insn);
+	} else if(opc->outputs==OUTPUT_NONE) {
+		SetNoneDestReg(insn);
 	}
 
 	if(opc->outputs!=OUTPUT_NONE && opc->inputs!=INPUT_NONE) {
@@ -317,7 +322,6 @@ void CFPParser::ParseInstruction(struct nvfx_insn *insn,opcode *opc,const char *
 
 opcode CFPParser::FindOpcode(const char *mnemonic)
 {
-	const struct _opcode *inst;
 	struct _opcode result;
 
 	result.name = NULL;
@@ -326,7 +330,8 @@ opcode CFPParser::FindOpcode(const char *mnemonic)
 	result.outputs = 0;
 	result.suffixes = 0;
 
-	for(inst=fp_opcodes;inst->name;inst++) {
+	for(size_t i=0;i<FP_OPCODES_CNT;i++) {
+		const struct _opcode *inst = &fp_opcodes[i];
 		if(strncmp(mnemonic,inst->name,strlen(inst->name))==0) {
 			int i = strlen(inst->name);
 
@@ -393,19 +398,22 @@ s32 CFPParser::ConvertInputReg(const char *token)
 void CFPParser::ParseOutput(const char *param_str)
 {
 	oparam p;
+	u8 is_fp16 = 0;
 	s32 reg = -1;
-	const char *token = SkipSpaces(strtok((char*)param_str," ="));
+	const char *param = SkipSpaces(strstr(param_str, "OUTPUT") + 6);
+	const char *token = SkipSpaces(strtok((char*)param," ="));
 	const char *name = SkipSpaces(strtok(NULL,"=\0"));
 
-	ParseOutputReg(name,&reg);
+	ParseOutputReg(name,&reg,&is_fp16);
 
 	p.alias = token;
 	p.index = reg;
+	p.is_fp16 = (strncmp(param_str, "SHORT", 5) == 0) || is_fp16;
 
 	m_lOParameters.push_back(p);
 }
 
-const char* CFPParser::ParseOutputReg(const char *token, s32 *reg)
+const char* CFPParser::ParseOutputReg(const char *token, s32 *reg,u8 *is_fp16)
 {
 	if(isdigit(*token)) {
 		char *p = (char*)token;
@@ -420,6 +428,21 @@ const char* CFPParser::ParseOutputReg(const char *token, s32 *reg)
 		size_t tlen = strlen(fp_outputs[i].name.c_str());
 		if(strncmp(token,fp_outputs[i].name.c_str(),tlen)==0) {
 			*reg = fp_outputs[i].index;
+			if(strcmp(fp_outputs[i].name.c_str(), "result.color")==0 ||
+			   strcmp(fp_outputs[i].name.c_str(), "COLR")==0 ||
+			   strcmp(fp_outputs[i].name.c_str(), "COLH")==0)
+			{
+				if(strcmp(fp_outputs[i].name.c_str(), "COLH")==0)
+					*is_fp16 = 1;
+
+				if(token[tlen]=='[' && isdigit(token[tlen+1])) {
+					char *p = (char*)(token + tlen + 1);
+					while(isdigit(*p)) p++;
+
+					*reg = *reg + atoi(token + tlen + 1) + 1;
+					tlen = (p - token) + 1;
+				}
+			}
 			return (token + tlen);
 		}
 	}
@@ -459,45 +482,47 @@ const char* CFPParser::ParseInputReg(const char *token, s32 *reg)
 	return NULL;
 }
 
-const char* CFPParser::ParseOutputRegAlias(const char *token,s32 *reg)
+const char* CFPParser::ParseOutputRegAlias(const char *token,s32 *reg,u8 *is_fp16)
 {
 	std::list<oparam>::iterator it = m_lOParameters.begin();
+
+	*is_fp16 = 0;
 
 	for(;it!=m_lOParameters.end();it++) {
 		if(strncmp(token,it->alias.c_str(),it->alias.size())==0) {
 			*reg = it->index;
+			*is_fp16 = it->is_fp16;
 			return (token + it->alias.size());
 		}
 	}
-	return NULL;
+	return ParseOutputReg(token,reg,is_fp16);
 }
 
 void CFPParser::ParseMaskedDstReg(const char *token,struct nvfx_insn *insn)
 {
 	s32 idx;
+	u8 is_fp16 = 0;
 
 	if(!token) return;
 
 	if(strncmp(token,"RC",2)==0 ||
 	   strncmp(token,"HC",2)==0)
 	{
-		insn->dst.type = NVFXSR_NONE;
-		insn->dst.is_fp16 = (token[0]=='H');
-		insn->dst.index = 0x3f;
-
+		SetNoneDestReg(insn);
 		token += 2;
 	} else if(token[0]=='R' || token[0]=='H') {
 		insn->dst.type = NVFXSR_TEMP;
 		insn->dst.is_fp16 = (token[0]=='H');
 		token = ParseTempReg(token,&insn->dst.index);
 	} else if(token[0]=='o' && token[1]=='[') {
-		token = ParseOutputReg(&token[2],&idx);
+		token = ParseOutputReg(&token[2],&idx,&is_fp16);
 		token++;
 
 		insn->dst.type = NVFXSR_OUTPUT;
 		insn->dst.index = idx;
+		insn->dst.is_fp16 = is_fp16;
 	} else {
-		token = ParseOutputRegAlias(token,&idx);
+		token = ParseOutputRegAlias(token,&idx,&is_fp16);
 
 		insn->dst.type = NVFXSR_OUTPUT;
 		insn->dst.index = idx;
@@ -649,4 +674,29 @@ const char* CFPParser::ParseOutputMask(const char *token,u8 *mask)
 		token += k;
 	}
 	return token;
+}
+
+void CFPParser::SetNoneDestReg(struct nvfx_insn *insn)
+{
+	insn->dst.type = NVFXSR_NONE;
+	insn->dst.index = 0x3f;
+	insn->dst.is_fp16 = 0;		//always treat as fp32 (on RSX there's only RC)
+}
+
+u8 CFPParser::IsPCDisablingInstruction(struct nvfx_insn *insn)
+{
+	switch(insn->op) {
+		case OPCODE_DP2:
+		case OPCODE_DP2A:
+		case OPCODE_DP3:
+		case OPCODE_DP4:
+		case OPCODE_MUL:
+		case OPCODE_DIV:
+		case OPCODE_NRM3:
+			return 1;
+		case OPCODE_TEX:
+			if(insn->tex_target == PARAM_SAMPLERCUBE) return 1;
+		default:
+			return 0;
+	}
 }

@@ -307,6 +307,8 @@ void CCompilerFP::emit_src(struct nvfx_insn *insn,s32 pos,bool *have_const)
 			if(src->reg.index>=NVFX_FP_OP_INPUT_SRC_TC(0) && src->reg.index<=NVFX_FP_OP_INPUT_SRC_TC(7)) {
 				param fpi = GetInputAttrib(src->reg.index);
 
+				hw[3] |= ((insn->disable_pc << NV40_FP_OP_DISABLE_PC_SHIFT) | (0x7fc << NV40_FP_OP_ADDR_INDEX_SHIFT));
+
 				if((int)fpi.index!=-1) {
 					if(fpi.type>PARAM_FLOAT2)
 						m_nTexcoord3D |= (1 << (src->reg.index - NVFX_FP_OP_INPUT_SRC_TC0));
@@ -547,16 +549,16 @@ void CCompilerFP::emit_lrp(struct nvfx_insn *insn)
 void CCompilerFP::emit_pow(struct nvfx_insn *insn)
 {
 	struct nvfx_insn tmp_insn;
-	struct nvfx_src tmp = nvfx_src(temp());
+	struct nvfx_src src = nvfx_src(insn->dst);
 	struct nvfx_src none = nvfx_src(nvfx_reg(NVFXSR_NONE,0));
 
-	tmp_insn = arith(0,tmp.reg, NVFX_FP_MASK_X, insn->src[0], none, none);
+	tmp_insn = arith(0,insn->dst, NVFX_FP_MASK_X, insn->src[0], none, none);
 	emit_insn(&tmp_insn,NVFX_FP_OP_OPCODE_LG2);
 
-	tmp_insn = arith(0,tmp.reg, NVFX_FP_MASK_X, swz(tmp, X, X, X, X),insn->src[1], none);
+	tmp_insn = arith(0,insn->dst, NVFX_FP_MASK_X, swz(src, X, X, X, X),insn->src[1], none);
 	emit_insn(&tmp_insn,NVFX_FP_OP_OPCODE_MUL);
 
-	tmp_insn = arith_ctor(insn,insn->dst,swz(tmp, X, X, X, X), none, none);
+	tmp_insn = arith_ctor(insn,insn->dst,swz(src, X, X, X, X), none, none);
 	emit_insn(&tmp_insn,NVFX_FP_OP_OPCODE_EX2);
 }
 

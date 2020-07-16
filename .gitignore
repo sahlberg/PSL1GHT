@@ -10,6 +10,8 @@
 *.dll
 *.task
 *.elf.map
+*.fpo*
+*.vpo*
 build/
 .idea/
 .vscode/

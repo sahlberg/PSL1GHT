@@ -65,7 +65,7 @@ class Vector3
 public:
     // Default constructor; does no initialization
     // 
-    inline Vector3( ) { };
+    inline Vector3( ) : mVec128((vec_float4){0.0f, 0.0f, 0.0f, 0.0f}) { };
 
     // Construct a 3-D vector from x, y, and z elements
     // 
@@ -363,7 +363,7 @@ class Vector4
 public:
     // Default constructor; does no initialization
     // 
-    inline Vector4( ) { };
+    inline Vector4( ) : mVec128((vec_float4){0.0f, 0.0f, 0.0f, 0.0f}) { };
 
     // Construct a 4-D vector from x, y, z, and w elements
     // 
@@ -653,7 +653,7 @@ class Point3
 public:
     // Default constructor; does no initialization
     // 
-    inline Point3( ) { };
+    inline Point3( ) : mVec128((vec_float4){0.0f, 0.0f, 0.0f, 0.0f}) { };
 
     // Construct a 3-D point from x, y, and z elements
     // 
@@ -894,7 +894,7 @@ class Quat
 public:
     // Default constructor; does no initialization
     // 
-    inline Quat( ) { };
+    inline Quat( ) : mVec128((vec_float4){0.0f, 0.0f, 0.0f, 0.0f}) { };
 
     // Construct a quaternion from x, y, z, and w elements
     // 

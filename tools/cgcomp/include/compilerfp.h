@@ -1,6 +1,8 @@
 #ifndef __COMPILERFP_H__
 #define __COMPILERFP_H__
 
+#define NUM_HW_REGS			48
+
 class CParser;
 
 struct fragment_program_exec
@@ -57,6 +59,7 @@ private:
 
 	int grow_insns(int count);
 
+	void reserveReg(const struct nvfx_reg& reg);
 	struct nvfx_reg temp();
 	void release_temps();
 
@@ -104,6 +107,8 @@ private:
 
 	int m_rTemps;
 	int m_rTempsDiscard;
+
+	u8 m_HWRegs[NUM_HW_REGS];
 
 	std::list<param> m_lParameters;
 	std::list<struct fragment_program_data> m_lConstData;

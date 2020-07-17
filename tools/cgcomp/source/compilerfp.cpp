@@ -33,10 +33,10 @@ CCompilerFP::~CCompilerFP()
 
 void CCompilerFP::Prepare(CParser *pParser)
 {
-	int high_temp = -1;
 	int i,j,nCount = pParser->GetInstructionCount();
 	struct nvfx_insn *insns = pParser->GetInstructions();
 
+	memset(m_HWRegs, 0, NUM_HW_REGS);
 	m_lParameters = pParser->GetParameters();
 
 	for(i=0;i<nCount;i++) {
@@ -49,21 +49,16 @@ void CCompilerFP::Prepare(CParser *pParser)
 				case NVFXSR_INPUT:
 					break;
 				case NVFXSR_TEMP:
-					if((s32)src->reg.index>high_temp) high_temp = src->reg.index;
+					reserveReg(src->reg);
 					break;
 			}
 		}
 
 		switch(insn->dst.type) {
 			case NVFXSR_TEMP:
-				if((s32)insn->dst.index>high_temp) high_temp = insn->dst.index;
+				reserveReg(insn->dst);
 				break;
 		}
-	}
-
-	if(++high_temp) {
-		for(i=0;i<high_temp;i++) (void)temp();
-		m_rTempsDiscard = 0;
 	}
 }
 
@@ -274,9 +269,13 @@ void CCompilerFP::emit_dst(struct nvfx_insn *insn,bool *have_const)
 	s32 index = dst->index;
 	switch(dst->type) {
 		case NVFXSR_TEMP:
-			if(m_nNumRegs<(s32)(index + 1))
-				m_nNumRegs = (index + 1);
-			break;
+		{
+			u32 hwReg = dst->is_fp16 ? (index >> 1) : index;
+			if(m_nNumRegs<(s32)(hwReg + 1))
+				m_nNumRegs = (hwReg + 1);
+		}
+		break;
+
 		case NVFXSR_OUTPUT:
 			if(dst->index==0 && !dst->is_fp16)
 				m_nFPControl |= 0x40;
@@ -674,6 +673,13 @@ struct nvfx_reg CCompilerFP::imm(f32 x, f32 y, f32 z, f32 w)
 	m_lParameters.push_back(p);
 
 	return nvfx_reg(NVFXSR_IMM, idx);
+}
+
+void CCompilerFP::reserveReg(const struct nvfx_reg& reg)
+{
+	u32 index = reg.is_fp16 ? (reg.index >> 1) : reg.index;
+	m_HWRegs[index] |= reg.is_fp16 ? (1 << (reg.index&0x01)) : 0x03;
+	m_rTemps |= (1 << index);
 }
 
 struct nvfx_reg CCompilerFP::temp()

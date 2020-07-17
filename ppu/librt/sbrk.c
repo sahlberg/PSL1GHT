@@ -81,7 +81,7 @@ static void sbrk_init()
    appear after crtbegin.o in the link order, this will place the call
    to sbrk_deinit() after the call to __do_global_dtors_aux(), which
    is what we want. */
-asm ("\t.section\t.fini\n\tbl .sbrk_deinit\n\tnop\n\t.previous");
+asm ("\t.section\t.fini\n\tbl sbrk_deinit\n\tnop\n\t.previous");
 static void sbrk_deinit() __attribute__((used));
 static void sbrk_deinit()
 {

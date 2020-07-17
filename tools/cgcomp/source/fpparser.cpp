@@ -551,10 +551,9 @@ void CFPParser::ParseVectorSrc(const char *token,struct nvfx_src *reg)
 	}
 
 	if(token[0]=='R' || token[0]=='H') {
-		token = ParseTempReg(token,&idx);
-
 		reg->reg.type = NVFXSR_TEMP;
-		reg->reg.index = idx;
+		reg->reg.is_fp16 = (token[0]=='H');
+		token = ParseTempReg(token,&reg->reg.index);
 	} else if(token[0]=='f') {
 		if(token[1]=='[') {
 			token = ParseInputReg(&token[2],&idx);

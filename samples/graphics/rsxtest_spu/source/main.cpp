@@ -50,8 +50,6 @@ Point3 eye_pos = Point3(0.0f,0.0f,20.0f);
 Point3 eye_dir = Point3(0.0f,0.0f,0.0f);
 Vector3 up_vec = Vector3(0.0f,1.0f,0.0f);
 
-f32 aspect_ratio = 4.0f/3.0f;
-
 void *vp_ucode = NULL;
 rsxVertexProgram *vpo = (rsxVertexProgram*)diffuse_specular_shader_vpo;
 
@@ -63,6 +61,29 @@ static SMeshBuffer *sphere = NULL;
 static SMeshBuffer *donut = NULL;
 static SMeshBuffer *cube = NULL;
 
+extern "C" {
+static void program_exit_callback()
+{
+	gcmSetWaitFlip(context);
+	rsxFinish(context,1);
+
+	shutdown_spu();
+}
+
+static void sysutil_exit_callback(u64 status,u64 param,void *usrdata)
+{
+	switch(status) {
+		case SYSUTIL_EXIT_GAME:
+			running = 0;
+			break;
+		case SYSUTIL_DRAW_BEGIN:
+		case SYSUTIL_DRAW_END:
+			break;
+		default:
+			break;
+	}
+}
+}
 static void init_texture()
 {
 	u32 i;
@@ -186,28 +207,6 @@ void init_shader()
 	shininess_id = rsxFragmentProgramGetConstIndex(fpo,"shininess");
 	Ks_id = rsxFragmentProgramGetConstIndex(fpo,"Ks");
 	Kd_id = rsxFragmentProgramGetConstIndex(fpo,"Kd");
-}
-
-void program_exit_callback()
-{
-	gcmSetWaitFlip(context);
-	rsxFinish(context,1);
-
-	shutdown_spu();
-}
-
-void sysutil_exit_callback(u64 status,u64 param,void *usrdata)
-{
-	switch(status) {
-		case SYSUTIL_EXIT_GAME:
-			running = 0;
-			break;
-		case SYSUTIL_DRAW_BEGIN:
-		case SYSUTIL_DRAW_END:
-			break;
-		default:
-			break;
-	}
 }
 
 void initialize()
@@ -349,6 +348,8 @@ int main(int argc,const char *argv[])
 	padData paddata;
 	rsxProgramConst *consts = rsxFragmentProgramGetConsts(fpo);
 
+	printf("rsxtest_spu started...\n");
+
 	initialize();
 	ioPadInit(7);
 
@@ -381,9 +382,8 @@ int main(int argc,const char *argv[])
 			if(padinfo.status[i]){
 				ioPadGetData(i, &paddata);
 
-				if(paddata.BTN_CROSS){
-					return 0;
-				}
+				if(paddata.BTN_CROSS)
+					goto done;
 			}
 
 		}
@@ -391,6 +391,9 @@ int main(int argc,const char *argv[])
 		drawFrame();
 		flip();
 	}
-		
-	return 0;
+
+done:
+    printf("rsxtest_spu done...\n");
+    program_exit_callback();
+    return 0;
 }

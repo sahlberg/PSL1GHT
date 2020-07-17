@@ -5,14 +5,13 @@
 #include <malloc.h>
 #include <ppu-types.h>
 
-#include <rsx/rsx.h>
 #include <sysutil/video.h>
 
 #include "rsxutil.h"
 
 #define GCM_LABEL_INDEX		255
 
-videoResolution res;
+videoResolution vResolution;
 gcmContextData *context = NULL;
 
 u32 curr_fb = 0;
@@ -26,8 +25,18 @@ u32 depth_offset;
 u32 *depth_buffer;
 
 u32 color_pitch;
-u32 color_offset[2];
-u32 *color_buffer[2];
+u32 color_offset[FRAME_BUFFER_COUNT];
+u32 *color_buffer[FRAME_BUFFER_COUNT];
+
+f32 aspect_ratio;
+
+static u32 sResolutionIds[] = {
+    VIDEO_RESOLUTION_960x1080,
+    VIDEO_RESOLUTION_720,
+    VIDEO_RESOLUTION_480,
+    VIDEO_RESOLUTION_576
+};
+static size_t RESOLUTION_ID_COUNT = sizeof(sResolutionIds)/sizeof(u32);
 
 static u32 sLabelVal = 1;
 
@@ -53,6 +62,59 @@ static void waitRSXIdle()
 	++sLabelVal;
 
 	waitFinish();
+}
+
+void initVideoConfiguration()
+{
+    s32 rval = 0;
+    s32 resId = 0;
+
+    for (size_t i=0;i < RESOLUTION_ID_COUNT;i++) {
+        rval = videoGetResolutionAvailability(VIDEO_PRIMARY, sResolutionIds[i], VIDEO_ASPECT_AUTO, 0);
+        if (rval != 1) continue;
+
+        resId = sResolutionIds[i];
+        rval = videoGetResolution(resId, &vResolution);
+        if(!rval) break;
+    }
+
+    if(rval) {
+        printf("Error: videoGetResolutionAvailability failed. No usable resolution.\n");
+        exit(1);
+    }
+
+    videoConfiguration config = {
+        (u8)resId,
+        VIDEO_BUFFER_FORMAT_XRGB,
+        VIDEO_ASPECT_AUTO,
+        {0,0,0,0,0,0,0,0,0},
+        (u32)vResolution.width*4
+    };
+
+    rval = videoConfigure(VIDEO_PRIMARY, &config, NULL, 0);
+    if(rval) {
+        printf("Error: videoConfigure failed.\n");
+        exit(1);
+    }
+
+    videoState state;
+
+    rval = videoGetState(VIDEO_PRIMARY, 0, &state);
+    switch(state.displayMode.aspect) {
+        case VIDEO_ASPECT_4_3:
+            aspect_ratio = 4.0f/3.0f;
+            break;
+        case VIDEO_ASPECT_16_9:
+            aspect_ratio = 16.0f/9.0f;
+            break;
+        default:
+            printf("unknown aspect ratio %x\n", state.displayMode.aspect);
+            aspect_ratio = 16.0f/9.0f;
+            break;
+    }
+
+    display_height = vResolution.height;
+    display_width = vResolution.width;
 }
 
 void setRenderTarget(u32 index)
@@ -93,47 +155,28 @@ void setRenderTarget(u32 index)
 
 void init_screen(void *host_addr,u32 size)
 {
-	printf("initializing screen....\n");
+    u32 zs_depth = 4;
+    u32 color_depth = 4;
 
 	rsxInit(&context,CB_SIZE,size,host_addr);
 
-	videoState state;
-	videoGetState(0,0,&state);
-
-	videoGetResolution(state.displayMode.resolution,&res);
-
-	videoConfiguration vconfig;
-	memset(&vconfig,0,sizeof(videoConfiguration));
-
-	vconfig.resolution = state.displayMode.resolution;
-	vconfig.format = VIDEO_BUFFER_FORMAT_XRGB;
-	vconfig.pitch = res.width*sizeof(u32);
+	initVideoConfiguration();
 
 	waitRSXIdle();
 
-	videoConfigure(0,&vconfig,NULL,0);
-	videoGetState(0,0,&state);
-
 	gcmSetFlipMode(GCM_FLIP_VSYNC);
 
-	display_width = res.width;
-	display_height = res.height;
+	color_pitch = display_width*color_depth;
+	depth_pitch = display_width*zs_depth;
 
-	color_pitch = display_width*sizeof(u32);
-	color_buffer[0] = (u32*)rsxMemalign(64,(display_height*color_pitch));
-	color_buffer[1] = (u32*)rsxMemalign(64,(display_height*color_pitch));
+	for (u32 i=0;i < FRAME_BUFFER_COUNT;i++) {
+		color_buffer[i] = (u32*)rsxMemalign(64,(display_height*color_pitch));
+		rsxAddressToOffset(color_buffer[i],&color_offset[i]);
+		gcmSetDisplayBuffer(i,color_offset[i],color_pitch,display_width,display_height);
+	}
 
-	rsxAddressToOffset(color_buffer[0],&color_offset[0]);
-	rsxAddressToOffset(color_buffer[1],&color_offset[1]);
-
-	gcmSetDisplayBuffer(0,color_offset[0],color_pitch,display_width,display_height);
-	gcmSetDisplayBuffer(1,color_offset[1],color_pitch,display_width,display_height);
-
-	depth_pitch = display_width*sizeof(u32);
 	depth_buffer = (u32*)rsxMemalign(64,(display_height*depth_pitch)*2);
 	rsxAddressToOffset(depth_buffer,&depth_offset);
-
-	printf("screen initialized....\n");
 }
 
 void waitflip()

@@ -48,8 +48,6 @@ Point3 eye_pos = Point3(0.0f,0.0f,20.0f);
 Point3 eye_dir = Point3(0.0f,0.0f,0.0f);
 Vector3 up_vec = Vector3(0.0f,1.0f,0.0f);
 
-f32 aspect_ratio = 4.0f/3.0f;
-
 void *vp_ucode = NULL;
 rsxVertexProgram *vpo = (rsxVertexProgram*)diffuse_specular_shader_vpo;
 
@@ -63,6 +61,27 @@ static SMeshBuffer *cube = NULL;
 
 SYS_PROCESS_PARAM(1001, 0x100000);
 
+extern "C" {
+static void program_exit_callback()
+{
+	gcmSetWaitFlip(context);
+	rsxFinish(context,1);
+}
+
+static void sysutil_exit_callback(u64 status,u64 param,void *usrdata)
+{
+	switch(status) {
+		case SYSUTIL_EXIT_GAME:
+			running = 0;
+			break;
+		case SYSUTIL_DRAW_BEGIN:
+		case SYSUTIL_DRAW_END:
+			break;
+		default:
+			break;
+	}
+}
+}
 static void init_texture()
 {
 	u32 i;
@@ -408,26 +427,6 @@ void init_shader()
 	Kd_id = rsxFragmentProgramGetConstIndex(fpo,"Kd");
 }
 
-void program_exit_callback()
-{
-	gcmSetWaitFlip(context);
-	rsxFinish(context,1);
-}
-
-void sysutil_exit_callback(u64 status,u64 param,void *usrdata)
-{
-	switch(status) {
-		case SYSUTIL_EXIT_GAME:
-			running = 0;
-			break;
-		case SYSUTIL_DRAW_BEGIN:
-		case SYSUTIL_DRAW_END:
-			break;
-		default:
-			break;
-	}
-}
-
 void drawFrame()
 {
 	u32 i,offset,color = 0;
@@ -591,9 +590,8 @@ int main(int argc,const char *argv[])
 			if(padinfo.status[i]){
 				ioPadGetData(i, &paddata);
 
-				if(paddata.BTN_CROSS){
-					return 0;
-				}
+				if(paddata.BTN_CROSS)
+					goto done;
 			}
 
 		}
@@ -602,5 +600,8 @@ int main(int argc,const char *argv[])
 		flip();
 	}
 
-	return 0;
+done:
+    printf("rsxtest done...\n");
+    program_exit_callback();
+    return 0;
 }

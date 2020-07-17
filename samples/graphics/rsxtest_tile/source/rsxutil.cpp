@@ -273,7 +273,7 @@ void initScreen()
     buffer = rsxMemalign(GCM_TILE_ALIGN_SIZE, regionSize);
    
     rsxAddressToOffset(buffer, &depth_offset);
-    gcmSetTile(tileIndex++, GCM_LOCATION_RSX, depth_offset, regionSize, depth_pitch, GCM_COMPMODE_Z32_SEPSTENCIL_REGULAR, tagMemOffset, 1);
+    gcmSetTile(tileIndex++, GCM_LOCATION_RSX, depth_offset, regionSize, depth_pitch, GCM_COMPMODE_Z32_SEPSTENCIL, tagMemOffset, 1);
     tagMemOffset += rsxAlign(GCM_TILE_ALIGN_OFFSET, regionSize);
 
     for (u32 i=0;i < FRAME_BUFFER_COUNT;i++) {

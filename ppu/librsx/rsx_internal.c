@@ -14,8 +14,9 @@ rsxProgramAttrib* __rsxGetAttrs(const rsxProgram *prg)
 
 rsxProgramAttrib* __rsxGetAttr(const rsxProgram *prg, const char *name)
 {
+	u32 i;
 	rsxProgramAttrib *attribs = __rsxGetAttrs(prg);
-	for(u32 i=0;i<prg->num_attr;i++) {
+	for(i=0;i<prg->num_attr;i++) {
 		char *namePtr;
 
 		if(!attribs[i].name_off) continue;
@@ -34,8 +35,9 @@ rsxProgramConst* __rsxGetConsts(const rsxProgram *prg)
 
 s32 __rsxGetConstIndex(const rsxProgram *prg, const char *name)
 {
+	u32 i;
 	rsxProgramConst *consts = __rsxGetConsts(prg);
-	for(u32 i=0;i<prg->num_const;i++) {
+	for(i=0;i<prg->num_const;i++) {
 		char *namePtr;
 
 		if(!consts[i].name_off) continue;

@@ -11,21 +11,19 @@ LIBRARY_SYMBOL:
 	.section ".sceStub.text","ax";		\
 	.globl __##name;					\
 __##name:								\
-	std		r31,-8(r1);					\
 	mflr	r0;							\
 	std		r0,16(r1);					\
 	stdu	r1,-128(r1);				\
 	std		r2,112(r1);					\
-	lis		r31,name##_stub@ha;			\
-	lwz		r31,name##_stub@l(r31);		\
-	lwz		r0,0(r31);					\
-	lwz		r2,4(r31);					\
+	lis		r12,name##_stub@ha;			\
+	lwz		r12,name##_stub@l(r12);		\
+	lwz		r0,0(r12);					\
+	lwz		r2,4(r12);					\
 	mtctr	r0;							\
 	bctrl;								\
 	ld		r2,112(r1);					\
 	addi	r1,r1,128;					\
 	ld		r0,16(r1);					\
-	ld		r31,-8(r1);					\
 	mtlr	r0;							\
 	blr;								\
 	.align 3;							\

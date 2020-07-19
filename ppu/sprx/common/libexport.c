@@ -42,4 +42,10 @@ static prx_header header __attribute__((section(".lib.stub"))) = {
 	const void* name##_stub __attribute__((section(".data.sceFStub." LIBRARY_NAME))) = &__##name; \
 	const uint32_t name##_fnid __attribute__((section(".rodata.sceFNID"))) = fnid
 
+// duplicate the macro impl, as i don't know whether macro substitution works properly, with strigify, or not.
+#define EXPORT_VA(name, fnid, argc) \
+	extern void* __##name; \
+	const void* name##_stub __attribute__((section(".data.sceFStub." LIBRARY_NAME))) = &__##name; \
+	const uint32_t name##_fnid __attribute__((section(".rodata.sceFNID"))) = fnid
+
 #include "exports.h"

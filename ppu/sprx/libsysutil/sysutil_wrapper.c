@@ -7,6 +7,7 @@
 #include <sysutil/save.h>
 #include <sysutil/game.h>
 #include <sysutil/disc.h>
+#include <sysutil/video.h>
 
 /* sysUtil functions */
 extern s32 sysUtilRegisterCallbackEx(s32 slot,opd32 *opd,void *usrdata);
@@ -52,6 +53,9 @@ extern s32 sysGameDiscRegisterDiscChangeCallbackEx(sysGameDiscEjectCallback cbEj
 
 /* Disc utility support */
 extern s32 sysDiscRegisterDiscChangeCallbackEx(opd32 *cbEject,opd32 *cbInsert);
+
+/* video system function */
+extern s32 videoRegisterCallbackEx(u32 slot, opd32 *cbVideo, void *userData);
 
 /* sysUtil wrapper functions */
 s32 sysUtilRegisterCallback(s32 slot,sysutilCallback cb,void *usrdata)
@@ -229,3 +233,8 @@ s32 sysDiscRegisterDiscChangeCallback(sysDiscEjectCallback cbEject,sysDiscInsert
 	return sysDiscRegisterDiscChangeCallbackEx((opd32*)__get_opd32(cbEject),(opd32*)__get_opd32(cbInsert));
 }
 
+/* video system functions */
+s32 videoRegisterCallback(u32 slot, videoCallback cbVideo, void *userData)
+{
+    return videoRegisterCallbackEx(slot, (opd32*)__get_opd32(cbVideo), userData);
+}

@@ -211,6 +211,7 @@ typedef struct _videoDeviceInfo
     videoKSVList ksvList;
 } videoDeviceInfo;
 
+typedef s32 (*videoCallback)(u32 slot, u32 videoOut, u32 deviceIndex, u32 event, videoDeviceInfo *info, void *userData);
 
 /*! \brief Get video state
 
@@ -251,9 +252,8 @@ s32 videoGetResolutionAvailability(u32 videoOut, u32 resolutionId, u32 aspect, u
 s32 videoDebugSetMonitorType(u32 videoOut, u32 monitorType);
 s32 videoGetConvertCursorColorInfo(u8 *rgbOutputRange);
 
-/* TODO: typedef int (*videoCallback)(u32 slot, u32 videoOut, u32 deviceIndex, u32 event, videoDeviceInfo *info, void *userData ); */
-/* TODO: s32 videoRegisterCallback(u32 slot, videoCallback function, void *userData); */
-/* TODO: s32 videoUnregisterCallback(u32 slot); */
+s32 videoRegisterCallback(u32 slot, videoCallback cbVideo, void *userData);
+s32 videoUnregisterCallback(u32 slot);
 
 #ifdef __cplusplus
     }

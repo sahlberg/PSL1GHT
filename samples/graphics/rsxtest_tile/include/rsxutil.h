@@ -27,11 +27,11 @@ extern u32 display_height;
 
 extern u32 depth_pitch;
 extern u32 depth_offset;
-extern u32 *depth_buffer;
+extern void *depth_buffer;
 
 extern u32 color_pitch;
 extern u32 color_offset[FRAME_BUFFER_COUNT];
-extern u32 *color_buffer[FRAME_BUFFER_COUNT];
+extern void *color_buffer[FRAME_BUFFER_COUNT];
 
 extern f32 aspect_ratio;
 

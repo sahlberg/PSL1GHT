@@ -20,11 +20,11 @@ u32 display_height;
 
 u32 depth_pitch;
 u32 depth_offset;
-u32 *depth_buffer;
+void *depth_buffer;
 
 u32 color_pitch;
 u32 color_offset[FRAME_BUFFER_COUNT];
-u32 *color_buffer[FRAME_BUFFER_COUNT];
+void *color_buffer[FRAME_BUFFER_COUNT];
 
 f32 aspect_ratio;
 
@@ -233,48 +233,34 @@ void initScreen()
 
     initVideoConfiguration();
 
-	color_pitch = gcmGetTiledPitchSize(display_width*color_depth);
-    depth_pitch = gcmGetTiledPitchSize(display_width*zs_depth);
-
-    u32 bufferHeight = rsxAlign(GCM_TILE_LOCAL_ALIGN_HEIGHT, display_height);
-    u32 colorBufferSize = bufferHeight*color_pitch;
-    u32 depthBufferSize = bufferHeight*depth_pitch;
-
     waitRSXIdle();
 
     gcmSetFlipMode(GCM_FLIP_HSYNC);
 
-    void *buffer;
-    u32 regionSize, offset = 0;
-    u32 gcmBufferOffset, tileIndex = 0, tagMemOffset = 0;
-    for (u32 i=0;i < FRAME_BUFFER_COUNT;i++) {
-        color_offset[i] = offset;
-        offset += colorBufferSize;
-        offset = rsxAlign(8*color_pitch, offset);
+	color_pitch = gcmGetTiledPitchSize(display_width*color_depth);
+    depth_pitch = gcmGetTiledPitchSize(display_width*zs_depth);
+
+    u32 tileIndex = 0;
+    u32 bufferHeight = rsxAlign(GCM_TILE_LOCAL_ALIGN_HEIGHT, display_height);
+    u32 colorBufferSize = bufferHeight*color_pitch;
+    u32 depthBufferSize = bufferHeight*depth_pitch;
+    for (u32 i=0; i < FRAME_BUFFER_COUNT;i++, tileIndex++) {
+       bufferSize = rsxAlign(GCM_TILE_ALIGN_OFFSET, colorBufferSize);
+       color_buffer[i] = rsxMemalign(GCM_TILE_ALIGN_SIZE, bufferSize);
+       rsxAddressToOffset(color_buffer[i], &color_offset[i]);
+       gcmSetDisplayBuffer(i, color_offset[i], color_pitch, display_width, display_height);
+       gcmSetTileInfo(tileIndex, GCM_LOCATION_RSX, color_offset[i], bufferSize, color_pitch, GCM_COMPMODE_DISABLED, 0, 0);
+       gcmBindTile(tileIndex);
+       printf("fb[%d]: %p (%08x) [%dx%d] %d\n", i, color_buffer[i], color_offset[i], display_width, display_height, color_pitch);
     }
-    regionSize = offset + colorBufferSize;
-    regionSize = rsxAlign(32*color_pitch, regionSize);
-    regionSize = rsxAlign(GCM_TILE_ALIGN_OFFSET, regionSize);
+
+    bufferSize = rsxAlign(GCM_TILE_ALIGN_OFFSET, depthBufferSize);
+    depth_buffer = rsxMemalign(GCM_TILE_ALIGN_SIZE, bufferSize);
+    rsxAddressToOffset(depth_buffer, &depth_offset);
+    gcmSetTileInfo(tileIndex, GCM_LOCATION_RSX, depth_offset, bufferSize, depth_pitch, GCM_COMPMODE_Z32_SEPSTENCIL, 0, 2);
+    gcmBindTile(tileIndex);
     
-    buffer = rsxMemalign(GCM_TILE_ALIGN_SIZE, regionSize);
-    rsxAddressToOffset(buffer, &gcmBufferOffset);
-    gcmSetTile(tileIndex++, GCM_LOCATION_RSX, gcmBufferOffset, regionSize, color_pitch, GCM_COMPMODE_DISABLED, tagMemOffset, 0);
-    tagMemOffset += rsxAlign(GCM_TILE_ALIGN_OFFSET, regionSize);
-
-    for (u32 i=0;i < FRAME_BUFFER_COUNT;i++) {
-        color_offset[i] += gcmBufferOffset;
-        gcmSetDisplayBuffer(i, color_offset[i], color_pitch, display_width, display_height);
-        printf("fb[%d]: %p (%08x) [%dx%d] %d\n", i, (void*)((intptr_t)buffer + (color_offset[i] - gcmBufferOffset)), color_offset[i], display_width, display_height, color_pitch);
-    }
-
-    regionSize = depthBufferSize;
-    regionSize = rsxAlign(32*depth_pitch, regionSize);
-    regionSize = rsxAlign(GCM_TILE_ALIGN_OFFSET, regionSize);
-    buffer = rsxMemalign(GCM_TILE_ALIGN_SIZE, regionSize);
-   
-    rsxAddressToOffset(buffer, &depth_offset);
-    gcmSetTile(tileIndex++, GCM_LOCATION_RSX, depth_offset, regionSize, depth_pitch, GCM_COMPMODE_Z32_SEPSTENCIL_REGULAR, tagMemOffset, 1);
-    tagMemOffset += rsxAlign(GCM_TILE_ALIGN_OFFSET, regionSize);
+    gcmSetZcull(0, depth_offset, rsxAlign(64, display_width), rsxAlign(64, display_height), 0, GCM_ZCULL_Z24S8, GCM_SURFACE_CENTER_1, GCM_ZCULL_LESS, GCM_ZCULL_LONES, GCM_SCULL_SFUNC_LESS, 1, 0xff);
 
     for (u32 i=0;i < FRAME_BUFFER_COUNT;i++) {
         *((vu32*) gcmGetLabelAddress(GCM_BUFFER_STATUS_INDEX + i)) = BUFFER_IDLE;

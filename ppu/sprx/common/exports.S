@@ -48,16 +48,19 @@ __##name:									\
 	std		r31,-8(r1);						\
 	stdu	r1,-160(r1);					\
 	li		r12,(argc - GP_ARG_NUM_REG); 	\
+	extsh.	r12,r12;						\
+	ble		1f;								\
 	li		r31,276;						\
 	li		r30,112;						\
 	mtctr	r12;							\
-1:											\
+2:											\
 	lwzx	r12,r31,r1;						\
 	clrldi	r11,r12,32;						\
 	stdx	r11,r30,r1;						\
 	addi	r31,r31,8;						\
 	addi	r30,r30,8;						\
-	bdnz	1b;								\
+	bdnz	2b;								\
+1:											\
 	lis		r12,name##_stub@ha;				\
 	lwz		r12,name##_stub@l(r12);			\
 	lwz		r0,0(r12);						\

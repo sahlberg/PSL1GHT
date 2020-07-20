@@ -55,8 +55,8 @@ __##name:									\
 	mtctr	r12;							\
 2:											\
 	lwzx	r12,r31,r1;						\
-	clrldi	r11,r12,32;						\
-	stdx	r11,r30,r1;						\
+	clrldi	r12,r12,32;						\
+	stdx	r12,r30,r1;						\
 	addi	r31,r31,8;						\
 	addi	r30,r30,8;						\
 	bdnz	2b;								\

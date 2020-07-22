@@ -39,35 +39,35 @@ s32 gcmIoOffsetToAddress(u32 offset,void **address)
 
 void gcmSetVBlankHandler(void (*handler)(const u32 head))
 {
-	gcmSetVBlankHandlerEx((opd32*)__get_opd32(handler));
+	gcmSetVBlankHandlerEx(handler != NULL ? (opd32*)__get_opd32(handler) : NULL);
 }
 
 void gcmSetFlipHandler(void (*handler)(const u32 head))
 {
-	gcmSetFlipHandlerEx((opd32*)__get_opd32(handler));
+	gcmSetFlipHandlerEx(handler != NULL ? (opd32*)__get_opd32(handler) : NULL);
 }
 
 void gcmSetGraphicsHandler(void (*handler)(const u32 val))
 {
-	gcmSetGraphicsHandlerEx((opd32*)__get_opd32(handler));
+	gcmSetGraphicsHandlerEx(handler != NULL ? (opd32*)__get_opd32(handler) : NULL);
 }
 
 void gcmSetSecondVHandler(void (*handler)(const u32 head))
 {
-	gcmSetSecondVHandlerEx((opd32*)__get_opd32(handler));
+	gcmSetSecondVHandlerEx(handler != NULL ? (opd32*)__get_opd32(handler) : NULL);
 }
 
 void gcmSetUserHandler(void (*handler)(const u32 cause))
 {
-	gcmSetUserHandlerEx((opd32*)__get_opd32(handler));
+	gcmSetUserHandlerEx(handler != NULL ? (opd32*)__get_opd32(handler) : NULL);
 }
 
 void gcmSetQueueHandler(void (*handler)(const u32 head))
 {
-	gcmSetQueueHandlerEx((opd32*)__get_opd32(handler));
+	gcmSetQueueHandlerEx(handler != NULL ? (opd32*)__get_opd32(handler) : NULL);
 }
 
 void gcmSetUserCommand(void (*handler)(const u32 cause))
 {
-	gcmSetUserCommandEx((opd32*)__get_opd32(handler));
+	gcmSetUserCommandEx(handler != NULL ? (opd32*)__get_opd32(handler) : NULL);
 }

@@ -19,7 +19,7 @@
 #include <ppu-types.h>
 
 typedef struct { volatile u32 counter; } atomic_t; 
-typedef struct { u64 counter; } atomic64_t;
+typedef struct { volatile u64 counter; } atomic64_t;
 
 static inline u32 sysAtomicRead(const atomic_t *v)
 {
@@ -232,7 +232,7 @@ static inline u32 __xchg(volatile void *ptr, u32 x, unsigned int size)
  * and return the old value of *p.
  */
 static inline u64
-__cmpxchg_u32(volatile unsigned int *p, u64 old, u64 new)
+__cmpxchg_u32(volatile unsigned int *p, u64 oldv, u64 newv)
 {
     unsigned int prev;
 
@@ -245,14 +245,14 @@ __cmpxchg_u32(volatile unsigned int *p, u64 old, u64 new)
     "\n\
 2:"
     : "=&r" (prev), "+m" (*p)
-    : "r" (p), "r" (old), "r" (new)
+    : "r" (p), "r" (oldv), "r" (newv)
     : "cc", "memory");
 
     return prev;
 }
 
 static inline u64
-__cmpxchg_u64(volatile u64 *p, u64 old, u64 new)
+__cmpxchg_u64(volatile u64 *p, u64 oldv, u64 newv)
 {
     u64 prev;
 
@@ -265,7 +265,7 @@ __cmpxchg_u64(volatile u64 *p, u64 old, u64 new)
     "\n\
 2:"
     : "=&r" (prev), "+m" (*p)
-    : "r" (p), "r" (old), "r" (new)
+    : "r" (p), "r" (oldv), "r" (newv)
     : "cc", "memory");
 
     return prev;
@@ -276,17 +276,17 @@ __cmpxchg_u64(volatile u64 *p, u64 old, u64 new)
 extern void __cmpxchg_called_with_bad_pointer(void);
 
 static inline u64
-__cmpxchg(volatile void *ptr, u64 old, u64 new,
+__cmpxchg(volatile void *ptr, u64 oldv, u64 newv,
       unsigned int size)
 {
     switch (size) {
     case 4:
-        return __cmpxchg_u32(ptr, old, new);
+        return __cmpxchg_u32((volatile u32*)ptr, oldv, newv);
     case 8:
-        return __cmpxchg_u64(ptr, old, new);
+        return __cmpxchg_u64((volatile u64*)ptr, oldv, newv);
     }
     __cmpxchg_called_with_bad_pointer();
-    return old;
+    return oldv;
 }
 
 #define cmpxchg(ptr, o, n)                       \
@@ -298,7 +298,7 @@ __cmpxchg(volatile void *ptr, u64 old, u64 new,
   })
 
 #define sysAtomicCompareAndSwap(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
-#define sysAtomicSwap(v, new) (xchg(&((v)->counter), new))
+#define sysAtomicSwap(v, new) (xchg(&((v)->counter), newv))
 
 /**
  * atomic_add_unless - add unless the number is a given value
@@ -309,7 +309,7 @@ __cmpxchg(volatile void *ptr, u64 old, u64 new,
  * Atomically adds @a to @v, so long as it was not @u.
  * Returns non-zero if @v was not @u, and zero otherwise.
  */
-static inline u32 sysAtomicAddUnless(atomic_t *v, u32 a, int u)
+static inline u32 sysAtomicAddUnless(atomic_t *v, u32 a, u32 u)
 {
         u32 t;
 
@@ -530,7 +530,7 @@ static inline u64 sysAtomic64DecIfPositive(atomic64_t *v)
 }
 
 #define sysAtomic64CompareAndSwap(v, o, n) (cmpxchg(&((v)->counter), (o), (n)))
-#define sysAtomic64Swap(v, new) (xchg(&((v)->counter), new))
+#define sysAtomic64Swap(v, new) (xchg(&((v)->counter), newv))
 
 /**
  * atomic64_add_unless - add unless the number is a given value

@@ -9,11 +9,11 @@ extern void rescSetFlipHandlerEx(opd32 *opd);
 
 void rescSetVBlankHandler(void (*handler)(const u32 head))
 {
-	rescSetVBlankHandlerEx((opd32*)__get_opd32(handler));
+	rescSetVBlankHandlerEx(handler != NULL ? (opd32*)__get_opd32(handler) : NULL);
 }
 
 void rescSetFlipHandler(void (*handler)(const u32 head))
 {
-	rescSetFlipHandlerEx((opd32*)__get_opd32(handler));
+	rescSetFlipHandlerEx(handler != NULL ? (opd32*)__get_opd32(handler) : NULL);
 }
 

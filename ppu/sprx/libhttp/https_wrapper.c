@@ -10,7 +10,7 @@ extern s32 httpClientSetSslCallbackEx(httpClientId cid, opd32 *opd, void *userAr
 s32 httpClientSetSslCallback(httpClientId cid, httpsSslCallback cb, void *arg)
 {
     printf ( "IN: httpClientSetSslCallback(%d, %p, %p)\n", cid, cb, arg) ;
-    printf ( "OUT: httpClientSetSslCallbackEx(%d, %p, %p)\n", cid, (cb != NULL ? (opd32*)__get_opd32(cb) : NULL), arg) ;
-    return httpClientSetSslCallbackEx(cid, (cb != NULL ? (opd32*)__get_opd32(cb) : NULL), arg);
+    printf ( "OUT: httpClientSetSslCallbackEx(%d, %p, %p)\n", cid, (opd32*)__get_opd32(cb), arg) ;
+    return httpClientSetSslCallbackEx(cid, (opd32*)__get_opd32(cb), arg);
 }
 

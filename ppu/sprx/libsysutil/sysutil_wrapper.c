@@ -60,7 +60,7 @@ extern s32 videoRegisterCallbackEx(u32 slot, opd32 *cbVideo, void *userData);
 /* sysUtil wrapper functions */
 s32 sysUtilRegisterCallback(s32 slot,sysutilCallback cb,void *usrdata)
 {
-	return sysUtilRegisterCallbackEx(slot, (cb != NULL ? (opd32*)__get_opd32(cb) : NULL),usrdata);
+	return sysUtilRegisterCallbackEx(slot, (opd32*)__get_opd32(cb),usrdata);
 }
 
 /* msgDialog wraper functions */
@@ -236,5 +236,5 @@ s32 sysDiscRegisterDiscChangeCallback(sysDiscEjectCallback cbEject,sysDiscInsert
 /* video system functions */
 s32 videoRegisterCallback(u32 slot, videoCallback cbVideo, void *userData)
 {
-    return videoRegisterCallbackEx(slot, (cbVideo != NULL ? (opd32*)__get_opd32(cbVideo) : NULL), userData);
+    return videoRegisterCallbackEx(slot, (opd32*)__get_opd32(cbVideo), userData);
 }

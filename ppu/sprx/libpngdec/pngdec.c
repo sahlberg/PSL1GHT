@@ -53,13 +53,15 @@ static s32 decodePNG(pngDecSource *src,pngData *out)
 	pngDecThreadInParam InThdParam;
 	pngDecThreadOutParam OutThdParam;
 	pngDecDataCtrlParam dataCtrlParam;
+	pngCbCtrlMalloc fnMalloc = png_malloc;
+	pngCbCtrlFree fnFree = png_free;
 
 	InThdParam.spu_enable = PNGDEC_SPU_THREAD_DISABLE;
 	InThdParam.ppu_prio = 512;
 	InThdParam.spu_prio = 200;
-	InThdParam.malloc_func = (pngCbCtrlMalloc)__get_opd32(png_malloc);
+	InThdParam.malloc_func = (pngCbCtrlMalloc)__get_opd32(fnMalloc);
 	InThdParam.malloc_arg = NULL;
-	InThdParam.free_func = (pngCbCtrlFree)__get_opd32(png_free);
+	InThdParam.free_func = (pngCbCtrlFree)__get_opd32(fnFree);
 	InThdParam.free_arg = NULL;
 
 	ret= pngDecCreate(&mHandle, &InThdParam, &OutThdParam);

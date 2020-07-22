@@ -53,13 +53,15 @@ static s32 decodeJPEG(jpgDecSource *src,jpgData *out)
 	jpgDecThreadInParam InThdParam;
 	jpgDecThreadOutParam OutThdParam;
 	jpgDecDataCtrlParam dataCtrlParam;
+	jpgCbCtrlMalloc fnMalloc = jpg_malloc;
+	jpgCbCtrlFree fnFree = jpg_free;
 
 	InThdParam.spu_enable = JPGDEC_SPU_THREAD_DISABLE;
 	InThdParam.ppu_prio = 512;
 	InThdParam.spu_prio = 200;
-	InThdParam.malloc_func = (jpgCbCtrlMalloc)__get_opd32(jpg_malloc);
+	InThdParam.malloc_func = (jpgCbCtrlMalloc)__get_opd32(fnMalloc);
 	InThdParam.malloc_arg = NULL;
-	InThdParam.free_func = (jpgCbCtrlFree)__get_opd32(jpg_free);
+	InThdParam.free_func = (jpgCbCtrlFree)__get_opd32(fnFree);
 	InThdParam.free_arg = NULL;
 
 	ret = jpgDecCreate(&mHandle,&InThdParam,&OutThdParam);

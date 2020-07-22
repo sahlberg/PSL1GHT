@@ -5,7 +5,7 @@
 
 #define PPU_ALIGNMENT			8
 
-#define __get_opd32(opd64)		((unsigned long long)(((intptr_t)(opd64)) + 16))
+#define __get_opd32(opd64)		((unsigned long long)((intptr_t)(opd64) ? (((intptr_t)(opd64)) + 16) : 0L))
 
 #define __get_addr32(addr)		(unsigned int)((unsigned long long)(addr))
 

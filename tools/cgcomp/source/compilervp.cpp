@@ -348,14 +348,21 @@ void CCompilerVP::emit_dst(struct nvfx_insn *insn,u8 slot)
 					insn->mask = NVFX_VP_MASK_W;
 					m_nOutputMask |= (1 << 11);
 					break;
-				case NV40_VP_INST_DEST_COL0 : m_nOutputMask |= (1 << 0); break;
-				case NV40_VP_INST_DEST_COL1 : m_nOutputMask |= (1 << 1); break;
-				case NV40_VP_INST_DEST_BFC0 : m_nOutputMask |= (1 << 2); break;
-				case NV40_VP_INST_DEST_BFC1 : m_nOutputMask |= (1 << 3); break;
+				case NV40_VP_INST_DEST_COL0 :
+				case NV40_VP_INST_DEST_COL1 : 
+					m_nOutputMask |= (1 << (dst->index - NV40_VP_INST_DEST_COL0)); 
+					m_nOutputMask |= (4 << (dst->index - NV40_VP_INST_DEST_COL0)); 
+					break;
+				case NV40_VP_INST_DEST_BFC0 :
+				case NV40_VP_INST_DEST_BFC1 :
+					m_nOutputMask |= (1 << (dst->index - NV40_VP_INST_DEST_BFC0)); 
+					m_nOutputMask |= (4 << (dst->index - NV40_VP_INST_DEST_BFC0));
+					break;
 				case NV40_VP_INST_DEST_FOGC : m_nOutputMask |= (1 << 4); break;
 				case NV40_VP_INST_DEST_PSZ  : m_nOutputMask |= (1 << 5); break;
 				default:
-					if(dst->index>=NV40_VP_INST_DEST_TC(0) && dst->index<=NV40_VP_INST_DEST_TC(7)) m_nOutputMask |= (0x4000 << (dst->index - NV40_VP_INST_DEST_TC0));
+					if(dst->index>=NV40_VP_INST_DEST_TC(0) && dst->index<=NV40_VP_INST_DEST_TC(7))
+						m_nOutputMask |= (0x4000 << (dst->index - NV40_VP_INST_DEST_TC0));
 					break;
 			}
 			hw[3] |= (dst->index << NV40_VP_INST_DEST_SHIFT);

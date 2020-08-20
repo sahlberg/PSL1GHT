@@ -72,9 +72,9 @@ BUILDDIR		?=	$(CURDIR)/build
 #---------------------------------------------------------------------------------
 %.vpo: %.vcg
 	$(VERB) echo $(notdir $<)
-	$(VERB) $(CGCOMP) -v $^ $@
+	$(VERB) $(CGCOMP) -v $(CGCFLAGS) $^ $@
 
 %.fpo: %.fcg
 	$(VERB) echo $(notdir $<)
-	$(VERB) $(CGCOMP) -f $^ $@
+	$(VERB) $(CGCOMP) -f $(CGCFLAGS) $^ $@
 

@@ -184,7 +184,7 @@ combination of the following values:
  - \ref GCM_COLOR_MASK_R
  - \ref GCM_COLOR_MASK_A
 */
-void RSX_FUNC(SetColorMaskMRT)(gcmContextData *context,u32 mask);
+void RSX_FUNC(SetColorMaskMrt)(gcmContextData *context,u32 mask);
 
 void RSX_FUNC(SetPointSpriteControl)(gcmContextData *context,u32 enable,u32 rmode,u32 texcoordMask);
 void RSX_FUNC(SetPointSize)(gcmContextData *context,f32 size);

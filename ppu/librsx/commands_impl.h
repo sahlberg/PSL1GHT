@@ -177,7 +177,7 @@ void RSX_FUNC(SetColorMask)(gcmContextData *context,u32 mask)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetColorMaskMRT)(gcmContextData *context,u32 mask)
+void RSX_FUNC(SetColorMaskMrt)(gcmContextData *context,u32 mask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 

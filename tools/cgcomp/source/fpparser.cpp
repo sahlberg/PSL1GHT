@@ -489,7 +489,12 @@ const char* CFPParser::ParseOutputRegAlias(const char *token,s32 *reg,u8 *is_fp1
 	*is_fp16 = 0;
 
 	for(;it!=m_lOParameters.end();it++) {
-		if(strcmp(token,it->alias.c_str()) == 0) {
+		size_t len = 0;
+		size_t tlen = strlen(token);
+
+		// cut off the dst mask for comparison
+		for (u32 i=0;i < tlen && token[i] != '.';i++, len++) ;
+		if(strncmp(token, it->alias.c_str(), len) == 0) {
 			*reg = it->index;
 			*is_fp16 = it->is_fp16;
 			return (token + it->alias.size());

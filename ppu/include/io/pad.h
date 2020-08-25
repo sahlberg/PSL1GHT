@@ -7,15 +7,15 @@
 
 #include <ppu-types.h>
 
-#define MAX_PADS                  (127)     /*!< maximum controllers */
-#define MAX_PAD_CODES             (64)      /*!< maximum controller buttons */
-#define MAX_PORT_NUM              (7)       /*!< controller port number */
-#define MAX_PAD_CAPABILITY_INFO   (32)      /*!< controller capability information */
-#define MAX_PAD_ACTUATOR          (2)       /*!< controller vibrator actuator */
+#define MAX_PADS                                (127)     /*!< maximum controllers */
+#define MAX_PAD_CODES                           (64)      /*!< maximum controller buttons */
+#define MAX_PORT_NUM                            (7)       /*!< controller port number */
+#define MAX_PAD_CAPABILITY_INFO                 (32)      /*!< controller capability information */
+#define MAX_PAD_ACTUATOR                        (2)       /*!< controller vibrator actuator */
 
-#define PAD_TYPE_STANDARD         (0)       /*!< standard controller */
-#define PAD_TYPE_REMOTE           (4)       /*!< BD Remote Controller */
-#define PAD_TYPE_LDD              (5)       /*!< Custom Controller */
+#define PAD_TYPE_STANDARD                       (0)       /*!< standard controller */
+#define PAD_TYPE_REMOTE                         (4)       /*!< BD Remote Controller */
+#define PAD_TYPE_LDD                            (5)       /*!< Custom Controller */
 
 #define PAD_PRESS_MODE_ON						(1)
 #define PAD_PRESS_MODE_OFF						(0)
@@ -26,6 +26,37 @@
 #define PAD_SENSOR_MODE_OFF						(0)
 
 #define PAD_INFO_SUPPORTED_SENSOR_MODE			(1)
+
+#define PAD_SETTINGS_PRESS_ON                   (1<<1)    
+#define PAD_SETTINGS_PRESS_OFF                  (0)    
+#define PAD_SETTINGS_SENSOR_ON                  (1<<2)    
+#define PAD_SETTINGS_SENSOR_OFF                 (0)    
+
+// PAD_BUTTON_OFFSET_DIGITAL1 assignment
+#define PAD_CTRL_LEFT                           (1<<7)
+#define PAD_CTRL_DOWN                           (1<<6)
+#define PAD_CTRL_RIGHT                          (1<<5)
+#define PAD_CTRL_UP                             (1<<4)
+#define PAD_CTRL_START                          (1<<3)
+#define PAD_CTRL_R3                             (1<<2)
+#define PAD_CTRL_L3                             (1<<1)
+#define PAD_CTRL_SELECT                         (1<<0)
+
+// PAD_BUTTON_OFFSET_DIGITAL2 assignment
+#define PAD_CTRL_SQUARE                         (1<<7)
+#define PAD_CTRL_CROSS                          (1<<6)
+#define PAD_CTRL_CIRCLE                         (1<<5)
+#define PAD_CTRL_TRIANGLE                       (1<<4)
+#define PAD_CTRL_R1                             (1<<3)
+#define PAD_CTRL_L1                             (1<<2)
+#define PAD_CTRL_R2                             (1<<1)
+#define PAD_CTRL_L2                             (1<<0)
+
+#define PAD_OK                                  0
+#define PAD_ERROR_FATAL                         0x80121101
+#define PAD_ERROR_INVALID_PARAMETER             0x80121102
+#define PAD_ERROR_ALREADY_INITIALIZED           0x80121103
+#define PAD_ERROR_NOT_INITIALIZED               0x80121104
 
 #ifdef __cplusplus
 extern "C" {
@@ -281,6 +312,32 @@ typedef enum _io_pad_bd_code
     BTN_BD_PREV_CHANNEL    = 0x1032,
     BTN_BD_PROGRAM_GUIDE   = 0x1053
 } ioPadBdCode;
+
+typedef enum _io_pad_button_data_offset
+{
+    PAD_BUTTON_OFFSET_DIGITAL1          = 2,
+    PAD_BUTTON_OFFSET_DIGITAL2          = 3,
+    PAD_BUTTON_OFFSET_ANALOG_RIGHT_X    = 4,
+    PAD_BUTTON_OFFSET_ANALOG_RIGHT_Y    = 5,
+    PAD_BUTTON_OFFSET_ANALOG_LEFT_X     = 6,
+    PAD_BUTTON_OFFSET_ANALOG_LEFT_Y     = 7,
+    PAD_BUTTON_OFFSET_PRESS_RIGHT       = 8,
+    PAD_BUTTON_OFFSET_PRESS_LEFT        = 9,
+    PAD_BUTTON_OFFSET_PRESS_UP          = 10,
+    PAD_BUTTON_OFFSET_PRESS_DOWN        = 11,
+    PAD_BUTTON_OFFSET_PRESS_TRIANGLE    = 12,
+    PAD_BUTTON_OFFSET_PRESS_CIRCLE      = 13,
+    PAD_BUTTON_OFFSET_PRESS_CROSS       = 14,
+    PAD_BUTTON_OFFSET_PRESS_SQUARE      = 15,
+    PAD_BUTTON_OFFSET_PRESS_L1          = 16,
+    PAD_BUTTON_OFFSET_PRESS_R1          = 17,
+    PAD_BUTTON_OFFSET_PRESS_L2          = 18,
+    PAD_BUTTON_OFFSET_PRESS_R2          = 19,
+    PAD_BUTTON_OFFSET_SENSOR_X          = 20,
+    PAD_BUTTON_OFFSET_SENSOR_Y          = 21,
+    PAD_BUTTON_OFFSET_SENSOR_Z          = 22,
+    PAD_BUTTON_OFFSET_SENSOR_G          = 23
+} ioPadButtonDataOffset;
 
 /*! \brief Initialize Pad IO management.
     \param max maximum number of supported pads.

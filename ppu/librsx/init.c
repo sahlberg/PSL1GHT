@@ -2,7 +2,8 @@
 #include <rsx/gcm_sys.h>
 #include <ppu-asm.h>
 
-static gcmContextData *gGcmContext ATTRIBUTE_PRXPTR = NULL;
+gcmContextData *gGcmContext ATTRIBUTE_PRXPTR = NULL;
+
 static gcmContextData sUserContext =
 {
 	NULL,
@@ -17,12 +18,12 @@ s32 rsxInit(gcmContextData **context,u32 cmdSize,u32 ioSize,const void *ioAddres
 {
 	s32 ret = -1;
 
-	if(context == NULL) return -1;
-	
 	ret = gcmInitBodyEx(&gGcmContext,cmdSize,ioSize,ioAddress);
 	if(ret==0) {
 		rsxHeapInit();
-		*context = gGcmContext;
+
+		if (context)
+			*context = gGcmContext;
 	}
 	return ret;
 }

@@ -121,6 +121,10 @@ the depth buffer is not updated if the depth test is disabled.
 */
 void RSX_FUNC(SetDepthTestEnable)(gcmContextData *context,u32 enable);
 
+/*! \brief Set depth format
+*/
+void RSX_FUNC(SetDepthFormat)(gcmContextData *context,u32 format);
+
 /*! \brief Clear the render surface.
 
 This function clears the chosen selection of color components, depth and stencil

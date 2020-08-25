@@ -299,6 +299,16 @@ void RSX_FUNC(SetDepthWriteEnable)(gcmContextData *context,u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
+void RSX_FUNC(SetDepthFormat)(gcmContextData *context,u32 format)
+{
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_CONTROL0,1);
+	RSX_CONTEXT_CURRENTP[1] = ((format&1)<<12) | 0x00100000;
+
+	RSX_CONTEXT_CURRENT_END(2);
+}
+
 void RSX_FUNC(SetCullFaceEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);

@@ -86,6 +86,9 @@ a <code>usleep(200)</code> call should be fine.
 extern "C" {
 #endif
 
+/*! \brief Pointer to default command buffer context */
+extern gcmContextData *gGcmContext ATTRIBUTE_PRXPTR;
+
 /*! \brief Initialize the RSX context and the RSX memory manager.
 
 The user must provide a 1 MB-aligned IO buffer allocated in main memory, which

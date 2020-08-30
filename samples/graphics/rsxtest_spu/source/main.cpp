@@ -32,19 +32,19 @@ u32 *fp_buffer;
 u32 *texture_buffer;
 u32 texture_offset;
 
-s32 projMatrix_id = -1;
-s32 modelViewMatrix_id = -1;
-s32 vertexPosition_id = -1;
-s32 vertexNormal_id = -1;
-s32 vertexTexcoord_id = -1;
-s32 textureUnit_id = -1;
-s32 eyePosition_id = -1;
-s32 globalAmbient_id = -1;
-s32 lightPosition_id = -1;
-s32 lightColor_id = -1;
-s32 Kd_id = -1;
-s32 Ks_id = -1;
-s32 shininess_id = -1;
+// vertex shader
+rsxProgramConst *projMatrix;
+rsxProgramConst *mvMatrix;
+
+// fragment shader
+rsxProgramAttrib *textureUnit;
+rsxProgramConst *eyePosition;
+rsxProgramConst *globalAmbient;
+rsxProgramConst *litPosition;
+rsxProgramConst *litColor;
+rsxProgramConst *Kd;
+rsxProgramConst *Ks;
+rsxProgramConst *spec;
 
 Point3 eye_pos = Point3(0.0f,0.0f,20.0f);
 Point3 eye_dir = Point3(0.0f,0.0f,0.0f);
@@ -104,7 +104,7 @@ static void init_texture()
 	}
 }
 
-static void setTexture()
+static void setTexture(u8 textureUnit)
 {
 	u32 width = 128;
 	u32 height = 128;
@@ -133,10 +133,10 @@ static void setTexture()
 	texture.location	= GCM_LOCATION_RSX;
 	texture.pitch		= pitch;
 	texture.offset		= texture_offset;
-	rsxLoadTexture(context,textureUnit_id,&texture);
-	rsxTextureControl(context,textureUnit_id,GCM_TRUE,0<<8,12<<8,GCM_TEXTURE_MAX_ANISO_1);
-	rsxTextureFilter(context,textureUnit_id,0,GCM_TEXTURE_LINEAR,GCM_TEXTURE_LINEAR,GCM_TEXTURE_CONVOLUTION_QUINCUNX);
-	rsxTextureWrapMode(context,textureUnit_id,GCM_TEXTURE_CLAMP_TO_EDGE,GCM_TEXTURE_CLAMP_TO_EDGE,GCM_TEXTURE_CLAMP_TO_EDGE,0,GCM_TEXTURE_ZFUNC_LESS,0);
+	rsxLoadTexture(context,textureUnit,&texture);
+	rsxTextureControl(context,textureUnit,GCM_TRUE,0<<8,12<<8,GCM_TEXTURE_MAX_ANISO_1);
+	rsxTextureFilter(context,textureUnit,0,GCM_TEXTURE_LINEAR,GCM_TEXTURE_LINEAR,GCM_TEXTURE_CONVOLUTION_QUINCUNX);
+	rsxTextureWrapMode(context,textureUnit,GCM_TEXTURE_CLAMP_TO_EDGE,GCM_TEXTURE_CLAMP_TO_EDGE,GCM_TEXTURE_CLAMP_TO_EDGE,0,GCM_TEXTURE_ZFUNC_LESS,0);
 }
 
 static void setDrawEnv()
@@ -146,7 +146,7 @@ static void setDrawEnv()
 							GCM_COLOR_MASK_R |
 							GCM_COLOR_MASK_A);
 
-	rsxSetColorMaskMRT(context,0);
+	rsxSetColorMaskMrt(context,0);
 
 	u16 x,y,w,h;
 	f32 min, max;
@@ -186,11 +186,8 @@ void init_shader()
 	rsxVertexProgramGetUCode(vpo, &vp_ucode, &vpsize);
 	printf("vpsize: %d\n", vpsize);
 
-	projMatrix_id = rsxVertexProgramGetConstIndex(vpo,"projMatrix");
-	modelViewMatrix_id = rsxVertexProgramGetConstIndex(vpo,"modelViewMatrix");
-	vertexPosition_id = rsxVertexProgramGetAttribIndex(vpo,"vertexPosition");
-	vertexNormal_id = rsxVertexProgramGetAttribIndex(vpo,"vertexNormal");
-	vertexTexcoord_id = rsxVertexProgramGetAttribIndex(vpo,"vertexTexcoord");
+	projMatrix = rsxVertexProgramGetConst(vpo,"projMatrix");
+	mvMatrix = rsxVertexProgramGetConst(vpo,"modelViewMatrix");
 
 	rsxFragmentProgramGetUCode(fpo,&fp_ucode,&fpsize);
 	printf("fpsize: %d\n", fpsize);
@@ -199,14 +196,14 @@ void init_shader()
 	memcpy(fp_buffer,fp_ucode,fpsize);
 	rsxAddressToOffset(fp_buffer,&fp_offset);
 
-	textureUnit_id = rsxFragmentProgramGetAttribIndex(fpo,"texture");
-	eyePosition_id = rsxFragmentProgramGetConstIndex(fpo,"eyePosition");
-	globalAmbient_id = rsxFragmentProgramGetConstIndex(fpo,"globalAmbient");
-	lightPosition_id = rsxFragmentProgramGetConstIndex(fpo,"lightPosition");
-	lightColor_id = rsxFragmentProgramGetConstIndex(fpo,"lightColor");
-	shininess_id = rsxFragmentProgramGetConstIndex(fpo,"shininess");
-	Ks_id = rsxFragmentProgramGetConstIndex(fpo,"Ks");
-	Kd_id = rsxFragmentProgramGetConstIndex(fpo,"Kd");
+	textureUnit = rsxFragmentProgramGetAttrib(fpo,"texture");
+	eyePosition = rsxFragmentProgramGetConst(fpo,"eyePosition");
+	globalAmbient = rsxFragmentProgramGetConst(fpo,"globalAmbient");
+	litPosition = rsxFragmentProgramGetConst(fpo,"lightPosition");
+	litColor = rsxFragmentProgramGetConst(fpo,"lightColor");
+	spec = rsxFragmentProgramGetConst(fpo,"shininess");
+	Ks = rsxFragmentProgramGetConst(fpo,"Ks");
+	Kd = rsxFragmentProgramGetConst(fpo,"Kd");
 }
 
 void initialize()
@@ -236,8 +233,8 @@ void drawFrame()
 	static f32 rot = 0.0f;
 	SMeshBuffer *mesh = NULL;
 
-	setTexture();
 	setDrawEnv();
+	setTexture(textureUnit->index);
 
 	rsxSetClearColor(context,color);
 	rsxSetClearDepthStencil(context,0xffff);
@@ -267,22 +264,22 @@ void drawFrame()
 
 	wait_signal_spu();
 
-	rsxBindVertexArrayAttrib(context,vertexPosition_id,0,mesh->pos_off,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
-	rsxBindVertexArrayAttrib(context,vertexNormal_id,0,mesh->nrm_off,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
-	rsxBindVertexArrayAttrib(context,vertexTexcoord_id,0,mesh->uv_off,sizeof(S3DVertex),2,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,GCM_VERTEX_ATTRIB_POS,0,mesh->pos_off,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,GCM_VERTEX_ATTRIB_NORMAL,0,mesh->nrm_off,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,GCM_VERTEX_ATTRIB_TEX0,0,mesh->uv_off,sizeof(S3DVertex),2,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
 
 	rsxLoadVertexProgram(context,vpo,vp_ucode);
-	rsxSetVertexProgramParameterByIndex(context,vpo,projMatrix_id,(float*)&P);
-	rsxSetVertexProgramParameterByIndex(context,vpo,modelViewMatrix_id,(float*)&modelViewMatrix);
+	rsxSetVertexProgramParameter(context,vpo,projMatrix,(float*)&P);
+	rsxSetVertexProgramParameter(context,vpo,mvMatrix,(float*)&modelViewMatrix);
 
-	rsxSetFragmentProgramParameterByIndex(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,lightColor_id,lightColor,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,shininess_id,&shininess,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,eyePosition,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,globalAmbient,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,litPosition,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,litColor,lightColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,spec,&shininess,fp_offset,GCM_LOCATION_RSX);
 
-	rsxSetFragmentProgramParameterByIndex(context,fpo,Kd_id,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,Ks_id,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,Kd,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,Ks,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
 
 	rsxLoadFragmentProgramLocation(context,fpo,fp_offset,GCM_LOCATION_RSX);
 
@@ -307,22 +304,22 @@ void drawFrame()
 	objEyePos = modelMatrixIT*eye_pos;
 	objLightPos = modelMatrixIT*lightPos;
 
-	rsxBindVertexArrayAttrib(context,vertexPosition_id,0,mesh->pos_off,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
-	rsxBindVertexArrayAttrib(context,vertexNormal_id,0,mesh->nrm_off,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
-	rsxBindVertexArrayAttrib(context,vertexTexcoord_id,0,mesh->uv_off,sizeof(S3DVertex),2,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,GCM_VERTEX_ATTRIB_POS,0,mesh->pos_off,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,GCM_VERTEX_ATTRIB_NORMAL,0,mesh->nrm_off,sizeof(S3DVertex),3,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
+	rsxBindVertexArrayAttrib(context,GCM_VERTEX_ATTRIB_TEX0,0,mesh->uv_off,sizeof(S3DVertex),2,GCM_VERTEX_DATA_TYPE_F32,GCM_LOCATION_RSX);
 
 	rsxLoadVertexProgram(context,vpo,vp_ucode);
-	rsxSetVertexProgramParameterByIndex(context,vpo,projMatrix_id,(float*)&P);
-	rsxSetVertexProgramParameterByIndex(context,vpo,modelViewMatrix_id,(float*)&modelViewMatrix);
+	rsxSetVertexProgramParameter(context,vpo,projMatrix,(float*)&P);
+	rsxSetVertexProgramParameter(context,vpo,mvMatrix,(float*)&modelViewMatrix);
 
-	rsxSetFragmentProgramParameterByIndex(context,fpo,eyePosition_id,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,globalAmbient_id,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,lightPosition_id,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,lightColor_id,lightColor,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,shininess_id,&shininess,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,eyePosition,(float*)&objEyePos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,globalAmbient,globalAmbientColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,litPosition,(float*)&objLightPos,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,litColor,lightColor,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,spec,&shininess,fp_offset,GCM_LOCATION_RSX);
 
-	rsxSetFragmentProgramParameterByIndex(context,fpo,Kd_id,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
-	rsxSetFragmentProgramParameterByIndex(context,fpo,Ks_id,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,Kd,materialColorDiffuse,fp_offset,GCM_LOCATION_RSX);
+	rsxSetFragmentProgramParameter(context,fpo,Ks,materialColorSpecular,fp_offset,GCM_LOCATION_RSX);
 
 	rsxLoadFragmentProgramLocation(context,fpo,fp_offset,GCM_LOCATION_RSX);
 
@@ -346,7 +343,6 @@ int main(int argc,const char *argv[])
 {
 	padInfo padinfo;
 	padData paddata;
-	rsxProgramConst *consts = rsxFragmentProgramGetConsts(fpo);
 
 	printf("rsxtest_spu started...\n");
 
@@ -357,7 +353,7 @@ int main(int argc,const char *argv[])
 	donut = createDonut(3.0f,1.5f,32,32);
 	cube = createCube(5.0f);
 
-	rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(fpo,consts[lightColor_id].index);
+	rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(fpo,litColor->index);
 	u32 const_addr = (u32)((u64)fp_buffer + co_table->offset[0]);
 	setup_shared_buffer(const_addr,(u32)(u64)mem_align(128,128),(u32)(u64)gcmGetLabelAddress(64));
 	signal_spu_ppu();

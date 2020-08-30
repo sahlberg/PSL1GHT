@@ -8,6 +8,8 @@
 #include <sys/event_queue.h>
 #include <sysutil/video.h>
 
+#include <rsxdebugfontrenderer.h>
+
 #include "rsxutil.h"
 
 videoResolution vResolution;
@@ -19,11 +21,14 @@ u32 display_height;
 
 u32 depth_pitch;
 u32 depth_offset;
-u32 *depth_buffer;
+void *depth_buffer;
 
 u32 color_pitch;
 u32 color_offset[FRAME_BUFFER_COUNT];
-u32 *color_buffer[FRAME_BUFFER_COUNT];
+void *color_buffer[FRAME_BUFFER_COUNT];
+
+void *state_buffer;
+u32 state_offset;
 
 f32 aspect_ratio;
 
@@ -36,6 +41,7 @@ sys_event_port_t flipEventPort;
 gcmSurface surface;
 
 static u32 sLabelVal = 1;
+static RSXDebugFontRenderer *fontRenderer;
 
 static u32 sResolutionIds[] = {
     VIDEO_RESOLUTION_1600x1080,
@@ -145,7 +151,7 @@ void initVideoConfiguration()
         VIDEO_BUFFER_FORMAT_XRGB,
         VIDEO_ASPECT_AUTO,
         {0,0,0,0,0,0,0,0,0},
-        (u32)vResolution.width*4
+        gcmGetTiledPitchSize(vResolution.width*4)
     };
 
     rval = videoConfigure(VIDEO_PRIMARY, &config, NULL, 0);
@@ -202,19 +208,18 @@ void initRenderTarget()
         surface.colorPitch[i]		= 64;
     }
 
-	surface.depthFormat		= GCM_SURFACE_ZETA_Z16;
+	surface.depthFormat		= GCM_SURFACE_ZETA_Z24S8;
 	surface.depthLocation	= GCM_LOCATION_RSX;
 	surface.depthOffset		= depth_offset;
 	surface.depthPitch		= depth_pitch;
 
-	surface.type				= GCM_SURFACE_TYPE_LINEAR;
+	surface.type			= GCM_SURFACE_TYPE_LINEAR;
 	surface.antiAlias		= GCM_SURFACE_CENTER_1;
 
 	surface.width			= display_width;
 	surface.height			= display_height;
 	surface.x				= 0;
 	surface.y				= 0;
-
 }
 
 void setRenderTarget(u32 index)
@@ -223,36 +228,81 @@ void setRenderTarget(u32 index)
 	rsxSetSurface(gGcmContext,&surface);
 }
 
-void initScreen()
+void initDefaultStateCommands()
+{
+    rsxSetCurrentBuffer(nullptr, (u32*)state_buffer, HOST_STATE_CB_SIZE);
+    {
+        rsxSetBlendEnable(gGcmContext, GCM_FALSE);
+        rsxSetBlendFunc(gGcmContext, GCM_ONE, GCM_ZERO, GCM_ONE, GCM_ZERO);
+        rsxSetBlendEquation(gGcmContext, GCM_FUNC_ADD, GCM_FUNC_ADD);
+        rsxSetDepthWriteEnable(gGcmContext, GCM_TRUE);
+        rsxSetDepthFunc(gGcmContext, GCM_LESS);
+        rsxSetDepthTestEnable(gGcmContext, GCM_TRUE);
+        rsxSetClearDepthStencil(gGcmContext,0xffffff00);
+  	    rsxSetShadeModel(gGcmContext,GCM_SHADE_MODEL_SMOOTH);
+        rsxSetFrontFace(gGcmContext, GCM_FRONTFACE_CCW);
+        rsxSetClearReport(gGcmContext, GCM_ZPASS_PIXEL_CNT);
+        rsxSetZControl(gGcmContext, GCM_TRUE, GCM_FALSE, GCM_FALSE);
+        rsxSetZCullControl(gGcmContext, GCM_ZCULL_LESS, GCM_ZCULL_LONES);
+        rsxSetSCullControl(gGcmContext, GCM_SCULL_SFUNC_LESS, 1, 0xff);
+        rsxSetColorMaskMrt(gGcmContext, 0);
+    	rsxSetColorMask(gGcmContext,GCM_COLOR_MASK_B |
+							GCM_COLOR_MASK_G |
+							GCM_COLOR_MASK_R |
+							GCM_COLOR_MASK_A);
+        rsxSetReturnCommand(gGcmContext);
+    }
+    rsxSetDefaultCommandBuffer(nullptr);
+}
+
+void initScreen(u32 hostBufferSize)
 {
     u32 zs_depth = 4;
     u32 color_depth = 4;
-    u32 bufferSize = rsxAlign(HOST_ADDR_ALIGNMENT, (DEFAULT_CB_SIZE + HOST_SIZE));
+    u32 bufferSize = rsxAlign(HOST_ADDR_ALIGNMENT, (DEFAULT_CB_SIZE + HOST_STATE_CB_SIZE + hostBufferSize));
 
     gcmInitDefaultFifoMode(GCM_DEFAULT_FIFO_MODE_CONDITIONAL);
 
     void *hostAddr = memalign(HOST_ADDR_ALIGNMENT, bufferSize);
     rsxInit(nullptr, DEFAULT_CB_SIZE, bufferSize, hostAddr);
 
+    state_buffer = (void*)((intptr_t)hostAddr + DEFAULT_CB_SIZE);
+    rsxAddressToOffset(state_buffer, &state_offset);
+    printf("state_cmd: %p [%08x]\n", state_buffer, state_offset);
+
+    initDefaultStateCommands();
     initVideoConfiguration();
 
-	color_pitch = display_width*color_depth;
-    depth_pitch = display_width*zs_depth;
+    fontRenderer = new RSXDebugFontRenderer(gGcmContext);
 
     waitRSXIdle();
 
     gcmSetFlipMode(GCM_FLIP_HSYNC);
 
-    void *buffer;
-    for (u32 i=0;i < FRAME_BUFFER_COUNT;i++) {
-        buffer = rsxMemalign(64,(display_height*color_pitch));
-        rsxAddressToOffset(buffer,&color_offset[i]);
-        printf("fb[%d]: %p (%08x) [%dx%d] %d\n", i, buffer, color_offset[i], display_width, display_height, color_pitch);
-        gcmSetDisplayBuffer(i,color_offset[i],color_pitch,display_width,display_height);
+	color_pitch = gcmGetTiledPitchSize(display_width*color_depth);
+    depth_pitch = gcmGetTiledPitchSize(display_width*zs_depth);
+
+    u32 tileIndex = 0;
+    u32 bufferHeight = rsxAlign(GCM_TILE_LOCAL_ALIGN_HEIGHT, display_height);
+    u32 colorBufferSize = bufferHeight*color_pitch;
+    u32 depthBufferSize = bufferHeight*depth_pitch;
+    for (u32 i=0; i < FRAME_BUFFER_COUNT;i++, tileIndex++) {
+       bufferSize = rsxAlign(GCM_TILE_ALIGN_OFFSET, colorBufferSize);
+       color_buffer[i] = rsxMemalign(GCM_TILE_ALIGN_SIZE, bufferSize);
+       rsxAddressToOffset(color_buffer[i], &color_offset[i]);
+       gcmSetDisplayBuffer(i, color_offset[i], color_pitch, display_width, display_height);
+       gcmSetTileInfo(tileIndex, GCM_LOCATION_RSX, color_offset[i], bufferSize, color_pitch, GCM_COMPMODE_DISABLED, 0, 0);
+       gcmBindTile(tileIndex);
+       printf("fb[%d]: %p (%08x) [%dx%d] %d\n", i, color_buffer[i], color_offset[i], display_width, display_height, color_pitch);
     }
 
-    buffer = rsxMemalign(64,(display_height*depth_pitch)*2);
-    rsxAddressToOffset(buffer, &depth_offset);
+    bufferSize = rsxAlign(GCM_TILE_ALIGN_OFFSET, depthBufferSize);
+    depth_buffer = rsxMemalign(GCM_TILE_ALIGN_SIZE, bufferSize);
+    rsxAddressToOffset(depth_buffer, &depth_offset);
+    gcmSetTileInfo(tileIndex, GCM_LOCATION_RSX, depth_offset, bufferSize, depth_pitch, GCM_COMPMODE_Z32_SEPSTENCIL, 0, 2);
+    gcmBindTile(tileIndex);
+    
+    gcmSetZcull(0, depth_offset, rsxAlign(64, display_width), rsxAlign(64, display_height), 0, GCM_ZCULL_Z24S8, GCM_SURFACE_CENTER_1, GCM_ZCULL_LESS, GCM_ZCULL_LONES, GCM_SCULL_SFUNC_LESS, 1, 0xff);
 
     for (u32 i=0;i < FRAME_BUFFER_COUNT;i++) {
         *((vu32*) gcmGetLabelAddress(GCM_BUFFER_STATUS_INDEX + i)) = BUFFER_IDLE;

@@ -17,12 +17,18 @@
 #include "diffuse_specular_shader_vpo.h"
 #include "diffuse_specular_shader_fpo.h"
 
+#define GCM_APP_WAIT_LABEL_INDEX		128
+
+#define HOSTBUFFER_SIZE		(128*1024*1024)
+
 #define DEGTORAD(a)			( (a) *  0.01745329252f )
 #define RADTODEG(a)			( (a) * 57.29577951f )
 
 SYS_PROCESS_PARAM(1001, 0x100000);
 
 u32 running = 0;
+
+vu32 *wait_label = NULL;
 
 u32 fp_offset;
 u32 *fp_buffer;
@@ -58,6 +64,8 @@ static Matrix4 P;
 static SMeshBuffer *sphere = NULL;
 static SMeshBuffer *donut = NULL;
 static SMeshBuffer *cube = NULL;
+
+static u32 sLabelValue = 0;
 
 extern "C" {
 static void program_exit_callback()
@@ -358,13 +366,6 @@ static void setTexture(u8 textureUnit)
 
 static void setDrawEnv()
 {
-	rsxSetColorMask(gGcmContext,GCM_COLOR_MASK_B |
-							GCM_COLOR_MASK_G |
-							GCM_COLOR_MASK_R |
-							GCM_COLOR_MASK_A);
-
-	rsxSetColorMaskMrt(gGcmContext,0);
-
 	u16 x,y,w,h;
 	f32 min, max;
 	f32 scale[4],offset[4];
@@ -384,14 +385,13 @@ static void setDrawEnv()
 	offset[2] = (max + min)*0.5f;
 	offset[3] = 0.0f;
 
+	rsxSetCallCommand(gGcmContext, state_offset);
+	while(*wait_label != sLabelValue)
+		usleep(10);
+	sLabelValue++;
+
 	rsxSetViewport(gGcmContext,x, y, w, h, min, max, scale, offset);
 	rsxSetScissor(gGcmContext,x,y,w,h);
-
-	rsxSetDepthTestEnable(gGcmContext,GCM_TRUE);
-	rsxSetDepthFunc(gGcmContext,GCM_LESS);
-	rsxSetShadeModel(gGcmContext,GCM_SHADE_MODEL_SMOOTH);
-	rsxSetDepthWriteEnable(gGcmContext,1);
-	rsxSetFrontFace(gGcmContext,GCM_FRONTFACE_CCW);
 }
 
 void init_shader()
@@ -441,7 +441,7 @@ void drawFrame()
 	setTexture(textureUnit->index);
 
 	rsxSetClearColor(gGcmContext,color);
-	rsxSetClearDepthStencil(gGcmContext,0xffff);
+	rsxSetClearDepthStencil(gGcmContext,0xffffff00);
 	rsxClearSurface(gGcmContext,GCM_CLEAR_R |
 							GCM_CLEAR_G |
 							GCM_CLEAR_B |
@@ -449,7 +449,7 @@ void drawFrame()
 							GCM_CLEAR_S |
 							GCM_CLEAR_Z);
 
-	rsxSetZControl(gGcmContext,0,1,1);
+	rsxSetZControl(gGcmContext,GCM_FALSE, GCM_TRUE, GCM_TRUE);
 
 	for(i=0;i<8;i++)
 		rsxSetViewportClip(gGcmContext,i,display_width,display_height);
@@ -546,8 +546,11 @@ void drawFrame()
 	rsxAddressToOffset(&mesh->indices[0],&offset);
 	rsxDrawIndexArray(gGcmContext,GCM_TYPE_TRIANGLES,offset,mesh->cnt_indices,GCM_INDEX_TYPE_16B,GCM_LOCATION_RSX);
 
+	rsxSetWriteTextureLabel(gGcmContext, GCM_APP_WAIT_LABEL_INDEX, sLabelValue);
+	rsxFlushBuffer(gGcmContext);
+	
 	rot += 2.0f;
-	if(rot>=360.0f) rot = 0.0f;
+	if(rot >= 360.0f) rot = fmodf(rot, 360.0f);
 }
 
 int main(int argc,const char *argv[])
@@ -555,14 +558,17 @@ int main(int argc,const char *argv[])
 	padInfo padinfo;
 	padData paddata;
 
-	printf("rsxtest_flip started...\n");
+	printf("rsxtest_dl started...\n");
 
 	ioPadInit(7);
-	initScreen();
+	initScreen(HOSTBUFFER_SIZE);
 
 	atexit(program_exit_callback);
 	sysUtilRegisterCallback(0,sysutil_exit_callback,NULL);
 
+	wait_label = gcmGetLabelAddress(GCM_APP_WAIT_LABEL_INDEX);
+	*wait_label = sLabelValue;
+	
 	init_shader();
 	init_texture();
 
@@ -572,7 +578,8 @@ int main(int argc,const char *argv[])
 
 	P = transpose(Matrix4::perspective(DEGTORAD(45.0f),aspect_ratio,1.0f,3000.0f));
 
-	setDrawEnv();
+	DebugFont::init();
+	DebugFont::setScreenRes(display_width, display_height);
 
 	running = 1;
 	while(running) {
@@ -589,11 +596,16 @@ int main(int argc,const char *argv[])
 		}
 
         drawFrame();
+
+		DebugFont::setPosition(10, 10);
+		DebugFont::setColor(1.0f, 0.0f, 0.0f, 1.0f);
+		DebugFont::print("Hello World");
+
         flip();
     }
 
 done:
-    printf("rsxtest_flip done...\n");
+    printf("rsxtest_dl done...\n");
     finish();
     return 0;
 }

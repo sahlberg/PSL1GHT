@@ -48,13 +48,15 @@ void rsxSetCurrentBuffer(gcmContextData **context,const u32 *addr,u32 size)
 	sUserContext.current = (u32*)addr;
 	sUserContext.end = (u32*)((u64)addr + alignedSize - 4);
 
-	*context = gGcmContext;
+	if (context)
+		*context = gGcmContext;
 }
 
 void rsxSetDefaultCommandBuffer(gcmContextData **context)
 {
 	gcmSetDefaultCommandBuffer();
-	*context = gGcmContext;
+	if (context)
+		*context = gGcmContext;
 }
 
 void rsxSetUserCallback(gcmContextCallback cb)

@@ -7,6 +7,8 @@
 
 #include <sysutil/video.h>
 
+#include <rsxdebugfontrenderer.h>
+
 #include "rsxutil.h"
 
 #define GCM_LABEL_INDEX		255
@@ -39,6 +41,8 @@ static u32 sResolutionIds[] = {
 static size_t RESOLUTION_ID_COUNT = sizeof(sResolutionIds)/sizeof(u32);
 
 static u32 sLabelVal = 1;
+
+static RSXDebugFontRenderer *debugFontRenderer;
 
 static void waitFinish()
 {
@@ -135,7 +139,7 @@ void setRenderTarget(u32 index)
 	sf.colorPitch[2]	= 64;
 	sf.colorPitch[3]	= 64;
 
-	sf.depthFormat		= GCM_SURFACE_ZETA_Z16;
+	sf.depthFormat		= GCM_SURFACE_ZETA_Z24S8;
 	sf.depthLocation	= GCM_LOCATION_RSX;
 	sf.depthOffset		= depth_offset;
 	sf.depthPitch		= depth_pitch;
@@ -156,7 +160,7 @@ void init_screen(void *host_addr,u32 size)
     u32 zs_depth = 4;
     u32 color_depth = 4;
 
-	rsxInit(&context,CB_SIZE,size,host_addr);
+	rsxInit(&context,DEFUALT_CB_SIZE,size,host_addr);
 
 	initVideoConfiguration();
 
@@ -173,8 +177,10 @@ void init_screen(void *host_addr,u32 size)
 		gcmSetDisplayBuffer(i,color_offset[i],color_pitch,display_width,display_height);
 	}
 
-	depth_buffer = (u32*)rsxMemalign(64,(display_height*depth_pitch)*2);
+	depth_buffer = (u32*)rsxMemalign(64, display_height*depth_pitch);
 	rsxAddressToOffset(depth_buffer,&depth_offset);
+
+	debugFontRenderer = new RSXDebugFontRenderer(context);
 }
 
 void waitflip()

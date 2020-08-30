@@ -20,11 +20,6 @@ rsxProgramConst* rsxFragmentProgramGetConsts(const rsxFragmentProgram *fp)
 	return __rsxGetConsts((rsxProgram*) fp);
 }
 
-s32 rsxFragmentProgramGetConstIndex(const rsxFragmentProgram *fp,const char *name)
-{
-	return __rsxGetConstIndex((rsxProgram*) fp, name);
-}
-
 rsxProgramConst* rsxFragmentProgramGetConst(const rsxFragmentProgram *fp,const char *name)
 {
 	rsxProgramConst *fpc = __rsxGetConsts((rsxProgram*) fp);
@@ -43,16 +38,6 @@ u16 rsxFragmentProgramGetNumAttrib(const rsxFragmentProgram *fp)
 rsxProgramAttrib* rsxFragmentProgramGetAttribs(const rsxFragmentProgram *fp)
 {
 	return __rsxGetAttrs((rsxProgram*) fp);
-}
-
-s32 rsxFragmentProgramGetAttribIndex(const rsxFragmentProgram *fp,const char *name)
-{
-	rsxProgramAttrib *attr = __rsxGetAttr((rsxProgram*) fp, name);
-	
-	if (attr != NULL)
-		return attr->index;
-
-	return -1;
 }
 
 rsxProgramAttrib* rsxFragmentProgramGetAttrib(const rsxFragmentProgram *fp,const char *name)

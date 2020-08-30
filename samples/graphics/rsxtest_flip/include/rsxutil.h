@@ -18,8 +18,6 @@
 
 #define FRAME_BUFFER_COUNT					4
 
-extern gcmContextData *gGcmContext;
-
 extern u32 curr_fb;
 
 extern u32 display_width;

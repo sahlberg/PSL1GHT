@@ -38,11 +38,6 @@ rsxProgramConst* rsxVertexProgramGetConst(const rsxVertexProgram *vp,const char 
 	return &vpc[index];
 }
 
-s32 rsxVertexProgramGetConstIndex(const rsxVertexProgram *vp,const char *name)
-{
-	return __rsxGetConstIndex((rsxProgram*) vp, name);
-}
-
 rsxProgramAttrib* rsxVertexProgramGetAttribs(const rsxVertexProgram *vp)
 {
 	return __rsxGetAttrs((rsxProgram*) vp);
@@ -51,14 +46,4 @@ rsxProgramAttrib* rsxVertexProgramGetAttribs(const rsxVertexProgram *vp)
 rsxProgramAttrib* rsxVertexProgramGetAttrib(const rsxVertexProgram *vp,const char *name)
 {
 	return __rsxGetAttr((rsxProgram*) vp, name);
-}
-
-s32 rsxVertexProgramGetAttribIndex(const rsxVertexProgram *vp,const char *name)
-{
-	rsxProgramAttrib *attr = __rsxGetAttr((rsxProgram*) vp, name);
-	
-	if (attr != NULL)
-		return attr->index;
-
-	return -1;
 }

@@ -11,7 +11,6 @@
 #include "rsxutil.h"
 
 videoResolution vResolution;
-gcmContextData *gGcmContext = NULL;
 
 u32 curr_fb = 0;
 
@@ -39,6 +38,9 @@ gcmSurface surface;
 static u32 sLabelVal = 1;
 
 static u32 sResolutionIds[] = {
+    VIDEO_RESOLUTION_1600x1080,
+    VIDEO_RESOLUTION_1440x1080,
+    VIDEO_RESOLUTION_1280x1080,
     VIDEO_RESOLUTION_960x1080,
     VIDEO_RESOLUTION_720,
     VIDEO_RESOLUTION_480,
@@ -229,7 +231,7 @@ void initScreen()
     gcmInitDefaultFifoMode(GCM_DEFAULT_FIFO_MODE_CONDITIONAL);
 
     void *hostAddr = memalign(HOST_ADDR_ALIGNMENT, bufferSize);
-    rsxInit(&gGcmContext, DEFAULT_CB_SIZE, bufferSize, hostAddr);
+    rsxInit(nullptr, DEFAULT_CB_SIZE, bufferSize, hostAddr);
 
     initVideoConfiguration();
 

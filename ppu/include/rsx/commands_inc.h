@@ -213,6 +213,7 @@ void RSX_FUNC(SetZCullLimit)(gcmContextData *context,u16 moveforwardlimit,u16 pu
 void RSX_FUNC(SetZCullControl)(gcmContextData *context,u8 zculldir,u8 zcullformat);
 void RSX_FUNC(SetZCullStatsEnable)(gcmContextData *context,u32 enable);
 void RSX_FUNC(SetPolygonSmoothEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetDitherEnable)(gcmContextData *context,u32 enable);
 
 /*! \brief Setup the render surface.
 
@@ -362,14 +363,11 @@ void RSX_FUNC(LoadVertexProgram)(gcmContextData *context,const rsxVertexProgram 
 */
 void RSX_FUNC(LoadFragmentProgramLocation)(gcmContextData *context,const rsxFragmentProgram *program,u32 offset,u32 location);
 void RSX_FUNC(UpdateFragmentProgramLocation)(gcmContextData *context,u32 offset,u32 location);
-void RSX_FUNC(SetZControl)(gcmContextData *context,u8 cullNearFar,u8 zClampEnable,u8 cullIgnoreW);
-void RSX_FUNC(SetZPixelCountEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetFragmentProgramControl)(gcmContextData *context,const rsxFragmentProgram *program,u8 allowTex,u8 reserved0,u8 reserved1);
 void RSX_FUNC(LoadVertexProgramBlock)(gcmContextData *context,const rsxVertexProgram *program,const void *ucode);
 void RSX_FUNC(LoadVertexProgramParameterBlock)(gcmContextData *context,u32 base_const,u32 const_cnt,const f32 *value); 
 void RSX_FUNC(SetVertexProgramParameter)(gcmContextData *context,const rsxVertexProgram *program,const rsxProgramConst *param,const f32 *value);
-void RSX_FUNC(SetVertexProgramParameterByIndex)(gcmContextData *context,const rsxVertexProgram *program,s32 index,const f32 *value);
 void RSX_FUNC(SetFragmentProgramParameter)(gcmContextData *context,const rsxFragmentProgram *program,const rsxProgramConst *param,const f32 *value,u32 offset,u32 location);
-void RSX_FUNC(SetFragmentProgramParameterByIndex)(gcmContextData *context,const rsxFragmentProgram *program,s32 index,const f32 *value,u32 offset,u32 location);
 void RSX_FUNC(DrawVertexArray)(gcmContextData *context,u32 type,u32 start,u32 count);
 void RSX_FUNC(BindVertexArrayAttrib)(gcmContextData *context,u8 attr,u16 frequency,u32 offset,u8 stride,u8 elems,u8 dtype,u8 location);
 void RSX_FUNC(DrawIndexArray)(gcmContextData *context,u8 type,u32 offset,u32 count,u8 data_type,u8 location);
@@ -385,6 +383,8 @@ void RSX_FUNC(SetLogicOp)(gcmContextData *context,u32 op);
 void RSX_FUNC(SetLogicOpEnable)(gcmContextData *context,u32 enable);
 void RSX_FUNC(SetFogMode)(gcmContextData *context,u32 mode);
 void RSX_FUNC(SetFogParams)(gcmContextData *context,f32 p0,f32 p1);
+void RSX_FUNC(SetZControl)(gcmContextData *context,u8 cullNearFar,u8 zClampEnable,u8 cullIgnoreW);
+void RSX_FUNC(SetZPixelCountEnable)(gcmContextData *context,u32 enable);
 void RSX_FUNC(SetVertexAttribOutputMask)(gcmContextData *context,u32 mask);
 
 /*! \brief Specify pixel arithmetic.

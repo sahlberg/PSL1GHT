@@ -578,6 +578,14 @@ void RSX_FUNC(SetPolygonSmoothEnable)(gcmContextData *context,u32 enable)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
+void RSX_FUNC(SetDitherEnable)(gcmContextData *context,u32 enable)
+{
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_DITHER_ENABLE,1);
+	RSX_CONTEXT_CURRENTP[1] = enable;
+	RSX_CONTEXT_CURRENT_END(2);
+}
+
 void RSX_FUNC(LoadVertexProgramBlock)(gcmContextData *context,const rsxVertexProgram *program,const void *ucode)
 {
 	u32 pos = 0;
@@ -631,7 +639,7 @@ void RSX_FUNC(LoadFragmentProgramLocation)(gcmContextData *context,const rsxFrag
 
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_FP_ADDRESS,1);
-	RSX_CONTEXT_CURRENTP[1] = ((location + 1) | offset);
+	RSX_CONTEXT_CURRENTP[1] = ((location + 1) | (offset&0x1fffffff));
 	RSX_CONTEXT_CURRENT_END(2);
 
 	texcoords = program->texcoords;
@@ -664,7 +672,21 @@ void RSX_FUNC(UpdateFragmentProgramLocation)(gcmContextData *context,u32 offset,
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_FP_ADDRESS,1);
-	RSX_CONTEXT_CURRENTP[1] = ((location + 1) | offset);
+	RSX_CONTEXT_CURRENTP[1] = ((location + 1) | (offset&0x1fffffff));
+	RSX_CONTEXT_CURRENT_END(2);
+}
+
+void RSX_FUNC(SetFragmentProgramControl)(gcmContextData *context,const rsxFragmentProgram *program,u8 allowTex,u8 reserved0,u8 reserved1)
+{
+	u32 num_regs = program->num_regs > 2 ? program->num_regs : 2;
+	u32 fpcontrol = program->fp_control | ((allowTex<<15)&0x00008000) | (num_regs << NV40TCL_FP_CONTROL_TEMP_COUNT_SHIFT) | (1<<10);
+
+	(void)reserved0;
+	(void)reserved1;
+
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_FP_CONTROL,1);
+	RSX_CONTEXT_CURRENTP[1] = fpcontrol;
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
@@ -743,12 +765,6 @@ void RSX_FUNC(SetVertexProgramParameter)(gcmContextData *context,const rsxVertex
 	RSX_FUNC_INTERNAL(SetVertexProgramParameter)(context, program, param, value);
 }
 
-void RSX_FUNC(SetVertexProgramParameterByIndex)(gcmContextData *context,const rsxVertexProgram *program,s32 index,const f32 *value)
-{
-	rsxProgramConst *consts = rsxVertexProgramGetConsts(program);
-	RSX_FUNC_INTERNAL(SetVertexProgramParameter)(context, program, &consts[index], value);
-}
-
 void RSX_FUNC(SetVertexAttribOutputMask)(gcmContextData *context,u32 mask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
@@ -824,12 +840,6 @@ static inline __attribute__((always_inline)) void RSX_FUNC_INTERNAL(SetFragmentP
 void RSX_FUNC(SetFragmentProgramParameter)(gcmContextData *context,const rsxFragmentProgram *program,const rsxProgramConst *param,const f32 *value,u32 offset,u32 location)
 {
 	RSX_FUNC_INTERNAL(SetFragmentProgramParameter)(context, program, param, value, offset, location);
-}
-
-void RSX_FUNC(SetFragmentProgramParameterByIndex)(gcmContextData *context,const rsxFragmentProgram *program,s32 index,const f32 *value,u32 offset,u32 location)
-{
-	rsxProgramConst *consts = rsxFragmentProgramGetConsts(program);
-	RSX_FUNC_INTERNAL(SetFragmentProgramParameter)(context, program, &consts[index], value, offset, location);
 }
 
 void RSX_FUNC(DrawVertexBegin)(gcmContextData *context,u32 type)

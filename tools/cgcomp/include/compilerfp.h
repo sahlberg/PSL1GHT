@@ -37,6 +37,7 @@ public:
 
 private:
 	void Prepare(CParser *pParser);
+	void RemapHRegs(CParser *pParser);
 
 	void emit_insn(struct nvfx_insn *insn,u8 op);
 	void emit_dst(struct nvfx_insn *insn,bool *have_const);
@@ -108,7 +109,8 @@ private:
 	int m_rTemps;
 	int m_rTempsDiscard;
 
-	u8 m_HWRegs[NUM_HW_REGS];
+	u8 m_RRegs[NUM_HW_REGS];
+	u8 m_HRegs[NUM_HW_REGS];
 
 	std::list<param> m_lParameters;
 	std::list<struct fragment_program_data> m_lConstData;

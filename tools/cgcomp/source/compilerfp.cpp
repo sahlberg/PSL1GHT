@@ -36,7 +36,8 @@ void CCompilerFP::Prepare(CParser *pParser)
 	int i,j,nCount = pParser->GetInstructionCount();
 	struct nvfx_insn *insns = pParser->GetInstructions();
 
-	memset(m_HWRegs, 0, NUM_HW_REGS);
+	memset(m_RRegs, 0, NUM_HW_REGS);
+	memset(m_HRegs, 0, NUM_HW_REGS);
 	m_lParameters = pParser->GetParameters();
 
 	for(i=0;i<nCount;i++) {
@@ -57,6 +58,70 @@ void CCompilerFP::Prepare(CParser *pParser)
 		switch(insn->dst.type) {
 			case NVFXSR_TEMP:
 				reserveReg(insn->dst);
+				break;
+		}
+	}
+
+	RemapHRegs(pParser);
+}
+
+void CCompilerFP::RemapHRegs(CParser *pParser)
+{
+	u32 nCount = pParser->GetInstructionCount();
+	struct nvfx_insn *insns = pParser->GetInstructions();
+	u32 usedHRegs[NUM_HW_REGS];
+	s32 mappedHRegs[NUM_HW_REGS];
+
+	memset(usedHRegs, 0, sizeof(u32)*NUM_HW_REGS);
+	memset(mappedHRegs, -1, sizeof(s32)*NUM_HW_REGS);
+
+	// set used for all R-regs
+	for (u32 i=0;i < NUM_HW_REGS/2;i++) {
+		if (m_RRegs[i]) {
+			usedHRegs[(i*2) + 0] = 1;
+			usedHRegs[(i*2) + 1] = 1;
+		}
+	}
+
+	// set used for all H-regs
+	for (u32 i=0;i < NUM_HW_REGS;i++) {
+		if (m_HRegs[i] && !m_RRegs[i>>1]) {
+			mappedHRegs[i] = i;
+			usedHRegs[i] = 1;
+		}
+	}
+
+	// create remapping map
+	for (u32 i=0, j=0;i < NUM_HW_REGS;i++) {
+		if (!usedHRegs[i] && mappedHRegs[i] == -1)
+			mappedHRegs[j++] = i;
+	}
+
+	// now remap H-regs
+	for(u32 i=0;i<nCount;i++) {
+		struct nvfx_insn *insn = &insns[i];
+
+		for(u32 j=0;j<3;j++) {
+			struct nvfx_src *src = &insn->src[j];
+
+			switch(src->reg.type) {
+				case NVFXSR_INPUT:
+					break;
+				case NVFXSR_TEMP:
+					if (src->reg.is_fp16) {
+						src->reg.index = mappedHRegs[src->reg.index];
+						reserveReg(src->reg);
+					}
+					break;
+			}
+		}
+
+		switch(insn->dst.type) {
+			case NVFXSR_TEMP:
+				if (insn->dst.is_fp16) {
+					insn->dst.index = mappedHRegs[insn->dst.index];
+					reserveReg(insn->dst);
+				}
 				break;
 		}
 	}
@@ -678,7 +743,10 @@ struct nvfx_reg CCompilerFP::imm(f32 x, f32 y, f32 z, f32 w)
 void CCompilerFP::reserveReg(const struct nvfx_reg& reg)
 {
 	u32 index = reg.is_fp16 ? (reg.index >> 1) : reg.index;
-	m_HWRegs[index] |= reg.is_fp16 ? (1 << (reg.index&0x01)) : 0x03;
+	if (reg.is_fp16)
+		m_HRegs[reg.index] = 1;
+	else
+		m_RRegs[reg.index] = 1;
 	m_rTemps |= (1 << index);
 }
 

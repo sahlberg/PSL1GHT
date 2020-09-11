@@ -3,16 +3,24 @@
 #include <gcm_sys.h>
 #include <sys/heap.h>
 
+#define SAFE_AREA			4096
+
 static gcmConfiguration __rsx_config;
 
 static heap_cntrl __rsx_heap;
-static u64 __rsxheap_initialized = 0;
+static u32 __rsxheap_initialized = 0;
 
 s64 rsxHeapInit()
 {
 	if(!__rsxheap_initialized) {
+		void *heapBuffer;
+		u32 heapBufferSize;
+
 		gcmGetConfiguration(&__rsx_config);
-		heapInit(&__rsx_heap,__rsx_config.localAddress,__rsx_config.localSize);
+		
+		heapBuffer = __rsx_config.localAddress;
+		heapBufferSize = __rsx_config.localSize - SAFE_AREA;
+		heapInit(&__rsx_heap,heapBuffer,heapBufferSize);
 		__rsxheap_initialized = 1;
 	}
 

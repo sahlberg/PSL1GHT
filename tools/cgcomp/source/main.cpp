@@ -72,7 +72,7 @@ _cgCreateProgramFromFile cgCreateProgramFromFile=NULL;
 _cgGetProgramString cgGetProgramString=NULL;
 _cgGetLastListing cgGetLastListing=NULL;
 
-static const char *cgDefArgs[] = { "-O3", "-bestprecision", "-unroll", "count=4", "-ifcvt", "all", NULL };
+static const char *cgDefArgs[] = { "-O3", "-fastmath", "-fastprecision", "-unroll", "count=8", "-ifcvt", "all", NULL };
 static size_t numCgDefArgs = sizeof(cgDefArgs)/sizeof(char*);
 
 static bool InitCompiler()
@@ -453,16 +453,19 @@ int compileFP()
 
 		std::list<struct fragment_program_data> const_relocs = compiler.GetConstRelocations();
 		for(std::list<param>::iterator it = params.begin();it!=params.end();it++) {
-			if(it->is_const && !it->is_internal) {
-				for(i=0;i<it->count;i++) {
+			const auto& param = *it; 
+			if(param.is_const && !param.is_internal) {
+				for(i=0;i<param.count;i++) {
 					s32 k = 0;
 					rsxConstOffsetTable *const_table = (rsxConstOffsetTable*)(fragmentprogram + lastoff);
 					
 					const_table->num = SWAP32(0);
 					for(std::list<struct fragment_program_data>::iterator d=const_relocs.begin();d!=const_relocs.end();d++) {
-						if(d->index==(it->index + i)) {
-							const_table->offset[k++] = SWAP32((d->offset*16));
-							d->user = lastoff;
+						auto& reloc = *d;
+						if(reloc.index==(param.index + i)) {
+							u32 offs = (reloc.offset*16);
+							const_table->offset[k++] = SWAP32(offs);
+							reloc.user = lastoff;
 						}
 					}
 					const_table->num = SWAP32(k);

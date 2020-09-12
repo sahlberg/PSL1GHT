@@ -92,9 +92,13 @@ void CCompilerFP::RemapHRegs(CParser *pParser)
 	}
 
 	// create remapping map
-	for (u32 i=0, j=0;i < NUM_HW_REGS;i++) {
-		if (!usedHRegs[i] && mappedHRegs[i] == -1)
-			mappedHRegs[j++] = i;
+	for (u32 i=0, j=0, k=0;i < NUM_HW_REGS;i++) {
+		if (!usedHRegs[i] && mappedHRegs[i] == -1 && mappedHRegs[j] == -1)
+			mappedHRegs[j++] = k++;
+		else if (mappedHRegs[j] == -1)
+			k++;
+		if (mappedHRegs[j] != -1)
+			j++;
 	}
 
 	// now remap H-regs
@@ -613,17 +617,17 @@ void CCompilerFP::emit_lrp(struct nvfx_insn *insn)
 void CCompilerFP::emit_pow(struct nvfx_insn *insn)
 {
 	struct nvfx_insn tmp_insn;
-	struct nvfx_src src = nvfx_src(insn->dst);
+	struct nvfx_src tmp = nvfx_src(temp());
 	struct nvfx_src none = nvfx_src(nvfx_reg(NVFXSR_NONE,0));
 
-	tmp_insn = arith(0,insn->dst, NVFX_FP_MASK_X, insn->src[0], none, none);
-	emit_insn(&tmp_insn,NVFX_FP_OP_OPCODE_LG2);
+	tmp_insn = arith(0, tmp.reg, NVFX_FP_MASK_X, insn->src[0], none, none);
+	emit_insn(&tmp_insn, NVFX_FP_OP_OPCODE_LG2);
 
-	tmp_insn = arith(0,insn->dst, NVFX_FP_MASK_X, swz(src, X, X, X, X),insn->src[1], none);
-	emit_insn(&tmp_insn,NVFX_FP_OP_OPCODE_MUL);
+	tmp_insn = arith(0, tmp.reg, NVFX_FP_MASK_X, swz(tmp, X, X, X, X), insn->src[1], none);
+	emit_insn(&tmp_insn, NVFX_FP_OP_OPCODE_MUL);
 
-	tmp_insn = arith_ctor(insn,insn->dst,swz(src, X, X, X, X), none, none);
-	emit_insn(&tmp_insn,NVFX_FP_OP_OPCODE_EX2);
+	tmp_insn = arith_ctor(insn, insn->dst, swz(tmp, X, X, X, X), none, none);
+	emit_insn(&tmp_insn, NVFX_FP_OP_OPCODE_EX2);
 }
 
 void CCompilerFP::emit_lit(struct nvfx_insn *insn)

@@ -23,7 +23,7 @@ else
 endif
 
 CFLAGS		+=	$(INCLUDES)
-CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
+CXXFLAGS	:=	$(CFLAGS)
 CGTOOLKIT	:= 	echo Linux and Mac users should install Cg Toolkit package from NVIDIA web site.
 
 LDFLAGS	=	$(DEBUGFLAGS)

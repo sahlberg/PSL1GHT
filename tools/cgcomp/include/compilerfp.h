@@ -61,8 +61,9 @@ private:
 	int grow_insns(int count);
 
 	void reserveReg(const struct nvfx_reg& reg);
-	struct nvfx_reg temp();
+	struct nvfx_reg temp(struct nvfx_insn *insn);
 	void release_temps();
+	bool canUseTempFp16(struct nvfx_insn *insn);
 
 	struct nvfx_reg imm(f32 x, f32 y, f32 z, f32 w);
 
@@ -106,8 +107,11 @@ private:
 	int m_nCurInstruction;
 	struct fragment_program_exec *m_pInstructions;
 
-	int m_rTemps;
-	int m_rTempsDiscard;
+	u64 m_rTemps;
+	u64 m_rTempsDiscard;
+
+	u64 m_hTemps;
+	u64 m_hTempsDiscard;
 
 	u8 m_RRegs[NUM_HW_REGS];
 	u8 m_HRegs[NUM_HW_REGS];

@@ -546,7 +546,8 @@ struct nvfx_reg CCompilerVP::temp()
 {
 	s32 idx = __builtin_ctzll(~m_rTemps);
 
-	if(idx<0) return nvfx_reg(NVFXSR_NONE,0);
+	if(idx<0)
+		throw std::runtime_error("Error: No temprary register left to allocate.");
 
 	m_rTemps |= (1<<idx);
 	m_rTempsDiscard |= (1<<idx);

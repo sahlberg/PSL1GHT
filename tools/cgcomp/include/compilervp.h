@@ -76,8 +76,8 @@ private:
 	int m_nConsts;
 	struct vertex_program_data *m_pConstData;
 
-	int m_rTemps;
-	int m_rTempsDiscard;
+	u64 m_rTemps;
+	u64 m_rTempsDiscard;
 
 	struct nvfx_reg *m_rConst;
 

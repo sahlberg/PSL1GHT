@@ -58,6 +58,9 @@ void CCompilerFP::Prepare(CParser *pParser)
 		}
 
 		switch(insn->dst.type) {
+			case NVFXSR_OUTPUT:
+				reserveReg(insn->dst);
+				break;
 			case NVFXSR_TEMP:
 				reserveReg(insn->dst);
 				break;

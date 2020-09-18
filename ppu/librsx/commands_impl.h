@@ -692,20 +692,38 @@ void RSX_FUNC(SetFragmentProgramControl)(gcmContextData *context,const rsxFragme
 
 void RSX_FUNC(LoadVertexProgramParameterBlock)(gcmContextData *context,u32 base_const,u32 const_cnt,const f32 *value)
 {
-	u32 i,curr = 0;
+	u32 i, curr = 0;
+	u32 block_cnt = ((const_cnt*4)>>5);
+	u32 block_rem = ((const_cnt*4)&0x1f);
+	u32 reserve = block_cnt*34 + (block_rem!=0 ? 2 + block_rem : 0);
 
-	RSX_CONTEXT_CURRENT_BEGIN(const_cnt*6);
+	RSX_CONTEXT_CURRENT_BEGIN(reserve);
 
-	for(i=0;i<const_cnt;i++) {
-		RSX_CONTEXT_CURRENTP[curr+0] = RSX_METHOD(NV40TCL_VP_UPLOAD_CONST_ID,5);
-		RSX_CONTEXT_CURRENTP[curr+1] = base_const + i;
-		
-		RSX_MEMCPY(&RSX_CONTEXT_CURRENTP[curr+2],value,sizeof(f32)*4);
+	for(i=0;i<block_cnt;i++) {
+		u32 loadAt = base_const + i*8;
 
-		value += 4;
-		curr += 6;
+		RSX_CONTEXT_CURRENTP[curr+0] = RSX_METHOD(NV40TCL_VP_UPLOAD_CONST_ID,33);
+		RSX_CONTEXT_CURRENTP[curr+1] = loadAt;
+
+		RSX_MEMCPY(&RSX_CONTEXT_CURRENTP[curr+2],value,sizeof(f32)*16);
+		RSX_MEMCPY(&RSX_CONTEXT_CURRENTP[curr+18],&value[16],sizeof(f32)*16);
+		curr += 34;
+		value += 32;
 	}
-	RSX_CONTEXT_CURRENT_END(const_cnt*6);
+
+	if (block_rem) {
+		RSX_CONTEXT_CURRENTP[curr++] = RSX_METHOD(NV40TCL_VP_UPLOAD_CONST_ID,block_rem + 1);
+		RSX_CONTEXT_CURRENTP[curr++] = base_const + block_cnt*8;
+
+		block_rem >>= 2;
+		for(i=0;i < block_rem;i++) {
+			RSX_MEMCPY(&RSX_CONTEXT_CURRENTP[curr],value,sizeof(f32)*4);
+			curr += 4;
+			value += 4;
+		}
+	}
+
+	RSX_CONTEXT_CURRENT_END(reserve);
 }
 
 void RSX_FUNC(LoadVertexProgram)(gcmContextData *context,const rsxVertexProgram *program,const void *ucode)
@@ -763,6 +781,43 @@ static inline __attribute__((always_inline)) void RSX_FUNC_INTERNAL(SetVertexPro
 void RSX_FUNC(SetVertexProgramParameter)(gcmContextData *context,const rsxVertexProgram *program,const rsxProgramConst *param,const f32 *value)
 {
 	RSX_FUNC_INTERNAL(SetVertexProgramParameter)(context, program, param, value);
+}
+
+void RSX_FUNC(SetVertexProgramConstants)(gcmContextData *context,u32 start,u32 count,const f32 *data)
+{
+	u32 i;
+	u32 loop = count>>5;
+	u32 rest = count&0x1f;
+	const f32* __restrict value = data;
+	u32 reserve = loop*34 + (rest!=0 ? 2 + rest : 0);
+
+	RSX_CONTEXT_CURRENT_BEGIN(reserve);
+
+	for(i=0;i < loop;i++) {
+		u32 loadAt = start + i*8;
+
+		RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VP_UPLOAD_CONST_ID,33);
+		RSX_CONTEXT_CURRENTP[1] = loadAt;
+
+		RSX_MEMCPY(&RSX_CONTEXT_CURRENTP[2],value,sizeof(f32)*16);
+		RSX_MEMCPY(&RSX_CONTEXT_CURRENTP[18],value,sizeof(f32)*16);
+		RSX_CONTEXT_CURRENTP += 34;
+		value += 32;
+	}
+
+	if (rest) {
+		RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VP_UPLOAD_CONST_ID,rest + 1);
+		RSX_CONTEXT_CURRENTP[1] = start + (loop<<3);
+		RSX_CONTEXT_CURRENTP += 2;
+
+		for(i=0;i < rest;i++) {
+			RSX_CONTEXT_CURRENTP[0] = *value;
+			RSX_CONTEXT_CURRENTP++;
+			value++;
+		}
+	}
+
+	RSX_CONTEXT_CURRENT_END(reserve);
 }
 
 void RSX_FUNC(SetVertexAttribOutputMask)(gcmContextData *context,u32 mask)
@@ -840,6 +895,14 @@ static inline __attribute__((always_inline)) void RSX_FUNC_INTERNAL(SetFragmentP
 void RSX_FUNC(SetFragmentProgramParameter)(gcmContextData *context,const rsxFragmentProgram *program,const rsxProgramConst *param,const f32 *value,u32 offset,u32 location)
 {
 	RSX_FUNC_INTERNAL(SetFragmentProgramParameter)(context, program, param, value, offset, location);
+}
+
+void RSX_FUNC(SetFragmentProgramGammaEnable)(gcmContextData *context,u32 enable)
+{
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_FP_PACKER,1);
+	RSX_CONTEXT_CURRENTP[1] = enable;
+	RSX_CONTEXT_CURRENT_END(2);
 }
 
 void RSX_FUNC(DrawVertexBegin)(gcmContextData *context,u32 type)
@@ -924,6 +987,14 @@ void RSX_FUNC(DrawVertex4ub)(gcmContextData *context,u8 idx,const u8 v[4])
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_VTX_ATTR_4UB(idx),1);
 	RSX_CONTEXT_CURRENTP[1] = (v[0] | (v[1]<<8) | (v[2]<<16) | (v[3]<<24));
+	RSX_CONTEXT_CURRENT_END(2);
+}
+
+void RSX_FUNC(SetFrequencyDividerOperation)(gcmContextData *context,u16 operation)
+{
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_DIVIDER_FREQUENCY_OP,1);
+	RSX_CONTEXT_CURRENTP[1] = operation;
 	RSX_CONTEXT_CURRENT_END(2);
 }
 

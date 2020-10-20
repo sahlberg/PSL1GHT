@@ -102,7 +102,7 @@ struct _opcode
    { "TXB", OPCODE_TXB, INPUT_1V_T, OUTPUT_V,              _C | _S },
    { "TXD", OPCODE_TXD, INPUT_3V_T, OUTPUT_V,              _C | _S },
    { "TXL", OPCODE_TXL, INPUT_1V_T, OUTPUT_V,              _C | _S },
-   { "TXP", OPCODE_TXP_NV, INPUT_1V_T, OUTPUT_V,           _C | _S },
+   { "TXP", OPCODE_TXP, INPUT_1V_T, OUTPUT_V,           _C | _S },
    { "UP2H",  OPCODE_UP2H,  INPUT_1S, OUTPUT_V,            _C | _S },
    { "UP2US", OPCODE_UP2US, INPUT_1S, OUTPUT_V,            _C | _S },
    { "UP4B",  OPCODE_UP4B,  INPUT_1S, OUTPUT_V,            _C | _S },

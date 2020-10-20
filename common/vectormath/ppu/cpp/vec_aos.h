@@ -593,7 +593,7 @@ inline bool Vector3::operator != (const Vector3& vec) const
 
 inline bool Vector3::operator < (const Vector3& vec) const
 {
-	return vec_all_gt(vec_cmpgt(vec_sel(vec.mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F), vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
+	return vec_all_gt(vec_cmplt(vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F), vec_sel(vec.mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
 }
 
 inline bool Vector3::operator <= (const Vector3& vec) const

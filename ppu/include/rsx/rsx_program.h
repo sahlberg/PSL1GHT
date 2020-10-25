@@ -7,20 +7,25 @@
 
 #include <ppu-types.h>
 
-#define PARAM_FLOAT				0
-#define PARAM_FLOAT1			1
-#define PARAM_FLOAT2			2
-#define PARAM_FLOAT3			3
-#define PARAM_FLOAT4			4
-#define PARAM_FLOAT3x4			5
-#define PARAM_FLOAT4x4			6
-#define PARAM_FLOAT3x3			7
-#define PARAM_FLOAT4x3			8
-#define PARAM_SAMPLER1D			9
-#define PARAM_SAMPLER2D			10
-#define PARAM_SAMPLER3D			11
-#define PARAM_SAMPLERCUBE		12
-#define PARAM_SAMPLERRECT		13
+#define PARAM_BOOL				0
+#define PARAM_BOOL1				1
+#define PARAM_BOOL2				2
+#define PARAM_BOOL3				3
+#define PARAM_BOOL4				4
+#define PARAM_FLOAT				5
+#define PARAM_FLOAT1			6
+#define PARAM_FLOAT2			7
+#define PARAM_FLOAT3			8
+#define PARAM_FLOAT4			9
+#define PARAM_FLOAT3x4			10
+#define PARAM_FLOAT4x4			11
+#define PARAM_FLOAT3x3			12
+#define PARAM_FLOAT4x3			13
+#define PARAM_SAMPLER1D			14
+#define PARAM_SAMPLER2D			15
+#define PARAM_SAMPLER3D			16
+#define PARAM_SAMPLERCUBE		17
+#define PARAM_SAMPLERRECT		18
 #define PARAM_UNKNOWN			0xff
 
 #ifdef __cplusplus

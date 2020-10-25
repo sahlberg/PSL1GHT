@@ -7,6 +7,11 @@
 
 static paramtype paramtypes[] =
 {
+	{ "bool", PARAM_BOOL },
+	{ "bool1", PARAM_BOOL1 },
+	{ "bool2", PARAM_BOOL2 },
+	{ "bool3", PARAM_BOOL3 },
+	{ "bool4", PARAM_BOOL4 },
 	{ "float", PARAM_FLOAT },
 	{ "float1", PARAM_FLOAT1 },
 	{ "float2", PARAM_FLOAT2 },

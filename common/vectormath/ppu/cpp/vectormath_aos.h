@@ -183,6 +183,14 @@ public:
     // 
     inline const Vector3 operator /( floatInVec scalar ) const;
 
+    // Multiply a 3-D vector by a 3-D vector
+    // 
+    inline const Vector3 operator *( Vector3 vec ) const;
+
+    // Divide a 3-D vector by a 3-D vector
+    // 
+    inline const Vector3 operator /( Vector3 vec ) const;
+
     // Perform compound assignment and addition with a 3-D vector
     // 
     inline Vector3 & operator +=( Vector3 vec );
@@ -206,6 +214,14 @@ public:
     // Perform compound assignment and division by a scalar (scalar data contained in vector data type)
     // 
     inline Vector3 & operator /=( floatInVec scalar );
+
+    // Perform compound assignment and multiplication by a 3-D vector
+    // 
+    inline Vector3 & operator *=( Vector3 vec );
+
+    // Perform compound assignment and division by a 3-D vector
+    // 
+    inline Vector3 & operator /=( Vector3 vec );
 
     // Negate all elements of a 3-D vector
     // 
@@ -604,6 +620,14 @@ public:
     // 
     inline const Vector4 operator /( floatInVec scalar ) const;
 
+    // Multiply a 4-D vector by a 4-D vector
+    // 
+    inline const Vector4 operator *( Vector4 vec ) const;
+
+    // Divide a 4-D vector by a 4-D vector
+    // 
+    inline const Vector4 operator /( Vector4 vec ) const;
+
     // Perform compound assignment and addition with a 4-D vector
     // 
     inline Vector4 & operator +=( Vector4 vec );
@@ -627,6 +651,14 @@ public:
     // Perform compound assignment and division by a scalar (scalar data contained in vector data type)
     // 
     inline Vector4 & operator /=( floatInVec scalar );
+
+    // Perform compound assignment and multiplication by a 4-D vector
+    // 
+    inline Vector4 & operator *=( Vector4 vec );
+
+    // Perform compound assignment and division by a 4-D vector
+    // 
+    inline Vector4 & operator /=( Vector4 vec );
 
     // Negate all elements of a 4-D vector
     // 

@@ -834,6 +834,89 @@ static inline __attribute__((always_inline)) void RSX_FUNC_INTERNAL(SetFragmentP
 	f32 params[4] = {0.0f,0.0f,0.0f,0.0f};
 
 	switch(param->type) {
+		case PARAM_FLOAT:
+		case PARAM_FLOAT1:
+		case PARAM_BOOL:
+		case PARAM_BOOL1:
+		{
+			if(param->index!=0xffffffff) {
+				rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param->index);
+
+				params[0] = swapF32_16(value[0]);
+
+				for(i=0;i<co_table->num;i++)
+					RSX_FUNC(InlineTransfer)(context,offset + co_table->offset[i],params,1,location);
+			}
+			return;
+		}
+
+		case PARAM_FLOAT2:
+		case PARAM_BOOL2:
+		{
+			if(param->index!=0xffffffff) {
+				rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param->index);
+
+				params[0] = swapF32_16(value[0]);
+				params[1] = swapF32_16(value[1]);
+
+				for(i=0;i<co_table->num;i++)
+					RSX_FUNC(InlineTransfer)(context,offset + co_table->offset[i],params,2,location);
+			}
+			return;
+		}
+
+		case PARAM_FLOAT3:
+		case PARAM_BOOL3:
+		{
+			if(param->index!=0xffffffff) {
+				rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param->index);
+
+				params[0] = swapF32_16(value[0]);
+				params[1] = swapF32_16(value[1]);
+				params[2] = swapF32_16(value[2]);
+
+				for(i=0;i<co_table->num;i++)
+					RSX_FUNC(InlineTransfer)(context,offset + co_table->offset[i],params,3,location);
+			}
+			return;
+		}
+
+		case PARAM_FLOAT4:
+		case PARAM_BOOL4:
+		{
+			if(param->index!=0xffffffff) {
+				rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param->index);
+
+				params[0] = swapF32_16(value[0]);
+				params[1] = swapF32_16(value[1]);
+				params[2] = swapF32_16(value[2]);
+				params[3] = swapF32_16(value[3]);
+
+				for(i=0;i<co_table->num;i++)
+					RSX_FUNC(InlineTransfer)(context,offset + co_table->offset[i],params,4,location);
+			}
+			return;
+		}
+
+		case PARAM_FLOAT3x3:
+		case PARAM_FLOAT4x3:
+		{
+			s32 j,cnt = param->count;
+			for(j=0;j<cnt;j++,value+=3) {
+				if(param[j].index!=0xffffffff) {
+					rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param[j].index);
+
+					params[0] = swapF32_16(value[0]);
+					params[1] = swapF32_16(value[1]);
+					params[2] = swapF32_16(value[2]);
+
+					for(i=0;i<co_table->num;i++)
+						RSX_FUNC(InlineTransfer)(context,offset + co_table->offset[i],params,3,location);
+				}
+			}
+			return;
+		}
+
 		case PARAM_FLOAT3x4:
 		case PARAM_FLOAT4x4:
 		{
@@ -853,42 +936,6 @@ static inline __attribute__((always_inline)) void RSX_FUNC_INTERNAL(SetFragmentP
 			}
 			return;
 		}
-
-		case PARAM_FLOAT3x3:
-		case PARAM_FLOAT4x3:
-		{
-			s32 j,cnt = param->count;
-			for(j=0;j<cnt;j++,value+=3) {
-				if(param[j].index!=0xffffffff) {
-					rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param[j].index);
-
-					params[0] = swapF32_16(value[0]);
-					params[1] = swapF32_16(value[1]);
-					params[2] = swapF32_16(value[2]);
-
-					for(i=0;i<co_table->num;i++)
-						RSX_FUNC(InlineTransfer)(context,offset + co_table->offset[i],params,4,location);
-				}
-			}
-			return;
-		}
-
-		case PARAM_FLOAT4:
-			params[3] = swapF32_16(value[3]);
-		case PARAM_FLOAT3:
-			params[2] = swapF32_16(value[2]);
-		case PARAM_FLOAT2:
-			params[1] = swapF32_16(value[1]);
-		case PARAM_FLOAT:
-			params[0] = swapF32_16(value[0]);
-			break;
-	}
-
-	if(param->index!=0xffffffff) {
-		rsxConstOffsetTable *co_table = rsxFragmentProgramGetConstOffsetTable(program,param->index);
-
-		for(i=0;i<co_table->num;i++)
-			RSX_FUNC(InlineTransfer)(context,offset + co_table->offset[i],params,4,location);
 	}
 }
 

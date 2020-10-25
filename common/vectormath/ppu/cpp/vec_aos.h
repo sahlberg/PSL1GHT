@@ -535,6 +535,11 @@ inline const Vector3 Vector3::operator *( floatInVec scalar ) const
     return Vector3( vec_madd( mVec128, scalar.get128(), ((vec_float4){0.0f,0.0f,0.0f,0.0f}) ) );
 }
 
+inline const Vector3 Vector3::operator *( Vector3 vec ) const
+{
+    return Vector3( vec_madd( mVec128, vec.mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}) ) );
+}
+
 inline Vector3 & Vector3::operator +=( Vector3 vec )
 {
     *this = *this + vec;
@@ -559,6 +564,12 @@ inline Vector3 & Vector3::operator *=( floatInVec scalar )
     return *this;
 }
 
+inline Vector3 & Vector3::operator *=( Vector3 vec)
+{
+    *this = *this * vec;
+    return *this;
+}
+
 inline const Vector3 Vector3::operator /( float scalar ) const
 {
     return *this / floatInVec(scalar);
@@ -567,6 +578,11 @@ inline const Vector3 Vector3::operator /( float scalar ) const
 inline const Vector3 Vector3::operator /( floatInVec scalar ) const
 {
     return Vector3( divf4( mVec128, scalar.get128() ) );
+}
+
+inline const Vector3 Vector3::operator /( Vector3 vec ) const
+{
+    return Vector3( divf4( mVec128, vec.mVec128 ) );
 }
 
 inline Vector3 & Vector3::operator /=( float scalar )
@@ -578,6 +594,12 @@ inline Vector3 & Vector3::operator /=( float scalar )
 inline Vector3 & Vector3::operator /=( floatInVec scalar )
 {
     *this = *this / scalar;
+    return *this;
+}
+
+inline Vector3 & Vector3::operator /=( Vector3 vec )
+{
+    *this = *this / vec;
     return *this;
 }
 
@@ -1013,6 +1035,11 @@ inline const Vector4 Vector4::operator *( floatInVec scalar ) const
     return Vector4( vec_madd( mVec128, scalar.get128(), ((vec_float4){0.0f,0.0f,0.0f,0.0f}) ) );
 }
 
+inline const Vector4 Vector4::operator *( Vector4 vec ) const
+{
+    return Vector4( vec_madd( mVec128, vec.mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}) ) );
+}
+
 inline Vector4 & Vector4::operator +=( Vector4 vec )
 {
     *this = *this + vec;
@@ -1037,6 +1064,12 @@ inline Vector4 & Vector4::operator *=( floatInVec scalar )
     return *this;
 }
 
+inline Vector4 & Vector4::operator *=( Vector4 vec )
+{
+    *this = *this * vec;
+    return *this;
+}
+
 inline const Vector4 Vector4::operator /( float scalar ) const
 {
     return *this / floatInVec(scalar);
@@ -1045,6 +1078,11 @@ inline const Vector4 Vector4::operator /( float scalar ) const
 inline const Vector4 Vector4::operator /( floatInVec scalar ) const
 {
     return Vector4( divf4( mVec128, scalar.get128() ) );
+}
+
+inline const Vector4 Vector4::operator /( Vector4 vec ) const
+{
+    return Vector4( divf4( mVec128, vec.mVec128 ) );
 }
 
 inline Vector4 & Vector4::operator /=( float scalar )
@@ -1056,6 +1094,12 @@ inline Vector4 & Vector4::operator /=( float scalar )
 inline Vector4 & Vector4::operator /=( floatInVec scalar )
 {
     *this = *this / scalar;
+    return *this;
+}
+
+inline Vector4 & Vector4::operator /=( Vector4 vec )
+{
+    *this = *this / vec;
     return *this;
 }
 
@@ -1076,7 +1120,7 @@ inline bool Vector4::operator != (const Vector4& vec) const
 
 inline bool Vector4::operator < (const Vector4& vec) const
 {
-	return vec_all_gt(vec_cmpgt(vec.mVec128, mVec128),((vec_uint4){0,0,0,0}));
+	return vec_all_gt(vec_cmplt(vec.mVec128, mVec128),((vec_uint4){0,0,0,0}));
 }
 
 inline bool Vector4::operator <= (const Vector4& vec) const
@@ -1491,7 +1535,7 @@ inline bool Point3::operator != (const Point3& pnt) const
 
 inline bool Point3::operator < (const Point3& pnt) const
 {
-	return vec_all_gt(vec_cmpgt(vec_sel(pnt.mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F), vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
+	return vec_all_gt(vec_cmplt(vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F), vec_sel(pnt.mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
 }
 
 inline bool Point3::operator <= (const Point3& pnt) const

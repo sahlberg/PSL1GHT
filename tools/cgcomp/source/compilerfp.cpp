@@ -183,7 +183,7 @@ void CCompilerFP::Compile(CParser *pParser)
 			case OPCODE_FRC:
 				emit_insn(insn,NVFX_FP_OP_OPCODE_FRC);
 				break;
-			case OPCODE_KIL_NV:
+			case OPCODE_KIL:
 				emit_insn(insn,NVFX_FP_OP_OPCODE_KIL);
 				break;
 			case OPCODE_LG2:
@@ -213,8 +213,17 @@ void CCompilerFP::Compile(CParser *pParser)
 			case OPCODE_NRM3:
 				emit_insn(insn,NVFX_FP_OP_OPCODE_NRM);
 				break;
+			case OPCODE_PK4B:
+				emit_insn(insn,NVFX_FP_OP_OPCODE_PK4B);
+				break;
+			case OPCODE_PK4UB:
+				emit_insn(insn,NVFX_FP_OP_OPCODE_PK4UB);
+				break;
 			case OPCODE_PK2H:
 				emit_insn(insn,NVFX_FP_OP_OPCODE_PK2H);
+				break;
+			case OPCODE_PK2US:
+				emit_insn(insn,NVFX_FP_OP_OPCODE_PK2US);
 				break;
 			case OPCODE_POW:
 				emit_pow(insn);
@@ -261,8 +270,17 @@ void CCompilerFP::Compile(CParser *pParser)
 			case OPCODE_TXP:
 				emit_tex(insn,NVFX_FP_OP_OPCODE_TXP);
 				break;
+			case OPCODE_UP4B:
+				emit_insn(insn,NVFX_FP_OP_OPCODE_UP4B);
+				break;
 			case OPCODE_UP4UB:
 				emit_insn(insn,NVFX_FP_OP_OPCODE_UP4UB);
+				break;
+			case OPCODE_UP2H:
+				emit_insn(insn,NVFX_FP_OP_OPCODE_UP2H);
+				break;
+			case OPCODE_UP2US:
+				emit_insn(insn,NVFX_FP_OP_OPCODE_UP2US);
 				break;
 			case OPCODE_BGNLOOP:
 				emit_loop(insn);
@@ -441,7 +459,7 @@ void CCompilerFP::emit_src(struct nvfx_insn *insn,s32 pos,bool *have_const)
 		sr |= NVFX_FP_REG_NEGATE;
 
 	if(src->abs)
-		hw[1] |= src_abs_flag(pos);
+		sr |= src_abs_flag(pos);
 
 	sr |= ((src->swz[0] << NVFX_FP_REG_SWZ_X_SHIFT) |
 	       (src->swz[1] << NVFX_FP_REG_SWZ_Y_SHIFT) |

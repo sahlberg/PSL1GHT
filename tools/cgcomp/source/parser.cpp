@@ -241,7 +241,7 @@ const char* CParser::ParseCond(const char *token,struct nvfx_insn *insn)
 {
 	token = ConvertCond(token,insn);
 	if(token[0]=='.') {
-		s32 k = 0;
+		u32 k = 0;
 		
 		token++;
 
@@ -257,10 +257,11 @@ const char* CParser::ParseCond(const char *token,struct nvfx_insn *insn)
 				insn->cc_swz[k] = NVFX_SWZ_W;
 		}
 		if(k && k<4) {
-			u8 lastswz = insn->cc_swz[k - 1];
-			while(k<4) {
-				insn->cc_swz[k] = lastswz;
-				k++;
+			u32 cnt = k; 
+			u8 lastswz = insn->cc_swz[cnt - 1];
+			while(cnt<4) {
+				insn->cc_swz[cnt] = lastswz;
+				cnt++;
 			}
 		}
 		token += k;

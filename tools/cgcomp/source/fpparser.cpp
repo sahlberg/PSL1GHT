@@ -65,7 +65,7 @@ struct _opcode
    { "FLR", OPCODE_FLR, INPUT_1V, OUTPUT_V, _R | _H | _X | _C | _S },
    { "FRC", OPCODE_FRC, INPUT_1V, OUTPUT_V, _R | _H | _X | _C | _S },
    { "IF", OPCODE_IF, INPUT_CC, OUTPUT_NONE, 0                     },
-   { "KIL", OPCODE_KIL_NV, INPUT_CC, OUTPUT_NONE, 0                },
+   { "KIL", OPCODE_KIL, INPUT_CC, OUTPUT_NONE, 0                },
    { "LG2", OPCODE_LG2, INPUT_1S, OUTPUT_S, _R | _H |      _C | _S },
    { "LIT", OPCODE_LIT, INPUT_1V, OUTPUT_V, _R | _H |      _C | _S },
    { "LOOP", OPCODE_BGNLOOP, INPUT_1V, OUTPUT_NONE, 0			   },
@@ -259,7 +259,6 @@ void CFPParser::ParseInstruction(struct nvfx_insn *insn,opcode *opc,const char *
 	insn->precision = opc->suffixes&(_R|_H|_X);
 	insn->sat = ((opc->suffixes&_S) ? TRUE : FALSE);
 	insn->cc_update = ((opc->suffixes&_C) ? TRUE : FALSE);
-	insn->disable_pc = IsPCDisablingInstruction(insn);
 
 	if(opc->outputs==OUTPUT_S || opc->outputs==OUTPUT_V) {
 		ParseMaskedDstReg(token,insn);
@@ -316,8 +315,13 @@ void CFPParser::ParseInstruction(struct nvfx_insn *insn,opcode *opc,const char *
 		token = SkipSpaces(strtok(NULL,","));
 		ParseTextureTarget(token,&insn->tex_target);
 	} else if(opc->inputs==INPUT_CC) {
+		if (*token == '(') token++;
 		ParseCond(token,insn);
 	}
+
+	// finally check for insns disabling perspective correction interpolation
+	// only at this point we know everyhting about the insn to decide.
+	insn->disable_pc = IsPCDisablingInstruction(insn);
 }
 
 opcode CFPParser::FindOpcode(const char *mnemonic)

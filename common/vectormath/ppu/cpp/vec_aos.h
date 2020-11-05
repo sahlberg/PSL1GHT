@@ -613,26 +613,6 @@ inline bool Vector3::operator != (const Vector3& vec) const
 	return !(*this == vec);
 }
 
-inline bool Vector3::operator < (const Vector3& vec) const
-{
-	return vec_all_gt(vec_cmplt(vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F), vec_sel(vec.mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
-}
-
-inline bool Vector3::operator <= (const Vector3& vec) const
-{
-	return !(*this > vec);
-}
-
-inline bool Vector3::operator > (const Vector3& vec) const
-{
-	return vec_all_gt(vec_cmpgt(vec_sel(mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F), vec_sel(vec.mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
-}
-
-inline bool Vector3::operator >= (const Vector3& vec) const
-{
-	return !(*this < vec);
-}
-
 inline const Vector3 Vector3::operator -( ) const
 {
     return Vector3( negatef4( mVec128 ) );
@@ -1118,26 +1098,6 @@ inline bool Vector4::operator != (const Vector4& vec) const
 	return !(*this == vec);
 }
 
-inline bool Vector4::operator < (const Vector4& vec) const
-{
-	return vec_all_gt(vec_cmplt(vec.mVec128, mVec128),((vec_uint4){0,0,0,0}));
-}
-
-inline bool Vector4::operator <= (const Vector4& vec) const
-{
-	return !(*this > vec);
-}
-
-inline bool Vector4::operator > (const Vector4& vec) const
-{
-	return vec_all_gt(vec_cmpgt(mVec128, vec.mVec128),((vec_uint4){0,0,0,0}));
-}
-
-inline bool Vector4::operator >= (const Vector4& vec) const
-{
-	return !(*this < vec);
-}
-
 inline const Vector4 operator *( float scalar, Vector4 vec )
 {
     return floatInVec(scalar) * vec;
@@ -1531,26 +1491,6 @@ inline bool Point3::operator == (const Point3& pnt) const
 inline bool Point3::operator != (const Point3& pnt) const
 {
 	return !(*this == pnt);
-}
-
-inline bool Point3::operator < (const Point3& pnt) const
-{
-	return vec_all_gt(vec_cmplt(vec_sel(mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F), vec_sel(pnt.mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
-}
-
-inline bool Point3::operator <= (const Point3& pnt) const
-{
-	return !(*this > pnt);
-}
-
-inline bool Point3::operator > (const Point3& pnt) const
-{
-	return vec_all_gt(vec_cmpgt(vec_sel(mVec128, ((vec_float4){1.0f,1.0f,1.0f,1.0f}), _VECTORMATH_MASK_0x000F), vec_sel(pnt.mVec128, ((vec_float4){0.0f,0.0f,0.0f,0.0f}), _VECTORMATH_MASK_0x000F)), ((vec_uint4){0,0,0,0}));
-}
-
-inline bool Point3::operator >= (const Point3& pnt) const
-{
-	return !(*this < pnt);
 }
 
 inline const Point3 mulPerElem( Point3 pnt0, Point3 pnt1 )

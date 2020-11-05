@@ -235,22 +235,6 @@ public:
 	//
 	inline bool operator != (const Vector3& vec) const;
 	
-	// Perform lower than comparsion of two 3-D vector
-	//
-	inline bool operator < (const Vector3& vec) const;
-	
-	// Perform lower or equal comparsion of two 3-D vector
-	//
-	inline bool operator <= (const Vector3& vec) const;
-	
-	// Perform greater than comparsion of two 3-D vector
-	//
-	inline bool operator > (const Vector3& vec) const;
-	
-	// Perform greater or equal comparsion of two 3-D vector
-	//
-	inline bool operator >= (const Vector3& vec) const;
-	
     // Construct x axis
     // 
     static inline const Vector3 xAxis( );
@@ -672,22 +656,6 @@ public:
 	//
 	inline bool operator != (const Vector4& vec) const;
 	
-	// Perform lower than comparsion of two 4-D vector
-	//
-	inline bool operator < (const Vector4& vec) const;
-	
-	// Perform lower or equal comparsion of two 4-D vector
-	//
-	inline bool operator <= (const Vector4& vec) const;
-	
-	// Perform greater than comparsion of two 4-D vector
-	//
-	inline bool operator > (const Vector4& vec) const;
-	
-	// Perform greater or equal comparsion of two 4-D vector
-	//
-	inline bool operator >= (const Vector4& vec) const;
-	
     // Construct x axis
     // 
     static inline const Vector4 xAxis( );
@@ -988,22 +956,6 @@ public:
 	// Perform equality comparsion of two 3-D point
 	//
 	inline bool operator != (const Point3& vec) const;
-	
-	// Perform lower than comparsion of two 3-D point
-	//
-	inline bool operator < (const Point3& vec) const;
-	
-	// Perform lower or equal comparsion of two 3-D point
-	//
-	inline bool operator <= (const Point3& vec) const;
-	
-	// Perform greater than comparsion of two 3-D point
-	//
-	inline bool operator > (const Point3& vec) const;
-	
-	// Perform greater or equal comparsion of two 3-D point
-	//
-	inline bool operator >= (const Point3& vec) const;
 };
 
 // Multiply two 3-D points per element

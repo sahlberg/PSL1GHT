@@ -72,6 +72,8 @@ ifneq (,$(findstring Linux,$(UNAME)))
 	OS := Linux
 endif
 
+CXXFLAGS        += -std=c++11
+
 LIBS		:=
 
 #---------------------------------------------------------------------------------

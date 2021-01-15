@@ -7,47 +7,47 @@
 
 #include <ppu-types.h>
 
-#define HEAP_PREV_USED				1
-#define HEAP_MIN_BLOCK_SIZE			(sizeof(heap_block))
-#define HEAP_BLOCK_HEADER_OFFSET	(sizeof(u32))
-#define HEAP_BLOCK_USER_OFFSET		(sizeof(u32)*2)
-#define HEAP_BLOCK_USED_OVERHEAD	(HEAP_BLOCK_USER_OFFSET - HEAP_BLOCK_HEADER_OFFSET)
-#define HEAP_OVERHEAD				HEAP_BLOCK_USER_OFFSET
+#define CPU_ALIGNMENT				PPU_ALIGNMENT
 
+#define HEAP_BLOCK_PREV_USED		((uintptr_t) 1)
+#define HEAP_BLOCK_ALLOC_BONUS		(sizeof(uintptr_t))
+#define HEAP_BLOCK_HEADER_SIZE		(2*sizeof(uintptr_t))
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct _heap_block_t heap_block;
+typedef struct _heap_cntrl_t heap_cntrl;
+
 struct _heap_block_t
 {
-	u32 prev_size;
-	u32 size;
+	uintptr_t prev_size;
+	uintptr_t size;
 	heap_block *next;
 	heap_block *prev;
-};
+} __attribute__((packed));
 
-typedef struct _heap_cntrl_t
+struct _heap_cntrl_t
 {
+	s32 lock;
+	
 	heap_block free_list;
 	
-	u32 page_size;
-	u32 min_block_size;
+	uintptr_t page_size;
+	uintptr_t min_block_size;
 
-	void *begin;
-	void *end;
+	uintptr_t heap_begin;
+	uintptr_t heap_end;
 
-	heap_block *start;
-	heap_block *final;
+	heap_block *first_block;
+	heap_block *last_block;
+};
 
-	s32 lock;
-} heap_cntrl;
-
-u32 heapInit(heap_cntrl *theheap,void *start_addr,u32 size);
-void* heapAllocate(heap_cntrl *theheap,u32 size);
-void* heapAllocateAligned(heap_cntrl *theheap,u32 size,u32 alignment);
-bool heapFree(heap_cntrl *theheap,void *ptr);
+uintptr_t heapInit(heap_cntrl *theheap, void *start_addr, uintptr_t size);
+void* heapAllocate(heap_cntrl *theheap, uintptr_t size);
+void* heapAllocateAligned(heap_cntrl *theheap, uintptr_t size, uintptr_t alignment);
+bool heapFree(heap_cntrl *theheap, void *ptr);
 
 #ifdef __cplusplus
 	}

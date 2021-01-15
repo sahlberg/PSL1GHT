@@ -13,6 +13,7 @@
 #define MEM_NUM_PAGES			256
 #define MEM_PAGE_SIZE			(1024*1024)
 #define SPACE_SIZE				(MEM_NUM_PAGES*MEM_PAGE_SIZE)
+#define REGION_LIST_HEAP_SIZE	(256*1024)
 
 #define CEIL(size,to)			(((size)+(to)-1)&~((to)-1))
 #define FLOOR(size,to)			((size)&~((to)-1))
@@ -30,7 +31,7 @@ static s32 __sbrk_spinlock = 0;
 static heap_cntrl __region_heap;
 static sys_mem_addr_t __sbrk_baseaddr = 0;
 static region_list_entry *__sbrk_curr_regionentry = NULL;
-static char __region_list_entries[sizeof(region_list_entry)*(MEM_NUM_PAGES + 1)] __attribute__((aligned(64)));
+static u8 __region_list_entries[REGION_LIST_HEAP_SIZE] __attribute__((aligned(64)));
 
 extern void dbg_printf(const char *fmt,...);
 
@@ -71,7 +72,7 @@ static void sbrk_init()
 	ret = sysMMapperAllocateAddress(SPACE_SIZE,(SYS_MEMORY_PAGE_SIZE_1M | SYS_MEMORY_ACCESS_RIGHT_ANY),0,&__sbrk_baseaddr);
 	if(ret) return;
 
-	heapInit(&__region_heap,__region_list_entries,sizeof(region_list_entry)*MEM_NUM_PAGES);
+	heapInit(&__region_heap,__region_list_entries,REGION_LIST_HEAP_SIZE);
 	if(!region_list_append(&__sbrk_curr_regionentry,0,0,0)) return;
 }
 

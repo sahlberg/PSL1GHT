@@ -570,6 +570,14 @@ void RSX_FUNC(SetZCullEnable)(gcmContextData *context,u32 depth,u32 stencil)
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
+void RSX_FUNC(SetZCullInvalidate)(gcmContextData *context)
+{
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_INVALIDATE_ZCULL,1);
+	RSX_CONTEXT_CURRENTP[1] = 0;
+	RSX_CONTEXT_CURRENT_END(2);
+}
+
 void RSX_FUNC(SetPolygonSmoothEnable)(gcmContextData *context,u32 enable)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);

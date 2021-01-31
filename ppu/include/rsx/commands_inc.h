@@ -212,6 +212,7 @@ void RSX_FUNC(SetClearZCullSurface)(gcmContextData *context, u32 depth, u32 sten
 void RSX_FUNC(SetZCullLimit)(gcmContextData *context,u16 moveforwardlimit,u16 pushbacklimit);
 void RSX_FUNC(SetZCullControl)(gcmContextData *context,u8 zculldir,u8 zcullformat);
 void RSX_FUNC(SetZCullStatsEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetZCullInvalidate)(gcmContextData *context);
 void RSX_FUNC(SetPolygonSmoothEnable)(gcmContextData *context,u32 enable);
 void RSX_FUNC(SetDitherEnable)(gcmContextData *context,u32 enable);
 

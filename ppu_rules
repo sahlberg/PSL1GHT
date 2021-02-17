@@ -72,6 +72,17 @@ BUILDDIR		?=	$(CURDIR)/build
 	$(VERB) cp $@ $(basename $@).gnpdrm.pkg
 	$(VERB) $(PACKAGE_FINALIZE) $(basename $@).gnpdrm.pkg
 
+%.info: Makefile
+	$(VERB) echo "Generating $(basename $@).h"
+	$(VERB) mkdir -p $(BUILDDIR)
+	$(VERB) echo "#ifndef __BUILD_INFO_H__" > $(BUILDDIR)/$(basename $@).h
+	$(VERB) echo "#define __BUILD_INFO_H__" >> $(BUILDDIR)/$(basename $@).h
+	$(VERB) echo "" >> $(BUILDDIR)/$(basename $@).h
+	$(VERB) echo "#define SYS_APP_TITLE\t\t\"$(TITLE)\"" >> $(BUILDDIR)/$(basename $@).h
+	$(VERB) echo "#define SYS_APP_ID\t\t\t\"$(APPID)\"" >> $(BUILDDIR)/$(basename $@).h
+	$(VERB) echo "#define SYS_CONTENT_ID\t\t\"$(CONTENTID)\"" >> $(BUILDDIR)/$(basename $@).h
+	$(VERB) echo "" >> $(BUILDDIR)/$(basename $@).h
+	$(VERB) echo "#endif // __BUILD_INFO_H__" >> $(BUILDDIR)/$(basename $@).h
 #---------------------------------------------------------------------------------
 %.vpo: %.vcg
 	$(VERB) echo $(notdir $<)

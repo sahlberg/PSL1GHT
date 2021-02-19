@@ -26,6 +26,8 @@ extern int __librt_chmod_r(struct _reent *r,const char *path,mode_t mode);
 extern int __librt_rename_r(struct _reent *r,const char *old,const char *new);
 extern int __librt_isatty_r(struct _reent *r,int fd);
 
+extern int __librt_chdir_r(struct _reent *r,const char *dirname);
+extern char* __librt_getcwd_r(struct _reent *r,char *buf,size_t size); 
 extern int __librt_mkdir_r(struct _reent *r,const char *path,mode_t mode);
 extern DIR* __librt_opendir_r(struct _reent *r,const char *path);
 extern struct dirent* __librt_readdir_r(struct _reent *r,DIR *dirp);
@@ -76,6 +78,8 @@ static void __syscalls_init(void)
 	__syscalls.rename_r = __librt_rename_r;
 	__syscalls.isatty_r = __librt_isatty_r;
 
+	__syscalls.chdir_r = __librt_chdir_r;
+	__syscalls.getcwd_r = __librt_getcwd_r;
 	__syscalls.mkdir_r = __librt_mkdir_r;
 	__syscalls.opendir_r = __librt_opendir_r;
 	__syscalls.readdir_r = __librt_readdir_r;

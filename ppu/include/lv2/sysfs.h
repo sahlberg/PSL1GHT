@@ -42,6 +42,12 @@ typedef struct _sys_fs_dirent
 	char d_name[MAXPATHLEN + 1];
 } sysFSDirent;
 
+typedef struct _sys_fs_directory_entry
+{
+	sysFSStat attribute;
+	sysFSDirent entry_name;
+} sysFSDirectoryEntry;
+
 typedef struct _sys_fs_utime
 {
 	time_t actime;
@@ -85,6 +91,7 @@ s32 sysFsAioRead(sysFSAio *aio, s32 *id, sysFsAioCallback cb);
 s32 sysFsAioWrite(sysFSAio *aio, s32 *id, sysFsAioCallback cb);
 
 s32 sysFsGetFreeSize(const char *path, u32 *blockSize, u64 *freeBlocks);
+s32 sysFsGetDirectoryEntries(s32 fd, sysFSDirectoryEntry *entries, u32 entrySize, u32 *dataCount);
 
 s32 sysFsSetIoBuffer(s32 fd, size_t bufferSizeLimit, s32 pageType, sys_mem_container_t container);
 s32 sysFsSetDefaultContainer(sys_mem_container_t container, size_t totalLimit);

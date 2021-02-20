@@ -38,8 +38,8 @@ ifneq (,$(findstring MINGW,$(UNAME)))
 endif
 
 ifneq (,$(findstring Darwin,$(shell uname -s)))
-	SDK	:=	$(shell xcrun --show-sdk-path)
-	OSX_MIN 	:= $(shell defaults read $(shell xcrun --show-sdk-platform-path)/Info MinimumSDKVersion 2> /dev/null || 10.4)
+	SDK		:= $(shell xcrun --show-sdk-path)
+	OSX_MIN 	:= $(shell defaults read $(shell xcrun --show-sdk-platform-path 2> /dev/null)/Info MinimumSDKVersion 2> /dev/null || xcrun --show-sdk-versin 2> /dev/null || echo 10.4)
 	OSXCFLAGS	:= -mmacosx-version-min=$(OSX_MIN) -isysroot $(SDK)
 	OSXCXXFLAGS	:=	$(OSXCFLAGS)
 	CXXFLAGS	+=	-fvisibility=hidden

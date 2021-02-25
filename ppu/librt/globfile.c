@@ -42,7 +42,7 @@ static char* deletePathFromPath(char *dirname, int path_count)
     return dirname;
 }
 
-char* flattenDirectory(const char *dirname, const char *root)
+static char* flattenDirectory(const char *dirname, const char *root)
 {
     char *dir = NULL;
     int len, last_pos;
@@ -98,6 +98,74 @@ char* flattenDirectory(const char *dirname, const char *root)
     return dir;
 }
 
+static int resolve_path(char *path, char *result, char *pos)
+{
+    if (*path == '/') {
+        *result = '/';
+        pos = result + 1;
+        ++path;
+    }
+
+    *pos = 0;
+    if (!*path)
+        return 0;
+
+    while (1) {
+        char *slash = *path ? strchr(path, '/') : NULL;
+        if (slash)
+            *slash = 0;
+        
+        if (!path[0] || (path[0] == '.' && (!path[1] || (path[1] == '.' && !path[2])))) {
+            --pos;
+            if (pos != result && path[0] && path[1])
+                while (*--pos != '/');
+        } else {
+            strcpy(pos, path);
+            pos = strchr(result, 0);
+        }
+
+        if (slash) {
+            *pos++ = '/';
+            path = slash + 1;
+        }
+
+        *pos = 0;
+        if (!slash)
+            break;
+    }
+
+    return 0;
+}
+
+// duplication here to 'realpath' intentionally
+char* __full_path(const char *path, char *resolved_path)
+{
+    int res;
+    char cwd[PATH_MAX + 1];
+    char *path_copy;
+
+    if (!*path)
+        return NULL;
+
+    strncat(cwd, __cwd, PATH_MAX);
+
+    strcpy(resolved_path, "/");
+    if (resolve_path(cwd, resolved_path, resolved_path))
+        return NULL;
+
+    strcat(resolved_path, "/");
+    path_copy = strdup(path);
+    if (!path_copy)
+        return NULL;
+
+    res = resolve_path(path_copy, resolved_path, strchr(resolved_path, 0));
+    free(path_copy);
+    if (res)
+        return NULL;
+
+    return resolved_path;
+}
+
 int
 _DEFUN(__librt_chdir_r, (r,dirname),
        struct _reent *r _AND
@@ -122,8 +190,10 @@ _DEFUN(__librt_getcwd_r, (r,buf,size),
        size_t size)
 {
     size_t cwd_len = strlen(__cwd);
-    if (buf == NULL || size <= cwd_len)
+    if (buf == NULL || size <= cwd_len) {
+        r->_errno = EINVAL;
         return NULL;
+    }
 
     buf[0] = 0;
     strncat(buf, __cwd, size);

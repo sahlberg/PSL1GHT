@@ -377,6 +377,14 @@ void RSX_FUNC(SetPolygonOffset)(gcmContextData *context,f32 factor,f32 units)
 	RSX_CONTEXT_CURRENT_END(3);
 }
 
+void RSX_FUNC(SetPolygonOffsetLineEnable)(gcmContextData *context,u32 enable)
+{
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_POLYGON_OFFSET_LINE_ENABLE,1);
+	RSX_CONTEXT_CURRENTP[1] = enable;
+	RSX_CONTEXT_CURRENT_END(2);
+}
+
 void RSX_FUNC(ClearSurface)(gcmContextData *context,u32 clear_mask)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(4);
@@ -1221,12 +1229,33 @@ void RSX_FUNC(TextureAnisoSpread)(gcmContextData *context,u8 index,u8 reduceSamp
 	RSX_CONTEXT_CURRENT_END(2);
 }
 
-void RSX_FUNC(SetZControl)(gcmContextData *context,u8 cullNearFar,u8 zClampEnable,u8 cullIgnoreW)
+void RSX_FUNC(SetZMinMaxControl)(gcmContextData *context,u8 cullNearFar,u8 zClampEnable,u8 cullIgnoreW)
 {
 	RSX_CONTEXT_CURRENT_BEGIN(2);
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_DEPTH_CONTROL,1);
 	RSX_CONTEXT_CURRENTP[1] = (cullNearFar | (zClampEnable<<4) | (cullIgnoreW<<8));
 	RSX_CONTEXT_CURRENT_END(2);
+}
+
+void RSX_FUNC(SetDepthBoundsTestEnable)(gcmContextData *context,u32 enable)
+{
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_DEPTH_BOUNDS_TEST_ENABLE,1);
+	RSX_CONTEXT_CURRENTP[1] = enable;
+	RSX_CONTEXT_CURRENT_END(2);
+}
+
+void RSX_FUNC(SetDepthBounds)(gcmContextData *context,f32 zMin,f32 zMax)
+{
+	ieee32 d0,d1;
+
+	d0.f = zMin;
+	d1.f = zMax;
+	RSX_CONTEXT_CURRENT_BEGIN(3);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_DEPTH_BOUNDS_MIN,2);
+	RSX_CONTEXT_CURRENTP[1] = d0.u;
+	RSX_CONTEXT_CURRENTP[2] = d1.u;
+	RSX_CONTEXT_CURRENT_END(3);
 }
 
 void RSX_FUNC(BindVertexArrayAttrib)(gcmContextData *context,u8 attr,u16 frequency,u32 offset,u8 stride,u8 elems,u8 dtype,u8 location)
@@ -1566,6 +1595,22 @@ void RSX_FUNC(DrawInlineIndexArray32)(gcmContextData *context,u8 type,u32 start,
 	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_BEGIN_END, 1);
 	RSX_CONTEXT_CURRENTP[1] = NV40TCL_BEGIN_END_STOP;
 
+	RSX_CONTEXT_CURRENT_END(2);
+}
+
+void RSX_FUNC(SetRestartIndexEnable)(gcmContextData *context,u32 enable)
+{
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_RESTART_INDEX_ENABLE,1);
+	RSX_CONTEXT_CURRENTP[1] = enable;
+	RSX_CONTEXT_CURRENT_END(2);
+}
+
+void RSX_FUNC(SetRestartIndex)(gcmContextData *context,u32 index)
+{
+	RSX_CONTEXT_CURRENT_BEGIN(2);
+	RSX_CONTEXT_CURRENTP[0] = RSX_METHOD(NV40TCL_RESTART_INDEX,1);
+	RSX_CONTEXT_CURRENTP[1] = index;
 	RSX_CONTEXT_CURRENT_END(2);
 }
 

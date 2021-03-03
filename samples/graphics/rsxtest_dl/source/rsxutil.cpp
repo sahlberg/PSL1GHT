@@ -242,7 +242,7 @@ void initDefaultStateCommands()
   	    rsxSetShadeModel(gGcmContext,GCM_SHADE_MODEL_SMOOTH);
         rsxSetFrontFace(gGcmContext, GCM_FRONTFACE_CCW);
         rsxSetClearReport(gGcmContext, GCM_ZPASS_PIXEL_CNT);
-        rsxSetZControl(gGcmContext, GCM_TRUE, GCM_FALSE, GCM_FALSE);
+        rsxSetZMinMaxControl(gGcmContext, GCM_TRUE, GCM_FALSE, GCM_FALSE);
         rsxSetZCullControl(gGcmContext, GCM_ZCULL_LESS, GCM_ZCULL_LONES);
         rsxSetSCullControl(gGcmContext, GCM_SCULL_SFUNC_LESS, 1, 0xff);
         rsxSetColorMaskMrt(gGcmContext, 0);

@@ -43,6 +43,7 @@ void RSX_FUNC(SetBackPolygonMode)(gcmContextData *context,u32 mode);
 
 void RSX_FUNC(SetPolygonOffsetFillEnable)(gcmContextData *context,u32 enable);
 void RSX_FUNC(SetPolygonOffset)(gcmContextData *context,f32 factor,f32 units);
+void RSX_FUNC(SetPolygonOffsetLineEnable)(gcmContextData *context,u32 enable);
 
 /*! \brief Enable/Disable write to depth buffer.
 \param context Pointer to the context object.
@@ -385,11 +386,15 @@ void RSX_FUNC(SetLogicOp)(gcmContextData *context,u32 op);
 void RSX_FUNC(SetLogicOpEnable)(gcmContextData *context,u32 enable);
 void RSX_FUNC(SetFogMode)(gcmContextData *context,u32 mode);
 void RSX_FUNC(SetFogParams)(gcmContextData *context,f32 p0,f32 p1);
-void RSX_FUNC(SetZControl)(gcmContextData *context,u8 cullNearFar,u8 zClampEnable,u8 cullIgnoreW);
+void RSX_FUNC(SetZMinMaxControl)(gcmContextData *context,u8 cullNearFar,u8 zClampEnable,u8 cullIgnoreW);
 void RSX_FUNC(SetZPixelCountEnable)(gcmContextData *context,u32 enable);
 void RSX_FUNC(SetVertexAttribOutputMask)(gcmContextData *context,u32 mask);
 void RSX_FUNC(SetFrequencyDividerOperation)(gcmContextData *context,u16 operation);
 void RSX_FUNC(SetFragmentProgramGammaEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetRestartIndexEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetRestartIndex)(gcmContextData *context,u32 index);
+void RSX_FUNC(SetDepthBoundsTestEnable)(gcmContextData *context,u32 enable);
+void RSX_FUNC(SetDepthBounds)(gcmContextData *context,f32 zMin,f32 zMax);
 
 /*! \brief Specify pixel arithmetic.
 

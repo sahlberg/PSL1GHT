@@ -13,15 +13,15 @@ export PORTLIBS	:=	$(PS3DEV)/portlibs/spu
 export LIBPSL1GHT_INC	:=	-I$(PSL1GHT)/spu/include -I$(PSL1GHT)/spu/include/simdmath
 export LIBPSL1GHT_LIB	:=	-L$(PSL1GHT)/spu/lib
 
-export WM_LDFLAGS		:= -nodefaultlibs \
-						   -Wl,--defsym=__stack=0x3fe0 -Wl,-Ttext-segment=0x2a00 \
+export WM_LDFLAGS		:= -nostdlib \
+						   -Wl,-Ttext-segment=0x2a00 \
 						   -Wl,--entry,mars_module_entry -Wl,-u,mars_module_entry \
 						   -Wl,--gc-sections \
 						   -Wl,--sort-common \
 						   -Wl,--sort-section -Wl,alignment \
 						   -Wl,-s \
 			   				
-export TASK_LDFLAGS 	:= 	-Wl,-Ttext-segment=0x4000 -Wl,--gc-sections
+export TASK_LDFLAGS 	:= -Wl,-Ttext-segment=0x3a00 -Wl,--gc-sections
 
 PREFIX	:=	spu-
 

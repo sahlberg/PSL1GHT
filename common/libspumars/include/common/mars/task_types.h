@@ -5,8 +5,8 @@
 
 #include <mars/callback_types.h>
 
-#define MARS_TASK_BASE_ADDR					0x4000
-#define MARS_TASK_CONTEXT_SAVE_SIZE_MAX		0x3c000
+#define MARS_TASK_BASE_ADDR					0x3a00
+#define MARS_TASK_CONTEXT_SAVE_SIZE_MAX		0x3c600
 #define MARS_TASK_NAME_LEN_MAX				21
 
 #ifdef __cplusplus

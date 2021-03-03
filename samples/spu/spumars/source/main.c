@@ -23,6 +23,8 @@ int main(int argc,char *argv[])
 	int i;
 	u64 barrier_ea;
 	
+	printf("SPU MARS sample start\n");
+
 	sysSpuInitialize(6,0);
 	sysSpuPrintfInitialize(200, NULL);
 
@@ -48,5 +50,7 @@ int main(int argc,char *argv[])
 	mars_task_barrier_destroy(barrier_ea);
 	mars_context_destroy(mars_ctx);
 	
+	printf("SPU MARS sample end\n");
+
 	return 0;
 }

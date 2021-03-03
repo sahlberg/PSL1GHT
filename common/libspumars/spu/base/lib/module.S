@@ -38,7 +38,35 @@
 kernel_syscalls:
 .space	16
 
+.section .interrupt, "ax", @progbits
+	heq $LR, $LR, $LR
+	
+.section .init
 
+.globl _init
+.type  _init, @function
+_init:
+	stqd $LR, 16($SP)
+	stqd $SP, -32($SP)
+	ai $SP, $SP, -32
+	
+	ai $SP, $SP, 32
+	lqd $LR, 16($SP)
+	bi $LR
+	
+.section .fini
+
+.globl _fini
+.type  _fini, @function
+_fini:
+	stqd $LR, 16($SP)
+	stqd $SP, -32($SP)
+	ai $SP, $SP, -32
+	
+	ai $SP, $SP, 32
+	lqd $LR, 16($SP)
+	bi $LR
+		
 .section .text
 
 /* void mars_module_entry(const struct mars_kernel_syscalls *syscalls) */

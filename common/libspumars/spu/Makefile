@@ -113,7 +113,8 @@ $(KERNELMODULE).elf: $(OBJS_KERNEL)
 	@echo linking ... $(notdir $@)
 	$(VERB) $(LD)  $^ -nostdlib \
 			   -Wl,--defsym=__stack=0x29f0 \
-			   -Wl,-Map -Wl,$(CURDIR)/$(notdir $@).map -Wl,--cref \
+			   -Wl,-Map -Wl,$(CURDIR)/$(notdir $@).map \
+			   -Wl,--cref \
 			   -Wl,--gc-sections \
 			   -Wl,--sort-common \
 			   -Wl,--sort-section=alignment \

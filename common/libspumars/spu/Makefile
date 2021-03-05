@@ -50,7 +50,7 @@ INCLUDES	:= -I$(BASEDIR) \
 LIBS 		:= -lsputhread
 LIBPATHS	:= -L$(BASEDIR)/../../../spu/libsputhread/lib/spu
 
-CFLAGS		:= -Wall -ffunction-sections -fdata-sections $(MACHDEP) -DLIBSPUMARS_INTERNAL $(INCLUDES)
+CFLAGS		:= -Os -Wall $(MACHDEP) -DLIBSPUMARS_INTERNAL $(INCLUDES)
 ASFLAGS		:= $(MACHDEP) -D__ASSEMBLY__ $(INCLUDES)
 
 #---------------------------------------------------------------------------------
@@ -102,13 +102,13 @@ DEPENDS	:=	$(OBJS_KERNEL:.o=.d) $(OBJS_LIB_BASE:.o=.d) \
 			$(OBJS_TASK:.o=.d) $(OBJS_LIB_TASK:.o=.d) \
 			$(OBJS_JQ:.o=.d)
 
-$(LIBRARYBASE).a: CFLAGS += -Os --param max-inline-insns-single=20
+$(LIBRARYBASE).a: CFLAGS += --param max-inline-insns-single=20
 $(LIBRARYBASE).a: $(OBJS_LIB_BASE)
 
-$(LIBRARYTASK).a: CFLAGS += -Os --param max-inline-insns-single=20
+$(LIBRARYTASK).a: CFLAGS += --param max-inline-insns-single=20
 $(LIBRARYTASK).a: $(OBJS_LIB_TASK)
 
-$(KERNELMODULE).elf: CFLAGS += -Os -mfixed-range=80-127 -funroll-loops -fschedule-insns
+$(KERNELMODULE).elf: CFLAGS += -mfixed-range=80-127 -funroll-loops -fschedule-insns
 $(KERNELMODULE).elf: $(OBJS_KERNEL)
 	@echo linking ... $(notdir $@)
 	$(VERB) $(LD)  $^ -nostdlib \
@@ -123,7 +123,7 @@ $(KERNELMODULE).elf: $(OBJS_KERNEL)
 			   -Wl,-s \
 			   $(LIBPATHS) $(LIBS) -o $@
 
-$(TASKMODULE).elf: CFLAGS += -Os -mfixed-range=80-127 -funroll-loops -fschedule-insns
+$(TASKMODULE).elf: CFLAGS += -mfixed-range=80-127 -funroll-loops -fschedule-insns
 $(TASKMODULE).elf: $(OBJS_TASK)
 	@echo linking ... $(notdir $@)
 	$(VERB) $(LD)  $^ -nostdlib \
@@ -138,7 +138,7 @@ $(TASKMODULE).elf: $(OBJS_TASK)
 			   -Wl,-s \
 			   $(LIBPATHS) $(LIBS) -L$(LIBDIR) -lspumars -o $@
 
-$(JQMODULE).elf: CFLAGS += -Os -mfixed-range=80-127 -funroll-loops -fschedule-insns
+$(JQMODULE).elf: CFLAGS += -mfixed-range=80-127 -funroll-loops -fschedule-insns
 $(JQMODULE).elf: $(OBJS_JQ)
 	@echo linking ... $(notdir $@)
 	$(VERB) $(LD)  $^ -nostdlib \

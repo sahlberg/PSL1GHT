@@ -8,8 +8,6 @@ ifeq ($(strip $(PSL1GHT)),)
 $(error "Please set PSL1GHT in your environment. export PSL1GHT=<path>")
 endif
 
-include	$(PSL1GHT)/ppu_rules
-
 BUILD		:=	build
 
 #---------------------------------------------------------------------------------
@@ -30,6 +28,9 @@ export DEPSDIR		:= $(DEPS)/$(PLATFORM)
 endif
 #---------------------------------------------------------------------------------
 
+include	$(PSL1GHT)/ppu_rules
+
+LD					:= $(CC)
 LIBRARYBASE			:= $(LIBDIR)/libspumars
 LIBRARYTASK			:= $(LIBDIR)/libspumarstask
 LIBRARYJQ			:= $(LIBDIR)/libspumarsjq
@@ -90,6 +91,10 @@ install: all install-header
 	@cp -frv $(CURDIR)/lib/ppu/*.a $(PSL1GHT)/ppu/lib
 
 #---------------------------------------------------------------------------------
+DEPENDS	:=	$(OBJSBASE:.o=.d) \
+			$(OBJSTASK:.o=.d) \
+			$(OBJSJQ:.o=.d)
+
 $(LIBRARYBASE).a: $(OBJSBASE)
 $(LIBRARYTASK).a: $(OBJSTASK)
 $(LIBRARYJQ).a: $(OBJSJQ)

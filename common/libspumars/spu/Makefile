@@ -8,8 +8,6 @@ ifeq ($(strip $(PSL1GHT)),)
 $(error "Please set PSL1GHT in your environment. export PSL1GHT=<path>")
 endif
 
-include	$(PSL1GHT)/spu_rules
-
 BUILD		:=	build
 
 #---------------------------------------------------------------------------------
@@ -18,8 +16,6 @@ ifeq ($(strip $(PLATFORM)),)
 export BASEDIR		:= $(CURDIR)
 export DEPF			:= $(BASEDIR)/deps
 export LIBF			:= $(BASEDIR)/lib
-
-export LD			:=	$(CC)
 
 #---------------------------------------------------------------------------------
 else
@@ -32,6 +28,9 @@ export DEPSDIR		:= $(DEPF)/$(PLATFORM)
 endif
 #---------------------------------------------------------------------------------
 
+include	$(PSL1GHT)/spu_rules
+
+LD				:= $(CC)
 LIBRARYBASE		:= $(LIBDIR)/libspumars
 LIBRARYTASK		:= $(LIBDIR)/libspumarstask
 
@@ -99,6 +98,10 @@ install: all install-header
 	@cp -frv $(CURDIR)/lib/spu/*.a $(PSL1GHT)/spu/lib
 
 #---------------------------------------------------------------------------------
+DEPENDS	:=	$(OBJS_KERNEL:.o=.d) $(OBJS_LIB_BASE:.o=.d) \
+			$(OBJS_TASK:.o=.d) $(OBJS_LIB_TASK:.o=.d) \
+			$(OBJS_JQ:.o=.d)
+
 $(LIBRARYBASE).a: CFLAGS += -Os --param max-inline-insns-single=20
 $(LIBRARYBASE).a: $(OBJS_LIB_BASE)
 
@@ -113,32 +116,40 @@ $(KERNELMODULE).elf: $(OBJS_KERNEL)
 			   -Wl,-Map -Wl,$(CURDIR)/$(notdir $@).map -Wl,--cref \
 			   -Wl,--gc-sections \
 			   -Wl,--sort-common \
-			   -Wl,--sort-section -Wl,alignment \
+			   -Wl,--sort-section=alignment \
+			   -Wl,--cref \
 			   -Wl,-N \
+			   -Wl,-s \
 			   $(LIBPATHS) $(LIBS) -o $@
 
 $(TASKMODULE).elf: CFLAGS += -Os -mfixed-range=80-127 -funroll-loops -fschedule-insns
 $(TASKMODULE).elf: $(OBJS_TASK)
 	@echo linking ... $(notdir $@)
 	$(VERB) $(LD)  $^ -nostdlib \
-			   -Wl,--defsym=__stack=0x39e0 -Wl,-Ttext-segment=0x2a00 \
+			   -Wl,--defsym=__stack=0x39e0 \
+			   -Wl,-Ttext-segment=0x2a00 \
 			   -Wl,--entry,mars_module_entry -Wl,-u,mars_module_entry \
-			   -Wl,-Map -Wl,$(CURDIR)/$(notdir $@).map -Wl,--cref \
+			   -Wl,-Map -Wl,$(CURDIR)/$(notdir $@).map \
 			   -Wl,--gc-sections \
 			   -Wl,--sort-common \
-			   -Wl,--sort-section -Wl,alignment \
+			   -Wl,--sort-section=alignment \
+			   -Wl,--cref \
+			   -Wl,-s \
 			   $(LIBPATHS) $(LIBS) -L$(LIBDIR) -lspumars -o $@
 
 $(JQMODULE).elf: CFLAGS += -Os -mfixed-range=80-127 -funroll-loops -fschedule-insns
 $(JQMODULE).elf: $(OBJS_JQ)
 	@echo linking ... $(notdir $@)
 	$(VERB) $(LD)  $^ -nostdlib \
-			   -Wl,--defsym=__stack=0x39e0 -Wl,-Ttext-segment=0x2a00 \
+			   -Wl,--defsym=__stack=0x39e0 \
+			   -Wl,-Ttext-segment=0x2a00 \
 			   -Wl,--entry,mars_module_entry -Wl,-u,mars_module_entry \
-			   -Wl,-Map -Wl,$(CURDIR)/$(notdir $@).map -Wl,--cref \
+			   -Wl,-Map -Wl,$(CURDIR)/$(notdir $@).map \
 			   -Wl,--gc-sections \
 			   -Wl,--sort-common \
-			   -Wl,--sort-section -Wl,alignment \
+			   -Wl,--sort-section=alignment \
+			   -Wl,--cref \
+			   -Wl,-s \
 			   $(LIBPATHS) $(LIBS) -L$(LIBDIR) -lspumars -o $@
 
 #---------------------------------------------------------------------------------

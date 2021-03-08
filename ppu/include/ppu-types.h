@@ -100,6 +100,12 @@ typedef union _ieee32
 	f32 f;
 } ieee32;
 
+typedef union _ieee64
+{
+	u64 u;
+	f64 d;
+} ieee64;
+
 #ifndef TRUE
 #define TRUE	1
 #endif

@@ -38,7 +38,37 @@
 	(type)_rval; \
 })
 
+typedef struct
+{
+	u32 sign : 1;
+	u32 exponent : 11;
+	u32 mantissah : 20;
+	u32 mantissal : 32;
+} double_t;
+
 static char __outstr[__DOUTBUFSIZE] __attribute__((aligned(16)));
+
+static int _isinf(double __x)
+{
+	union
+	{
+		double *__x;
+		double_t *x;
+	} x;
+	x.__x = &__x;
+	return (x.x->exponent == 0x7ff && x.x->mantissah == 0 && x.x->mantissal == 0);
+}
+
+static int _isnan(double __x)
+{
+	union
+	{
+		double *__x;
+		double_t *x;
+	} x;
+	x.__x = &__x;
+	return (x.x->exponent == 0x7ff && (x.x->mantissah != 0 || x.x->mantissal != 0));
+}
 
 static int skip_atoi(sys_spu_thread_t id, u64 *fmt_addr) 
 {
@@ -100,10 +130,12 @@ static char* number(char *str, s64 num, s32 base, s32 size, s32 precision, s32 t
 {
 	int i;
 	char c,sign,tmp[66];
-	const char *digits="0123456789abcdefghijklmnopqrstuvwxyz";
+	const char *digits;
+	const char *small_digits = "0123456789abcdefghijklmnopqrstuvwxyz";
+	const char *large_digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	
-	if(type&LARGE)
-		digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	digits = (type&LARGE) ? large_digits : small_digits;
+
 	if(type&LEFT)
 		type &= ~ZEROPAD;
 	if(base < 2 || base > 36)
@@ -113,7 +145,7 @@ static char* number(char *str, s64 num, s32 base, s32 size, s32 precision, s32 t
 	c = (type&ZEROPAD) ? '0' : ' ';
 	if(type&SIGN) {
 		if(num < 0) {
-			sign = '-';sys_mem_container_t
+			sign = '-';
 			num = -num;
 			size--;
 		} else if(type&PLUS) {
@@ -170,9 +202,118 @@ static char* number(char *str, s64 num, s32 base, s32 size, s32 precision, s32 t
 	return str;
 }
 
-static char* number_double(char *str, double num, s32 size, s32 precision, s32 type)
-{
-	return NULL;
+static char* number_double(char *str, f64 num, s32 size, s32 precision, s32 type)
+{	
+	int i;
+	char c,sign,buf[66];
+	const char *ss;
+	const char *digits;
+	const char *small_digits = "0123456789abcdefghijklmnopqrstuvwxyz";
+	const char *large_digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	static const f64 pow10[] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000 };
+
+	digits = (type&LARGE) ? large_digits : small_digits;
+
+	if(_isnan(num)) {
+		ss = "Nan";
+		for (i=0;i < 3;i++)
+			*str++ = *ss++;
+		return str;
+	} else if (_isinf(num) < 0) {
+		ss = "-Inf";
+		for (i=0;i < 4;i++)
+			*str++ = *ss++;
+		return str;
+	} else if (_isinf(num) > 0) {
+		ss = "+Inf";
+		for (i=0;i < 4;i++)
+			*str++ = *ss++;
+		return str;
+	}
+
+	sign = 0;
+	c = (type&ZEROPAD) ? '0' : ' ';
+	if(type&SIGN) {
+		if(num < 0) {
+			sign = '-';
+			num = -num;
+			size--;
+		} else if(type&PLUS) {
+			sign = '+';
+			size--;
+		} else if(type&SPACE) {
+			sign = ' ';
+			size--;
+		}
+	}
+
+	if (precision == -1)
+		precision = 6;
+
+	i = 0;
+	while (precision > 9) {
+		buf[i++] = '0';
+		precision--;
+	}
+
+	s32 whole = (s32)num;
+	f64 tmp = (num - whole)*pow10[precision];
+	u64 frac = (u64)tmp;
+	f64 diff = tmp - frac;
+
+	if (diff > 0.5) {
+		frac++;
+
+		if (frac >= pow10[precision]) {
+			frac = 0;
+			whole++;
+		}
+	} else if (diff < 0.5){
+	} else if (frac == 0 || frac&1)
+		frac++;
+
+	if (precision == 0) {
+		diff = num - (f64)whole;
+		
+		if ((!(diff < 0.5) || (diff > 0.5)) && whole&1)
+			whole++;
+	} else {
+		u32 count = precision;
+		do {
+			count--;
+			buf[i++] = digits[do_div(frac, 10)];
+		} while (frac);
+
+		while (count-- > 0)
+			buf[i++] = '0';
+		
+		buf[i++] = '.';
+	}
+
+	do {
+		buf[i++] = digits[do_div(whole, 10)];
+	} while (whole);
+
+	size -= precision;
+		
+	if(!(type&(ZEROPAD + LEFT)))
+		while(size-- > 0)
+			*str++ = ' ';
+		
+	if(sign)
+		*str++ = sign;
+	
+	if(!(type&LEFT))
+		while(size-- > 0)
+			*str++ = c;
+	while(i < precision--)
+		*str++ = '0';
+	while(i-- > 0)
+		*str++ = buf[i];
+	while(size-- > 0)
+		*str++ = ' ';
+		
+	return str;
 }
 
 s32 spu_thread_sprintf(char *buf, sys_spu_thread_t id, u32 arg_addr)
@@ -186,7 +327,7 @@ s32 spu_thread_sprintf(char *buf, sys_spu_thread_t id, u32 arg_addr)
 	s32 qualifier;
 	s32 precision;
 	s32 field_width;
-	ieee32 v;
+	ieee64 v;
 	
 	sysSpuThreadReadLocalStorage(id, arg_addr, &fmt_addr, sizeof(u32));
 	
@@ -238,8 +379,6 @@ repeat:
 				++fmt_addr;
 				precision = GET_ARG(arg_pos++, int);
 			}
-			if(precision < 0)
-				precision = 0;		
 		}
 		
 		qualifier = -1;
@@ -280,9 +419,9 @@ repeat:
 			case 'u':
 				break;
 			case 'f':
-				v.u = GET_ARG(arg_pos++, unsigned int);
-				str = number_double(str, v.f, field_width, precision, flags);
-				break;
+				v.u = GET_ARG(arg_pos++, u64);
+				str = number_double(str, v.d, field_width, precision, flags);
+				continue;
 			default:
 				*str++ = '%';
 				if(c)

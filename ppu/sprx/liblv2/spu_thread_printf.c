@@ -4,17 +4,17 @@
 #include <ppu-asm.h>
 #include <sys/spu.h>
 
-#define ZEROPAD	1		/* pad with zero */
-#define SIGN	2		/* unsigned/signed long */
-#define PLUS	4		/* show plus */
-#define SPACE	8		/* space if plus */
-#define LEFT	16		/* left justified */
-#define SPECIAL	32		/* 0x */
-#define LARGE	64		/* use 'ABCDEF' instead of 'abcdef' */
+#define ZEROPAD				1		/* pad with zero */
+#define SIGN				2		/* unsigned/signed long */
+#define PLUS				4		/* show plus */
+#define SPACE				8		/* space if plus */
+#define LEFT				16		/* left justified */
+#define SPECIAL				32		/* 0x */
+#define LARGE				64		/* use 'ABCDEF' instead of 'abcdef' */
+
+#define OUTBUFSIZE			4096
 
 #define is_digit(c)	((c) >= '0' && (c) <= '9')
-
-#define __DOUTBUFSIZE			256
 
 #define do_div(n,base) \
 ({ \
@@ -46,7 +46,7 @@ typedef struct
 	u32 mantissal : 32;
 } double_t;
 
-static char __outstr[__DOUTBUFSIZE] __attribute__((aligned(16)));
+static char __outstr[OUTBUFSIZE] __attribute__((aligned(16)));
 
 static int _isinf(double __x)
 {
@@ -321,18 +321,18 @@ s32 spu_thread_sprintf(char *buf, sys_spu_thread_t id, u32 arg_addr)
 	u64 num;
 	s32 base;
 	u32 flags;
-	char *str;
 	u32 arg_pos;
 	u64 fmt_addr;
 	s32 qualifier;
 	s32 precision;
 	s32 field_width;
+	char *str, *end;
 	ieee64 v;
 	
 	sysSpuThreadReadLocalStorage(id, arg_addr, &fmt_addr, sizeof(u32));
 	
 	arg_pos = 0;
-	for(str=buf;;fmt_addr++) {
+	for(str=buf,end=buf+OUTBUFSIZE;str!=end;fmt_addr++) {
 		char c;
 
 		c = GET_CHAR(fmt_addr);		

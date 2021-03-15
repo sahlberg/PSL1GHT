@@ -26,10 +26,12 @@ export WM_LDFLAGS		:= -nostdlib \
 						   -Wl,-s
 
 export TASK_CFLAGS		:= -Os -ffast-math -ftree-vectorize -funroll-loops -fschedule-insns
-export TASK_LDFLAGS 	:= -Wl,-Ttext-segment=0x3a00 -Wl,--gc-sections -Wl,--local-store=0x3a00:0x3FFFF
+export TASK_LDFLAGS 	:= -Wl,-Ttext-segment=0x3a00 -Wl,--gc-sections -Wl,--local-store=0x3a00:0x3FFFF \
+						   -lspumarstask -lspumars -lsputhread
 
-export JOB_CFLAGS		:= -Os -fPIC -ffast-math -ftree-vectorize -funroll-loops -fschedule-insns
-export JOB_LDFLAGS 		:= -Wl,--gc-sections
+export JOB_CFLAGS		:= -Os -fpic -ffast-math -ftree-vectorize -funroll-loops -fschedule-insns
+export JOB_LDFLAGS 		:= -fpic -Wl,--gc-sections \
+						   -lspumarsjq -lspumars -lsputhread
 
 PREFIX	:=	spu-
 

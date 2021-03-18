@@ -35,7 +35,8 @@ LIBRARY		:= $(LIBDIR)/libspudma
 #---------------------------------------------------------------------------------
 INCLUDES	:= -I$(BASEDIR) -I$(BASEDIR)/../include -I$(BASEDIR)/../include/dma
 
-CFLAGS		:= -O2 -Wall $(MACHDEP) -DLIBRT_INTERNAL $(INCLUDES)
+CFLAGS		:= -Os -fpic -ffast-math -ftree-vectorize -funroll-loops -fschedule-insns \
+			   -Wall $(MACHDEP) -DLIBRT_INTERNAL $(INCLUDES)
 ASFLAGS		:= $(MACHDEP) -D__ASSEMBLY__ $(INCLUDES)
 
 #---------------------------------------------------------------------------------

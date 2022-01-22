@@ -395,7 +395,7 @@ def pack(folder, contentid, outname=None):
 	metaBlock.unk4 		= 2 
 	
 	metaBlock.unk21 	= 4
-	metaBlock.unk22 	= 5 #5 == gameexec, 4 == gamedata
+	metaBlock.unk22 	= 6 #5 == gameexec, 4 == gamedata
 	metaBlock.unk23 	= 3
 	metaBlock.unk24 	= 4
 	

@@ -8,7 +8,6 @@ import sys
 import hashlib
 import os
 import getopt
-import ConfigParser
 import io
 import glob
 
@@ -74,7 +73,7 @@ class FileHeader(Struct):
 		self.padding 		= Struct.uint32
 	def __str__(self):
 		out  = ""
-		out += "[X] File Name: %s [" % self.fileName
+		out += "[X] File Name: %s [" % self.fileNameStr()
 		if self.flags & 0xFF == TYPE_NPDRMSELF:
 			out += "NPDRM Self]"
 		elif self.flags & 0xFF == TYPE_DIRECTORY:
@@ -101,10 +100,10 @@ class FileHeader(Struct):
 		
 		return out
 	def __repr__(self):
-		return self.fileName + ("<FileHeader> Size: 0x%016x" % self.fileSize)
+		return self.fileNameStr() + ("<FileHeader> Size: 0x%016x" % self.fileSize)
 	def __init__(self):
 		Struct.__init__(self)
-		self.fileName = ""
+		self.fileName = b""
 	def doWork(self, decrypteddata, context = None):
 		if context == None:
 			self.fileName = nullterm(decrypteddata[self.fileNameOff:self.fileNameOff+self.fileNameLength])
@@ -113,14 +112,16 @@ class FileHeader(Struct):
 	def dump(self, directory, data, header):
 		if self.flags & 0xFF == 0x4:
 			try:
-				os.makedirs(directory + "/" + self.fileName)
-			except Exception, e:
-				print
+				os.makedirs(directory + "/" + self.fileNameStr())
+			except Exception as e:
+				print("")
 			
 		else:
-			tFile = open(directory + "/" + self.fileName, "wb")
+			tFile = open(directory + "/" + self.fileNameStr(), "wb")
 			tFile.write(data[self.fileOff:self.fileOff+self.fileSize])
-			
+	def fileNameStr(self):
+		return bytesToStr(self.fileName)
+
 
 class Header(Struct):
 	__endian__ = Struct.BE
@@ -161,25 +162,31 @@ class Header(Struct):
 		out += "[X] Data Offset: %016x\n" % self.dataOff
 		out += "[X] Data Size: %016x\n" % self.dataSize
 		
-		out += "[X] ContentID: '%s'\n" % (nullterm(self.contentID))
+		out += "[X] ContentID: '%s'\n" % (bytesToStr(nullterm(self.contentID)))
 		
-		out += "[X] QA_Digest: %s\n" % (nullterm(self.QADigest, True))
-		out += "[X] K Licensee: %s\n" % licensee.encode('hex')
+		out += "[X] QA_Digest: %s\n" % (bytesToStr(nullterm(self.QADigest, True)))
+		out += "[X] K Licensee: %s\n" % (licensee.hex() if hasattr(licensee, 'hex') else licensee.encode('hex'))
 		
 		
 		return out
+def bytesToStr(s):
+	try:
+		s = str(s, 'utf-8', 'ignore')
+	except TypeError:
+		pass
+	return s
 def listToString(inlist):
 	if isinstance(inlist, list):
-		return ''.join(["%c" % el for el in inlist])
+		return b''.join([b"%c" % el for el in inlist])
 	else:
-		return ""
+		return b""
 def nullterm(str_plus, printhex=False):
 	if isinstance(str_plus, list):
 		if printhex:
-			str_plus = ''.join(["%X" % el for el in str_plus])
+			str_plus = b''.join([b"%X" % el for el in str_plus])
 		else:
 			str_plus = listToString(str_plus)
-	z = str_plus.find('\0')
+	z = str_plus.find(b'\0')
 	if z != -1:
 		return str_plus[:z]
 	else:
@@ -191,13 +198,13 @@ def keyToContext(key):
 		key = key[0:16]
 	largekey = []
 	for i in range(0, 8):
-		largekey.append(ord(key[i]))
+		largekey.append(ord(key[i:i+1]))
 	for i in range(0, 8):
-		largekey.append(ord(key[i]))
+		largekey.append(ord(key[i:i+1]))
 	for i in range(0, 8):
-		largekey.append(ord(key[i+8]))
+		largekey.append(ord(key[i+8:i+9]))
 	for i in range(0, 8):
-		largekey.append(ord(key[i+8]))
+		largekey.append(ord(key[i+8:i+9]))
 	for i in range(0, 0x20):
 		largekey.append(0)
 	return largekey
@@ -217,14 +224,14 @@ def manipulate(key):
 def setContextNum(key, tmpnum):
 	tmpchrs = struct.pack('>Q', tmpnum)
 	
-	key[0x38] = ord(tmpchrs[0])
-	key[0x39] = ord(tmpchrs[1])
-	key[0x3a] = ord(tmpchrs[2])
-	key[0x3b] = ord(tmpchrs[3])
-	key[0x3c] = ord(tmpchrs[4])
-	key[0x3d] = ord(tmpchrs[5])
-	key[0x3e] = ord(tmpchrs[6])
-	key[0x3f] = ord(tmpchrs[7])
+	key[0x38] = ord(tmpchrs[0:1])
+	key[0x39] = ord(tmpchrs[1:2])
+	key[0x3a] = ord(tmpchrs[2:3])
+	key[0x3b] = ord(tmpchrs[3:4])
+	key[0x3c] = ord(tmpchrs[4:5])
+	key[0x3d] = ord(tmpchrs[5:6])
+	key[0x3e] = ord(tmpchrs[6:7])
+	key[0x3f] = ord(tmpchrs[7:8])
 
 import pkgcrypt
 
@@ -243,7 +250,7 @@ def crypt(key, inbuf, length):
 			bytes_to_dump = 0x10
 		outhash = SHA1(listToString(key)[0:0x40])
 		for i in range(0, bytes_to_dump):
-			ret += chr(ord(outhash[i]) ^ ord(inbuf[offset]))
+			ret += chr(ord(outhash[i:i+1]) ^ ord(inbuf[offset:offset+1]))
 			offset += 1
 		manipulate(key)
 		length -= bytes_to_dump
@@ -261,14 +268,14 @@ def listPkg(filename):
 		offset = 0
 		header = Header()
 		header.unpack(data[offset:offset+len(header)])
-		print header
-		print
+		print(header)
+		print("")
 		
 		assert header.type == 0x00000001, 'Unsupported Type'
 		if header.itemCount > 0:
-			print 'Listing: "' + filename + '"'
-			print "+) overwrite, -) no overwrite"
-			print
+			print('Listing: "' + filename + '"')
+			print("+) overwrite, -) no overwrite")
+			print("")
 			dataEnc = data[header.dataOff:header.dataOff+header.dataSize]
 			context = keyToContext(header.QADigest)
 			
@@ -295,10 +302,9 @@ def listPkg(filename):
 				else:
 					out += "-"
 				out += "%11d: " % fileD.fileSize
-				out += fileD.fileName
-				print out,
-				print
-				#print fileD
+				out += fileD.fileNameStr()
+				print(out)
+				#print(fileD)
 def unpack(filename):
 	with open(filename, 'rb') as fp:
 		data = fp.read()
@@ -306,8 +312,8 @@ def unpack(filename):
 		header = Header()
 		header.unpack(data[offset:offset+len(header)])
 		if debug:
-			print header
-			print
+			print(header)
+			print("")
 		
 		assert header.type == 0x00000001, 'Unsupported Type'
 		if header.itemCount > 0:
@@ -315,10 +321,10 @@ def unpack(filename):
 			context = keyToContext(header.QADigest)
 			
 			decData = crypt(context, dataEnc, header.dataSize)
-			directory = nullterm(header.contentID)
+			directory = bytesToStr(nullterm(header.contentID))
 			try:
 				os.makedirs(directory)
-			except Exception, e:
+			except Exception as e:
 				pass
 			fileDescs = []
 			for i in range(0, header.itemCount):
@@ -327,7 +333,7 @@ def unpack(filename):
 				fileD.doWork(decData)
 				fileDescs.append(fileD)
 				if debug:
-					print fileD
+					print(fileD)
 				fileD.dump(directory, decData, header)
 def getFiles(files, folder, original):
 	oldfolder = folder
@@ -344,7 +350,7 @@ def getFiles(files, folder, original):
 		newpath = newpath[len(original):]
 		if os.path.isdir(filepath):
 			folder = FileHeader()
-			folder.fileName = newpath
+			folder.fileName = bytes(str(newpath).encode("utf-8"))
 			folder.fileNameOff 	= 0
 			folder.fileNameLength = len(folder.fileName)
 			folder.fileOff 		= 0
@@ -356,7 +362,7 @@ def getFiles(files, folder, original):
 			getFiles(files, filepath, original)
 		else:
 			file = FileHeader()
-			file.fileName = newpath
+			file.fileName = bytes(str(newpath).encode("utf-8"))
 			file.fileNameOff 	= 0
 			file.fileNameLength = len(file.fileName)
 			file.fileOff 		= 0
@@ -421,7 +427,7 @@ def pack(folder, contentid, outname=None):
 	files = []
 	getFiles(files, folder, folder)
 	header.itemCount = len(files)
-	dataToEncrypt = ""
+	dataToEncrypt = b""
 	fileDescLength = 0
 	fileOff = 0x20 * len(files)
 	for file in files:
@@ -435,17 +441,17 @@ def pack(folder, contentid, outname=None):
 	for file in files:
 		alignedSize = (file.fileNameLength + 0x0F) & ~0x0F
 		dataToEncrypt += file.fileName
-		dataToEncrypt += "\0" * (alignedSize-file.fileNameLength)
+		dataToEncrypt += b"\0" * (alignedSize-file.fileNameLength)
 	fileDescLength = len(dataToEncrypt)
 	for file in files:
 		if not file.flags & 0xFF == TYPE_DIRECTORY:
-			path = os.path.join(folder, file.fileName)
+			path = os.path.join(folder, file.fileNameStr())
 			fp = open(path, 'rb')
 			fileData = fp.read()
 			qadigest.update(fileData)
 			fileSHA1 = SHA1(fileData)
 			fp.close()
-			if fileData[0:9] == "SCE\0\0\0\0\x02\x80":
+			if fileData[0:9] == b"SCE\0\0\0\0\x02\x80":
 				fselfheader = SelfHeader()
 				fselfheader.unpack(fileData[0:len(fselfheader)])
 				appheader = AppInfo()
@@ -471,9 +477,9 @@ def pack(folder, contentid, outname=None):
 					meta.drmType 		= metaBlock.drmType
 					meta.unk2			= 1
 					for i in range(0,min(len(contentid), 0x30)):
-						meta.contentID[i] = ord(contentid[i])
+						meta.contentID[i] = ord(contentid[i:i+1])
 					for i in range(0,0x10):
-						meta.fileSHA1[i] 		= ord(fileSHA1[i])
+						meta.fileSHA1[i] 		= ord(fileSHA1[i:i+1])
 						meta.notSHA1[i] 		= (~meta.fileSHA1[i]) & 0xFF
 						if i == 0xF:
 							meta.notXORKLSHA1[i] 	= (1 ^ meta.notSHA1[i] ^ 0xAA) & 0xFF
@@ -487,7 +493,7 @@ def pack(folder, contentid, outname=None):
 			else:
 				dataToEncrypt += fileData
 			
-			dataToEncrypt += '\0' * (((file.fileSize + 0x0F) & ~0x0F) - len(fileData))
+			dataToEncrypt += b'\0' * (((file.fileSize + 0x0F) & ~0x0F) - len(fileData))
 	header.dataSize = len(dataToEncrypt)
 	metaBlock.dataSize 	= header.dataSize
 	header.packageSize = header.dataSize + 0x1A0
@@ -497,17 +503,17 @@ def pack(folder, contentid, outname=None):
 	QA_Digest = qadigest.digest()
 	
 	for i in range(0, 0x10):
-		header.QADigest[i] = ord(QA_Digest[i])
+		header.QADigest[i] = ord(QA_Digest[i:i+1])
 		
 	for i in range(0, min(len(contentid), 0x30)):
-		header.contentID[i] = ord(contentid[i])
+		header.contentID[i] = ord(contentid[i:i+1])
 	
 	context = keyToContext(header.QADigest)
 	setContextNum(context, 0xFFFFFFFFFFFFFFFF)
 	licensee = crypt(context, listToString(header.KLicensee), 0x10)
 	
 	for i in range(0, min(len(contentid), 0x10)):
-		header.KLicensee[i] = ord(licensee[i])
+		header.KLicensee[i] = ord(licensee[i:i+1])
 	
 	if outname != None:
 		outFile = open(outname, 'wb')
@@ -520,12 +526,12 @@ def pack(folder, contentid, outname=None):
 	
 	metaData = metaBlock.pack()
 	metaBlockSHA = SHA1(metaData)[3:19]
-	metaBlockSHAPad = '\0' * 0x30
+	metaBlockSHAPad = b'\0' * 0x30
 	
-	context = keyToContext([ord(c) for c in metaBlockSHA])
+	context = keyToContext([ord(metaBlockSHA[i:i+1]) for i in range(len(metaBlockSHA))])
 	metaBlockSHAPadEnc = crypt(context, metaBlockSHAPad, 0x30)
 	
-	context = keyToContext([ord(c) for c in headerSHA])
+	context = keyToContext([ord(headerSHA[i:i+1]) for i in range(len(headerSHA))])
 	metaBlockSHAPadEnc2 = crypt(context, metaBlockSHAPadEnc, 0x30)
 	outFile.write(metaBlockSHAPadEnc2)
 	outFile.write(metaData)
@@ -535,12 +541,12 @@ def pack(folder, contentid, outname=None):
 	context = keyToContext(header.QADigest)
 	encData = crypt(context, dataToEncrypt, header.dataSize)
 	outFile.write(encData)
-	outFile.write('\0' * 0x60)
+	outFile.write(b'\0' * 0x60)
 	outFile.close()
-	print header
+	print(header)
 	
 def usage():
-	print """usage: [based on revision 1061]
+	print("""usage: [based on revision 1061]
 
     python pkg.py target-directory [out-file]
 
@@ -550,10 +556,10 @@ def usage():
 
     python pkg.py [options]
         --version               print revision.
-        --help                  print this message."""
+        --help                  print this message.""")
 
 def version():
-	print """pky.py 0.5"""
+	print("""pky.py 0.5""")
 
 def main():
 	global debug

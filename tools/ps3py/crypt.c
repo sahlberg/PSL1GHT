@@ -1,6 +1,14 @@
+#define PY_SSIZE_T_CLEAN 1
+
 #include <Python.h>
 
 static PyObject *sha1_callback = NULL;
+
+#if PY_MAJOR_VERSION >= 3
+#define BYTES "y"
+#else
+#define BYTES "s"
+#endif
 
 static void manipulate(uint8_t *key) {
 	/* We need to cast each byte to a 64 bit int so that gcc won't truncate it
@@ -26,13 +34,13 @@ static void manipulate(uint8_t *key) {
 
 static PyObject* pkg_crypt(PyObject *self, PyObject *args) {
 	uint8_t *key, *input, *ret;
-	int key_length, input_length, length;
-	int remaining, i, offset=0;
+	Py_ssize_t key_length, input_length;
+	int length, remaining, i, offset=0;
 
 	PyObject *arglist;
 	PyObject *result;
 
-	if (!PyArg_ParseTuple(args, "s#s#i", &key, &key_length, &input, &input_length, &length))
+	if (!PyArg_ParseTuple(args, BYTES "#" BYTES "#i", &key, &key_length, &input, &input_length, &length))
 		return NULL;
 	ret = malloc(length);
 	remaining = length;
@@ -45,12 +53,12 @@ static PyObject* pkg_crypt(PyObject *self, PyObject *args) {
 		// outhash = SHA1(listToString(key)[0:0x40])
 		uint8_t *outHash; 
 		{
-			arglist = Py_BuildValue("(s#)", key, 0x40);
+			arglist = Py_BuildValue("(" BYTES "#)", key, (Py_ssize_t)0x40);
 			result = PyObject_CallObject(sha1_callback, arglist);
 			Py_DECREF(arglist);
 			if (!result) return NULL;
-			int outHash_length;
-			if (!PyArg_Parse(result, "s#", &outHash, &outHash_length)) return NULL;
+			Py_ssize_t outHash_length;
+			if (!PyArg_Parse(result, BYTES "#", &outHash, &outHash_length)) return NULL;
 		}
 		for(i = 0; i < bytes_to_dump; i++) {
 			ret[offset] = outHash[i] ^ input[offset];
@@ -62,7 +70,7 @@ static PyObject* pkg_crypt(PyObject *self, PyObject *args) {
 	}
 	
 	// Return the encrypted data
-	PyObject *py_ret = Py_BuildValue("s#", ret, length);
+	PyObject *py_ret = Py_BuildValue(BYTES "#", ret, length);
 	free(ret);
 	return py_ret;
 }
@@ -92,8 +100,25 @@ static PyMethodDef cryptMethods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+
+static struct PyModuleDef pkgcryptModDef =
+{
+	PyModuleDef_HEAD_INIT,
+	"pkgcrypt",
+	NULL,
+	-1,
+	cryptMethods
+};
+
+PyMODINIT_FUNC PyInit_pkgcrypt(void) {
+	return PyModule_Create(&pkgcryptModDef);
+}
+
+#else
+
 PyMODINIT_FUNC initpkgcrypt(void) {
 	(void) Py_InitModule("pkgcrypt", cryptMethods);
 }
 
-
+#endif

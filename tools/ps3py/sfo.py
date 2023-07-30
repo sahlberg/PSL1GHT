@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import with_statement
+
 from xml.dom.minidom import Document, parse, parseString
 from Struct import Struct
 import struct
@@ -12,7 +13,7 @@ SFO_MAGIC  = 0x46535000
 SFO_STRING = 2
 SFO_INT    = 4
 def nullterm(str_plus):
-	z = str_plus.find('\0')
+	z = str_plus.find(b'\0')
 	if z != -1:
 		return str_plus[:z]
 	else:
@@ -70,11 +71,11 @@ class Entry(Struct):
 		return out
 	
 def usage():
-	print """usage:
-    python sfo.py"""
+	print("""usage:
+    python sfo.py""")
 
 def version():
-	print """sfo.py 0.2"""
+	print("""sfo.py 0.2""")
 	
 def listSFO(file):
 	global debug
@@ -86,31 +87,36 @@ def listSFO(file):
 		header = Header()
 		header.unpack(data[offset:offset+len(header)])
 		if debug:
-			print header
-			print
+			print(header)
+			print("")
 		assert header.magic == SFO_MAGIC
 		assert header.unk1 == 0x00000101
 		offset += len(header)
 		off1 = header.KeyOffset
 		off2 = header.ValueOffset
-		for x in xrange(header.PairCount):
+		for x in range(header.PairCount):
 			entry = Entry()
 			entry.unpack(data[offset:offset+len(entry)])
 			if debug and not pretty:
-				print entry
-				print
+				print(entry)
+				print("")
 			if debug and pretty:
-				print entry.PrettyPrint(data, off1, off2)
-				print
+				print(entry.PrettyPrint(data, off1, off2))
+				print("")
 			key = nullterm(data[off1+entry.key_off:])
 			if entry.value_type == SFO_STRING:
 				value = nullterm(data[off2+entry.value_off:])
 			else:
 				value = struct.unpack('<I', data[entry.value_off + off2:entry.value_off + off2 + 4])[0]
+			try:
+				key = str(key, 'utf-8')
+				value = str(value, 'utf-8')
+			except TypeError:
+				pass
 			stuff[key] = value
 			offset += len(entry)
 		if not debug:
-			print stuff
+			print(stuff)
 def convertToXml(sfofile, xml):
 	doc = Document()
 	sfo = doc.createElement("sfo")
@@ -123,27 +129,35 @@ def convertToXml(sfofile, xml):
 		header = Header()
 		header.unpack(data[offset:offset+len(header)])
 		if debug:
-			print header
-			print
+			print(header)
+			print("")
 		assert header.magic == SFO_MAGIC
 		assert header.unk1 == 0x00000101
 		offset += len(header)
 		off1 = header.KeyOffset
 		off2 = header.ValueOffset
-		for x in xrange(header.PairCount):
+		for x in range(header.PairCount):
 			entry = Entry()
 			entry.unpack(data[offset:offset+len(entry)])
 			if debug and not pretty:
-				print entry
-				print
+				print(entry)
+				print("")
 			if debug and pretty:
-				print entry.PrettyPrint(data, off1, off2)
-				print
+				print(entry.PrettyPrint(data, off1, off2))
+				print("")
 			key = nullterm(data[off1+entry.key_off:])
+			try:
+				key = str(key, 'utf-8')
+			except TypeError:
+				pass
 			valuenode = doc.createElement("value")
 			valuenode.setAttribute("name", key)
 			if entry.value_type == SFO_STRING:
 				value = nullterm(data[off2+entry.value_off:])
+				try:
+					value = str(value, 'utf-8')
+				except TypeError:
+					pass
 				valuenode.setAttribute("type", "string")
 				valuenode.appendChild(doc.createTextNode(value))
 			else:
@@ -154,10 +168,10 @@ def convertToXml(sfofile, xml):
 			stuff[key] = value
 			offset += len(entry)
 		if not debug:
-			print stuff
+			print(stuff)
 	
 	doc.appendChild(sfo)
-	file = open(xml, "wb" )
+	file = open(xml, "w" )
 	doc.writexml(file, '', '\t', '\n' )
 	file.close()
 	
@@ -231,8 +245,8 @@ def convertToSFO(xml, sfofile, forcetitle, forceappid):
 	for entry in entries:
 		file.write(entry.pack())
 	for k,v in kvs:
-		file.write(k + '\0')
-	file.write('\0' * keypad)
+		file.write(bytes(str(k).encode('ascii')) + b'\0')
+	file.write(b'\0' * keypad)
 	for k,v in kvs:
 		if isinstance(v, int):
 			file.write(struct.pack('<I', v))
@@ -244,8 +258,9 @@ def convertToSFO(xml, sfofile, forcetitle, forceappid):
 				alignment = 0x200
 			elif k == "TITLE_ID":
 				alignment = 0x10
-			file.write(v + '\0')
-			file.write('\0' * (align(len(v) + 1, alignment) - (len(v) +1)))
+			v = bytes(str(v).encode('utf-8'))
+			file.write(v + b'\0')
+			file.write(b'\0' * (align(len(v) + 1, alignment) - (len(v) +1)))
 	file.close()
 def main():
 	global debug

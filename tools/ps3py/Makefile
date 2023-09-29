@@ -17,7 +17,7 @@ endif
 all: pkgcrypt.so
 
 pkgcrypt.so: crypt.c setup.py
-	@`./find-python2` setup.py build_ext $(COMPILER)
+	@`./find-python` setup.py build_ext $(COMPILER)
 	@cp build/lib.*/pkgcrypt.* .
 
 clean:

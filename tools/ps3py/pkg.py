@@ -225,7 +225,6 @@ def cryptfile(key, infile, outfile):
 	infile.seek(0, 2)
 	length = infile.tell()
 	infile.seek(0)
-	offset = 0
 	BS = 8 * 1024 * 1024
 	while length:
 		len = length
@@ -235,7 +234,6 @@ def cryptfile(key, infile, outfile):
 		data, new_key = pkgcrypt.pkgcrypt(listToString(key), inbuf, len);
 		outfile.write(data)
 		length = length - len
-		offset = offset + len
 		key[:] = new_key
 
 def crypt(key, inbuf, length):
@@ -261,10 +259,46 @@ def crypt(key, inbuf, length):
 		length -= bytes_to_dump
 
 	return ret
+
 def SHA1(data):
 	m = hashlib.sha1()
 	m.update(data)
 	return m.digest()
+
+def SHA1file(f):
+	m = hashlib.sha1()
+	f.seek(0, 2)
+	len = f.tell()
+	f.seek(0)
+	BS = 8 * 1024 * 1024
+	while len:
+		_l = len
+		if _l > BS:
+			_l = BS
+		data = f.read(_l)
+		m.update(data)
+		len = len - _l
+	return m.digest()
+
+def updateQA(qadigest, f):
+	f.seek(0, 2)
+	len = f.tell()
+	f.seek(0)
+	BS = 8 * 1024 * 1024
+	while len:
+		_l = len
+		if _l > BS:
+			_l = BS
+		data = f.read(_l)
+		qadigest.update(data)
+		len = len - _l
+
+def catfile(fp, tmpFile):
+        BS = 8 * 1024 * 1024
+        _d = fp.read(BS)
+        while _d:
+                tmpFile.write(_d)
+                _d = fp.read(BS)
 
 pkgcrypt.register_sha1_callback(SHA1)
 	
@@ -456,20 +490,26 @@ def pack(folder, contentid, outname=None):
 		if not file.flags & 0xFF == TYPE_DIRECTORY:
 			path = os.path.join(folder, file.fileName.decode('ascii'))
 			fp = open(path, 'rb')
-			fileData = fp.read()
-			qadigest.update(fileData)
-			fileSHA1 = SHA1(fileData)
-			fp.close()
-			if fileData[0:9] == b"SCE\0\0\0\0\x02\x80":
+			updateQA(qadigest, fp)
+			fileSHA1 = SHA1file(fp)
+			fp.seek(0)
+			_d = fp.read(9)
+			if _d == b"SCE\0\0\0\0\x02\x80":
 				fselfheader = SelfHeader()
-				fselfheader.unpack(fileData[0:len(fselfheader)])
+				fp.seek(0)
+				_d = fp.read(len(fselfheader))
+				fselfheader.unpack(_d)
 				appheader = AppInfo()
-				appheader.unpack(fileData[fselfheader.AppInfo:fselfheader.AppInfo+len(appheader)])
+				fp.seek(fselfheader.AppInfo)
+				_d = fp.read(len(appheader))
+				appheader.unpack(_d)
 				found = False
 				digestOff = fselfheader.digest
 				while not found:
 					digest = DigestBlock()
-					digest.unpack(fileData[digestOff:digestOff+len(digest)])
+					fp.seek(digestOff)
+					_d = fp.read(len(digest))
+					digest.unpack(_d)
 					if digest.type == 3:
 						found = True
 					else:
@@ -478,7 +518,9 @@ def pack(folder, contentid, outname=None):
 						break
 				digestOff += len(digest)
 				if appheader.appType == 8 and found:
-					tmpFile.write(fileData[0:digestOff])
+					fp.seek(0)
+					_d = fp.read(digestOff)
+					tmpFile.write(_d)
 					
 					meta = EbootMeta()
 					meta.magic = 0x4E504400
@@ -496,13 +538,19 @@ def pack(folder, contentid, outname=None):
 							meta.notXORKLSHA1[i] 	= (0 ^ meta.notSHA1[i] ^ 0xAA) & 0xFF
 						meta.nulls[i] 			= 0
 					tmpFile.write(meta.pack())
-					tmpFile.write(fileData[digestOff + 0x80:])
+					fp.seek(digestOff + 0x80)
+					catfile(fp, tmpFile)
 				else:
-					tmpFile.write(fileData)
+					fp.seek(0)
+					catfile(fp, tmpFile)
 			else:
-				tmpFile.write(fileData)
-			
-			tmpFile.write(b'\0' * (((file.fileSize + 0x0F) & ~0x0F) - len(fileData)))
+				fp.seek(0)
+				catfile(fp, tmpFile)
+
+			fp.seek(0, 2)
+			tmpFile.write(b'\0' * (((file.fileSize + 0x0F) & ~0x0F) - fp.tell()))
+			fp.close()
+
 	tmpFile.seek(0, 2)
 	header.dataSize = tmpFile.tell()
 	metaBlock.dataSize 	= header.dataSize

@@ -470,7 +470,7 @@ def pack(folder, contentid, outname=None):
 	files = []
 	getFiles(files, folder, folder)
 	header.itemCount = len(files)
-	tmpFile = tempfile.TemporaryFile()
+	tmpFile = tempfile.TemporaryFile(dir='.')
 	fileDescLength = 0
 	fileOff = 0x20 * len(files)
 	for file in files:

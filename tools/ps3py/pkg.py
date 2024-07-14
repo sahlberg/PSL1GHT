@@ -553,7 +553,8 @@ def pack(folder, contentid, outname=None):
 
 	tmpFile.seek(0, 2)
 	header.dataSize = tmpFile.tell()
-	metaBlock.dataSize 	= header.dataSize
+	metaBlock.unk34 	= (header.dataSize >> 32) & 0xffff
+	metaBlock.dataSize 	= header.dataSize & 0xffffffff
 	header.packageSize = header.dataSize + 0x1A0
 	head = header.pack()
 	qadigest.update(head)
